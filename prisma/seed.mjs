@@ -1,6 +1,17 @@
 import pkg from '@prisma/client'
 import bcrypt from 'bcryptjs'
 
+const envFiles =
+  process.env.NODE_ENV === 'production'
+    ? ['.env.production', '.env']
+    : ['.env', '.env.production']
+
+for (const file of envFiles) {
+  try {
+    process.loadEnvFile(file)
+  } catch {}
+}
+
 const { PrismaClient } = pkg
 const prisma = new PrismaClient()
 
