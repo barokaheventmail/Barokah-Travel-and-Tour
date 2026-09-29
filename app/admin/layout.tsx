@@ -2,7 +2,6 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { Eye, History, QrCode } from 'lucide-react'
 import { AutoRefresh } from '@/components/admin/auto-refresh'
-import { ChangePasswordButton } from '@/components/admin/change-password'
 import { LogoutButton } from '@/components/admin/logout-button'
 import { Logo } from '@/components/site'
 import { requireAdminSession } from '@/lib/auth'
@@ -48,7 +47,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             >
               <QrCode size={13} /> Event
             </Link>
-            <ChangePasswordButton username={session.username} />
             <LogoutButton />
           </nav>
         </div>
