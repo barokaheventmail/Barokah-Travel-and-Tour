@@ -29,38 +29,6 @@ export type EventTicketsSection = {
   busAttended: number
 }
 
-function SlideRow({ children }: { children: React.ReactNode }) {
-  const ref = useRef<HTMLDivElement>(null)
-  const slide = (dir: number) => {
-    const el = ref.current
-    if (!el) return
-    el.scrollBy({ left: dir * Math.max(el.clientWidth * 0.6, 140), behavior: 'smooth' })
-  }
-  return (
-    <div className="flex items-center gap-1.5">
-      <button
-        type="button"
-        aria-label="Geser daftar bus ke kiri"
-        onClick={() => slide(-1)}
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#e2e8ef] bg-white p-0 text-[#163d78] shadow-sm transition-all duration-200 hover:border-[#163d78]/30 hover:bg-[#eef3fb]"
-      >
-        <ChevronLeft size={16} />
-      </button>
-      <div ref={ref} className="no-scrollbar flex min-w-0 flex-1 gap-2 overflow-x-auto overscroll-x-contain py-1">
-        {children}
-      </div>
-      <button
-        type="button"
-        aria-label="Geser daftar bus ke kanan"
-        onClick={() => slide(1)}
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#e2e8ef] bg-white p-0 text-[#163d78] shadow-sm transition-all duration-200 hover:border-[#163d78]/30 hover:bg-[#eef3fb]"
-      >
-        <ChevronRight size={16} />
-      </button>
-    </div>
-  )
-}
-
 type EventTicketsProps = {
   eventId: string
   eventTitle: string
@@ -95,7 +63,6 @@ export function EventTickets({
   const [expandedBusIds, setExpandedBusIds] = useState<Set<string>>(new Set())
   const [rosterCache, setRosterCache] = useState<Record<string, EventTicketsParticipant[]>>({})
   const [rosterLoadingIds, setRosterLoadingIds] = useState<Record<string, boolean>>({})
-  const [busDropdownOpen, setBusDropdownOpen] = useState(false)
   const [multiOpen, setMultiOpen] = useState(false)
   const [liveTotal, setLiveTotal] = useState(total)
   const [liveAttended, setLiveAttended] = useState(attended)
@@ -112,13 +79,6 @@ export function EventTickets({
   const allBusIds = busOptions.map((s) => s.busId)
   const isFiltered = busSelection.length > 0
   const visibleSections = isFiltered ? sections.filter((s) => busSelection.includes(s.busId)) : sections
-
-  const filterLabel =
-    busSelection.length === 0
-      ? 'Semua Bus'
-      : busSelection.length === 1
-        ? sections.find((s) => s.busId === busSelection[0])?.busName ?? 'Semua Bus'
-        : `${busSelection.length} Bus Dipilih`
 
   const loadRosters = async (ids: string[]) => {
     const missing = ids.filter((id) => !rosterCache[id])
@@ -244,12 +204,6 @@ export function EventTickets({
 
   // Persentase kehadiran untuk progress bar pada kartu "Hadir".
   const attendPct = liveTotal > 0 ? Math.min(100, Math.round((liveAttended / liveTotal) * 100)) : 0
-
-  // Kosongkan pilihan tanpa menutup panel, dipakai kartu "Semua Bus" di dalam grid.
-  const showAllBuses = () => {
-    setBusSelection([])
-    setExpandedBusIds(new Set())
-  }
 
   const toggleExpand = (busId: string) => {
     const willExpand = !expandedBusIds.has(busId)
@@ -410,24 +364,10 @@ export function EventTickets({
               <div className="mt-6 flex flex-wrap items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => setBusDropdownOpen((o) => !o)}
-                  aria-expanded={busDropdownOpen}
-                  className="flex items-center gap-2 rounded-full border border-[#dfe4e8] bg-[#f8fafc] px-4 py-2 text-sm font-bold text-[#1b3555] transition-colors duration-150 hover:bg-[#eef3fb]"
-                >
-                  <Bus size={14} className="text-[#163d78]" />
-                  <span className="max-w-40 truncate">{filterLabel}</span>
-                  {busDropdownOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMultiOpen((o) => !o)
-                    setBusDropdownOpen(false)
-                  }}
+                  onClick={() => setMultiOpen((o) => !o)}
                   aria-expanded={multiOpen}
                   className={`group flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-bold transition-all duration-200 ${
-                    busSelection.length > 1
+                    busSelection.length > 0
                       ? 'border-transparent bg-[linear-gradient(100deg,#071e3d_0%,#163d78_100%)] text-white shadow-[0_12px_28px_-12px_rgba(9,32,74,0.95)]'
                       : multiOpen
                         ? 'border-[#163d78] bg-[#eef3fb] text-[#0d2850]'
@@ -436,55 +376,23 @@ export function EventTickets({
                 >
                   <ListChecks size={14} />
                   Pilih Banyak Bus
-                  {busSelection.length > 1 && (
+                  {busSelection.length > 0 && (
                     <span className="rounded-full bg-white/25 px-1.5 py-0.5 text-[11px] font-extrabold tabular-nums">
                       {busSelection.length}
                     </span>
                   )}
                   {multiOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                 </button>
+                {busSelection.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={clearBuses}
+                    className="rounded-full border border-[#e4e8ec] bg-white px-3 py-2 text-xs font-bold text-[#657080] transition-all duration-200 hover:border-[#e0a3a0] hover:bg-[#fdf1f0] hover:text-[#c0392b]"
+                  >
+                    Hapus Pilihan
+                  </button>
+                )}
               </div>
-
-              {busDropdownOpen && (
-                <div className="mt-3 rounded-2xl border border-[#dfe4e8] bg-white p-3 shadow-sm">
-                  <p className="mb-2 px-1 text-xs font-bold uppercase tracking-wide text-[#9aa3af]">Pilih Bus</p>
-                  <SlideRow>
-                    <button
-                      type="button"
-                      aria-pressed={busSelection.length === 0}
-                      onClick={() => setFilter([])}
-                      className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-xl border px-3 py-2 text-sm font-semibold transition-colors duration-150 ${
-                        busSelection.length === 0
-                          ? 'border-[#163d78] bg-[#eef3fb] text-[#0d2850]'
-                          : 'border-[#e2e8ef] bg-white text-[#1b3555] hover:border-[#163d78]/30 hover:bg-[#f5f9fd]'
-                      }`}
-                    >
-                      Semua Bus
-                      {busSelection.length === 0 && <Check size={14} />}
-                    </button>
-                    {busOptions.map((b) => {
-                      const selected = busSelection.length === 1 && busSelection[0] === b.busId
-                      return (
-                        <button
-                          key={b.busId}
-                          type="button"
-                          aria-pressed={selected}
-                          onClick={() => setFilter([b.busId])}
-                          className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-xl border px-3 py-2 text-sm font-semibold transition-colors duration-150 ${
-                            selected
-                              ? 'border-[#163d78] bg-[#eef3fb] text-[#0d2850]'
-                              : 'border-[#e2e8ef] bg-white text-[#1b3555] hover:border-[#163d78]/30 hover:bg-[#f5f9fd]'
-                          }`}
-                        >
-                          {b.busName}
-                          <span className="text-[11px] font-semibold text-[#9aa3af]">{b.busTotal}</span>
-                          {selected && <Check size={14} />}
-                        </button>
-                      )
-                    })}
-                  </SlideRow>
-                </div>
-              )}
 
               {multiOpen && (
                 <div className="mt-3 overflow-hidden rounded-2xl border border-[#dfe4e8] bg-white shadow-[0_14px_34px_-20px_rgba(27,53,85,0.45)]">
@@ -496,12 +404,12 @@ export function EventTickets({
                       <div>
                         <p className="text-sm font-bold text-[#1b3555]">
                           {busSelection.length === 0
-                            ? 'Semua Bus'
+                            ? 'Belum ada bus dipilih'
                             : `${busSelection.length} Bus Dipilih`}
                         </p>
                         <p className="text-[11px] text-[#7a8798]">
                           {busSelection.length === 0
-                            ? `Menampilkan seluruh ${busOptions.length} bus`
+                            ? `Centang bus yang mau dilihat — kosong berarti semua ${busOptions.length} bus`
                             : `dari ${busOptions.length} bus tersedia`}
                         </p>
                       </div>
@@ -526,35 +434,6 @@ export function EventTickets({
                   </div>
 
                   <div className="grid gap-2 p-4 sm:grid-cols-2">
-                    <label
-                      className={`flex cursor-pointer select-none items-center gap-3 rounded-xl border px-3 py-2.5 transition-all duration-200 ${
-                        busSelection.length === 0
-                          ? 'border-[#163d78]/45 bg-[#eef3fb] shadow-[0_10px_24px_-16px_rgba(13,40,80,0.9)]'
-                          : 'border-[#e4e8ec] bg-white hover:border-[#163d78]/30 hover:bg-[#f7fafd]'
-                      }`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={busSelection.length === 0}
-                        onChange={showAllBuses}
-                        className="peer sr-only"
-                      />
-                      <span
-                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-all duration-200 peer-focus-visible:ring-2 peer-focus-visible:ring-[#163d78]/40 peer-focus-visible:ring-offset-1 ${
-                          busSelection.length === 0
-                            ? 'border-[#163d78] bg-[#163d78] text-white'
-                            : 'border-[#cbd3db] bg-white text-transparent'
-                        }`}
-                      >
-                        <Check size={13} strokeWidth={3} />
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-bold text-[#1b3555]">Semua Bus</span>
-                        <span className="block text-[11px] text-[#8b96a5]">{busOptions.length} bus</span>
-                      </span>
-                      <Users size={15} className="shrink-0 text-[#163d78]/50" />
-                    </label>
-
                     {busOptions.map((b) => {
                       const checked = busSelection.includes(b.busId)
                       return (

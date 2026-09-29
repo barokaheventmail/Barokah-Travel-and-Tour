@@ -185,7 +185,7 @@ export const FACILITY_ICON_LABELS: Record<FacilityIcon, string> = {
   navigation: 'Navigasi',
   route: 'Rute perjalanan',
   compass: 'Mata angin',
-  'bus-front': 'Bus / Armada',
+  'bus-front': 'Bus / Unit',
   fuel: 'Bahan bakar',
   gauge: 'Speedometer',
   satellite: 'Sinyal / GPS',
@@ -274,7 +274,7 @@ export function serializeFacilities(items: Facility[]): string | null {
 export function validateFacilities(input: unknown): { items: Facility[]; error?: string } {
   if (!Array.isArray(input)) return { items: [], error: 'Daftar fasilitas tidak valid.' }
   if (input.length > FACILITY_MAX_ITEMS) {
-    return { items: [], error: `Maksimal ${FACILITY_MAX_ITEMS} fasilitas per armada.` }
+    return { items: [], error: `Maksimal ${FACILITY_MAX_ITEMS} fasilitas per unit.` }
   }
   const items: Facility[] = []
   for (const raw of input) {

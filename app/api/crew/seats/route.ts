@@ -5,7 +5,8 @@ import { countPresent, isCrewVisibleEvent, mapCrewSeats } from '@/lib/crew-seats
 
 export async function GET(request: NextRequest) {
   const session = await requireCrewSession()
-  if (!session || (session.role !== 'CREW' && session.role !== 'ADMIN')) {
+  // requireCrewSession() hanya mengembalikan sesi crew atau sesi admin (ADMIN/OWNER).
+  if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

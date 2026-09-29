@@ -131,8 +131,8 @@ export function CrewRoster() {
         ) : buses.length === 0 ? (
           <div className="mt-4 rounded-xl bg-[#f8fafc] px-4 py-6 text-center">
             <Users className="mx-auto text-[#c3cad2]" size={26} />
-            <p className="mt-2 text-xs font-bold text-[#657080]">Belum ada armada aktif</p>
-            <p className="mt-0.5 text-[11px] text-[#9aa3af]">Daftar nama muncul saat kamu ditugaskan ke armada.</p>
+            <p className="mt-2 text-xs font-bold text-[#657080]">Belum ada unit aktif</p>
+            <p className="mt-0.5 text-[11px] text-[#9aa3af]">Daftar nama muncul saat kamu ditugaskan ke unit.</p>
           </div>
         ) : visible.length === 0 ? (
           <div className="mt-4 rounded-xl bg-[#f8fafc] px-4 py-6 text-center">

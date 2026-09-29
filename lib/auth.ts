@@ -10,15 +10,28 @@ export const SESSION_COOKIE_NAMES = {
 } as const
 export const SESSION_MAX_AGE = 60 * 60 * 24 * 7
 
-export type SessionRole = keyof typeof SESSION_COOKIE_NAMES
+/** Slot = COOKIE yang dipakai sesi. ADMIN & OWNER berbagi slot admin. */
+export type SessionSlot = keyof typeof SESSION_COOKIE_NAMES
+/** Role = peran user di database & isi claim `role` pada JWT. */
+export type SessionRole = 'ADMIN' | 'OWNER' | 'CREW'
 export type Session = {
   sub: string
   username: string
   role: SessionRole
-  slot: SessionRole
+  slot: SessionSlot
 }
 
 type SessionInput = Omit<Session, 'slot'>
+
+/** ADMIN dan OWNER memakai cookie sesi admin, jadi keduanya satu slot. */
+export function slotOfRole(role: SessionRole): SessionSlot {
+  return role === 'CREW' ? 'CREW' : 'ADMIN'
+}
+
+/** Sesi yang boleh mengelola panel admin (bukan crew). Narrowing ke Session. */
+export function canManage(session: Session | null | undefined): session is Session {
+  return session?.role === 'ADMIN' || session?.role === 'OWNER'
+}
 
 const DEV_SECRET = 'dev-secret-change-me'
 
@@ -30,8 +43,8 @@ function secret(): Uint8Array {
   return new TextEncoder().encode(value)
 }
 
-export function getSessionCookieName(role: SessionRole): string {
-  return SESSION_COOKIE_NAMES[role]
+export function getSessionCookieName(slot: SessionSlot): string {
+  return SESSION_COOKIE_NAMES[slot]
 }
 
 export const cookieOpts = () => {
@@ -58,19 +71,19 @@ export async function verifySession(token: string): Promise<Session | null> {
   try {
     const { payload } = await jwtVerify(token, secret())
     const role = payload.role
-    if (!payload.sub || (role !== 'ADMIN' && role !== 'CREW')) return null
+    if (!payload.sub || (role !== 'ADMIN' && role !== 'OWNER' && role !== 'CREW')) return null
     return {
       sub: payload.sub,
       username: String(payload.username ?? ''),
       role,
-      slot: role,
+      slot: slotOfRole(role),
     }
   } catch {
     return null
   }
 }
 
-export async function getSessionToken(scope?: SessionRole): Promise<string | null> {
+export async function getSessionToken(scope?: SessionSlot): Promise<string | null> {
   const store = await cookies()
   if (scope) {
     const scopedToken = store.get(getSessionCookieName(scope))?.value
@@ -84,19 +97,19 @@ export async function getSessionToken(scope?: SessionRole): Promise<string | nul
   )
 }
 
-async function loadSession(token: string | undefined, expectedRole?: SessionRole): Promise<Session | null> {
+async function loadSession(token: string | undefined, expectedSlot?: SessionSlot): Promise<Session | null> {
   if (!token) return null
   const verified = await verifySession(token)
-  if (!verified || (expectedRole && verified.role !== expectedRole)) return null
+  if (!verified || (expectedSlot && verified.slot !== expectedSlot)) return null
   const user = await prisma.user.findUnique({
     where: { id: verified.sub },
     select: { id: true, username: true, role: true },
   })
   if (!user || user.role !== verified.role) return null
-  return { sub: user.id, username: user.username, role: verified.role, slot: verified.role }
+  return { sub: user.id, username: user.username, role: verified.role, slot: slotOfRole(user.role) }
 }
 
-export async function getSession(scope: SessionRole): Promise<Session | null> {
+export async function getSession(scope: SessionSlot): Promise<Session | null> {
   const store = await cookies()
   const scopedToken = store.get(getSessionCookieName(scope))?.value
   if (scopedToken) return loadSession(scopedToken, scope)

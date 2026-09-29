@@ -254,16 +254,16 @@ describe('crewPassword', () => {
 })
 
 describe('label log hapus massal', () => {
-  it('hapus kursi & fasilitas per armada tetap menyebut nama bus', () => {
+  it('hapus kursi & fasilitas per unit tetap menyebut nama bus', () => {
     expect(formatLogDetail('bus.seatLayoutClear', { name: 'Bus 1' })).toBe('Layout kursi Bus 1 dihapus')
     expect(formatLogDetail('bus.facilitiesClear', { name: 'Bus 1' })).toBe('Fasilitas Bus 1 dihapus')
   })
-  it('scope all menampilkan jumlah armada, bukan ???', () => {
+  it('scope all menampilkan jumlah unit, bukan ???', () => {
     expect(formatLogDetail('bus.seatLayoutClear', { scope: 'all', buses: 45 })).toBe(
-      'Layout kursi dihapus di 45 armada',
+      'Layout kursi dihapus di 45 unit',
     )
-    expect(formatLogDetail('bus.facilitiesClear', { scope: 'all', buses: 2 })).toBe('Fasilitas dihapus di 2 armada')
-    expect(formatLogDetail('bus.seatLayoutClear', { scope: 'all' })).toBe('Layout kursi dihapus di ??? armada')
+    expect(formatLogDetail('bus.facilitiesClear', { scope: 'all', buses: 2 })).toBe('Fasilitas dihapus di 2 unit')
+    expect(formatLogDetail('bus.seatLayoutClear', { scope: 'all' })).toBe('Layout kursi dihapus di ??? unit')
   })
 })
 
@@ -401,7 +401,7 @@ describe('parseExcel toleran (template beda)', () => {
     expect(result.diagnostics.warnings.join(' ')).toContain('urutan template')
   })
 
-  it('memecah satu sheet menjadi beberapa armada dari kolom Bus', () => {
+  it('memecah satu sheet menjadi beberapa unit dari kolom Bus', () => {
     const buf = makeBufferFull([
       {
         name: 'Data',
@@ -443,7 +443,7 @@ describe('parseExcel toleran (template beda)', () => {
     expect(result.buses.map((b) => b.name)).toEqual(['Bus 1'])
   })
 
-  it('membaca file CSV (satu sheet, nama armada dari kolom Bus)', () => {
+  it('membaca file CSV (satu sheet, nama unit dari kolom Bus)', () => {
     const csv = 'No,Nama Lengkap,No HP,Armada\n1,Fuad,0812 111 222,Armada 3\n2,Gani,0812 333 444,Armada 3\n'
     const buf = new TextEncoder().encode(csv).buffer as ArrayBuffer
     const result = parseWorkbook(buf, 'peserta.csv')
@@ -452,7 +452,7 @@ describe('parseExcel toleran (template beda)', () => {
     expect(result.buses[0].participants[0].phone).toBe('0812111222')
   })
 
-  it('menyamakan nama armada yang kembar antar sheet', () => {
+  it('menyamakan nama unit yang kembar antar sheet', () => {
     const buf = makeBufferFull([
       { name: 'Armada A', aoa: [[...HEADERS], [1, 'Andi', '', '', '', '', '', '']] },
       {

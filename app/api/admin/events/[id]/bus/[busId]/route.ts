@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Prisma } from '@prisma/client'
-import { requireAdminSession } from '@/lib/auth'
+import { canManage, requireAdminSession } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { logger } from '@/lib/logger'
 import { seatCount, serializeSeatLayout, validateSeatShape } from '@/lib/seat'
@@ -10,7 +10,7 @@ type Params = { params: Promise<{ id: string; busId: string }> }
 
 export async function PATCH(request: NextRequest, { params }: Params) {
   const session = await requireAdminSession()
-  if (!session || session.role !== 'ADMIN') {
+  if (!canManage(session)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
@@ -50,7 +50,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
         logger.info('bus seat layouts cleared for all buses', { eventId: id, by: session.username, buses: cleared })
         return NextResponse.json({ buses: cleared })
       } catch (err) {
-        return NextResponse.json({ error: 'Gagal menghapus layout kursi semua armada.' }, { status: 500 })
+        return NextResponse.json({ error: 'Gagal menghapus layout kursi semua unit.' }, { status: 500 })
       }
     }
     if (!existing.seatRows && !existing.seatCols && !existing.seatLayout) {
@@ -90,7 +90,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
         logger.info('bus facilities cleared for all buses', { eventId: id, by: session.username, buses: cleared })
         return NextResponse.json({ buses: cleared })
       } catch (err) {
-        return NextResponse.json({ error: 'Gagal menghapus fasilitas semua armada.' }, { status: 500 })
+        return NextResponse.json({ error: 'Gagal menghapus fasilitas semua unit.' }, { status: 500 })
       }
     }
     if (!existing.facilities) {
@@ -107,7 +107,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
       logger.info('bus facilities cleared', { eventId: id, by: session.username, busId, name: existing.name })
       return NextResponse.json({ bus })
     } catch (err) {
-      return NextResponse.json({ error: 'Gagal menghapus fasilitas armada.' }, { status: 500 })
+      return NextResponse.json({ error: 'Gagal menghapus fasilitas unit.' }, { status: 500 })
     }
   }
 
@@ -150,7 +150,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
       })
       return NextResponse.json({ bus })
     } catch (err) {
-      return NextResponse.json({ error: 'Gagal menyimpan fasilitas armada.' }, { status: 500 })
+      return NextResponse.json({ error: 'Gagal menyimpan fasilitas unit.' }, { status: 500 })
     }
   }
 
@@ -232,7 +232,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 
 export async function DELETE(_request: NextRequest, { params }: Params) {
   const session = await requireAdminSession()
-  if (!session || session.role !== 'ADMIN') {
+  if (!canManage(session)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 

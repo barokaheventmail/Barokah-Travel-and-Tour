@@ -49,7 +49,9 @@ export async function POST(_request: NextRequest, { params }: Params) {
 
   await prisma.$transaction(async (tx) => {
     for (const row of hashed) {
-      await tx.user.update({ where: { id: row.id }, data: { passwordHash: row.passwordHash } })
+      // Kembalikan semua crew ke pola: password manual yang sebelumnya disetel
+      // ikut ditimpa, makanya flag-nya ikut dibersihkan.
+      await tx.user.update({ where: { id: row.id }, data: { passwordHash: row.passwordHash, customPassword: false } })
       reset.push({ username: row.username, name: row.name, buses: row.buses, password: crewPassword(row.username) })
     }
     await tx.activityLog.create({
@@ -57,7 +59,7 @@ export async function POST(_request: NextRequest, { params }: Params) {
         eventId: id,
         userId: session.sub,
         action: 'busCrew.resetPasswords',
-        detail: { count: reset.length },
+        detail: { count: reset.length, pattern: true },
       },
     })
   })

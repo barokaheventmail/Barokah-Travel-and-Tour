@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { requireAdminSession } from '@/lib/auth'
+import { canManage, requireAdminSession } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { logger } from '@/lib/logger'
 
@@ -7,7 +7,7 @@ type Params = { params: Promise<{ id: string }> }
 
 export async function POST(_request: Request, { params }: Params) {
   const session = await requireAdminSession()
-  if (!session || session.role !== 'ADMIN') {
+  if (!canManage(session)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 

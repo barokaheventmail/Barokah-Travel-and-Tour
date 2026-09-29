@@ -7,7 +7,7 @@ import { useModal } from '@/components/admin/use-modal'
 
 type AddBusProps = {
   eventId: string
-  // 'button' = pemicunya ikut dirender (dipakai saat panel armada masih kosong).
+  // 'button' = pemicunya ikut dirender (dipakai saat panel unit masih kosong).
   // 'modal'  = hanya layarnya; pemicunya dibuat oleh ActionMenu.
   mode?: 'button' | 'modal'
   open?: boolean
@@ -77,7 +77,7 @@ export function AddBus({ eventId, mode = 'button', open: controlledOpen, onOpenC
                 <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#eef3fb] text-[#1b4f9c]">
                   <Bus size={14} />
                 </span>
-                Nama armada
+                Nama unit
               </label>
               <input
                 value={name}

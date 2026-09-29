@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAdminSession } from '@/lib/auth'
+import { canManage, requireAdminSession } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { logger } from '@/lib/logger'
 import {
@@ -22,7 +22,7 @@ function parseStatus(raw: string | null): ExportStatusFilter {
 
 export async function GET(request: NextRequest, { params }: Params) {
   const session = await requireAdminSession()
-  if (!session || session.role !== 'ADMIN') {
+  if (!canManage(session)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest, { params }: Params) {
   if (!event) return NextResponse.json({ error: 'Event tidak ditemukan.' }, { status: 404 })
 
   if (busParam && busParam !== 'all' && !event.buses.some((b) => b.id === busParam)) {
-    return NextResponse.json({ error: 'Armada tidak ditemukan.' }, { status: 400 })
+    return NextResponse.json({ error: 'Unit tidak ditemukan.' }, { status: 400 })
   }
 
   const participants = await prisma.participant.findMany({

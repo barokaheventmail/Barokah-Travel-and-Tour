@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server'
-import { requireAdminSession } from '@/lib/auth'
+import { canManage, requireAdminSession } from '@/lib/auth'
 import { buildTemplateWorkbook } from '@/lib/excel'
 
 export async function GET() {
   const session = await requireAdminSession()
-  if (!session || session.role !== 'ADMIN') {
+  if (!canManage(session)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 

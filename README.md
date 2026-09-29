@@ -7,7 +7,9 @@ Next.js (App Router) 16 + Prisma + PostgreSQL. URL utama: `http://localhost:3000
 - **Crew**: buka `/crew` (login) → scan QR kamera → kehadiran **otomatis tercatat**. Event berstatus `CLOSED` masih bisa dibaca (daftar nama, peta kursi, riwayat) tapi tidak bisa discan; `DRAFT` tidak terlihat sama sekali.
 - **Admin**: buka `/admin` (login) → kelola event, **import Excel** (1 sheet = 1 bus), lihat daftar/hadir, **Cetak QR**.
 
-Akun awal (dari `.env`): admin / `admin123` dan crew / `crew123`.
+Akun awal (dari `.env`): owner / `owner123`, admin / `admin123`, admin2 /
+`admin2123`, dan crew / `crew123`. Admin & owner bisa ganti sandi sendiri lewat
+tombol **Ganti Sandi** di header panel.
 
 ## Persyaratan
 - Node 20+, pnpm, Docker (untuk Postgres lokal).
@@ -38,9 +40,9 @@ Import dibuat toleran: file tidak harus sama persis dengan template. Yang wajib
 hanya ada **nama peserta**; sisanya dibaca seperlunya.
 
 - **Format file**: `.xlsx`, `.xlsm`, `.xls`, `.csv`, `.ods`.
-- **Armada**: 1 sheet = 1 armada (nama sheet jadi nama armada), **atau** pakai
-  kolom `Bus`/`Armada` di dalam sheet supaya 1 sheet bisa dipecah jadi beberapa
-  armada. Nama sheet generik (`Sheet1`) diganti nama file kalau tidak ada kolom armada.
+- **Unit**: 1 sheet = 1 unit (nama sheet jadi nama unit), **atau** pakai
+  kolom `Bus`/`Unit` (header lama `Armada` masih dikenali) di dalam sheet
+  supaya 1 sheet bisa dipecah jadi beberapa unit. Nama sheet generik (`Sheet1`) diganti nama file kalau tidak ada kolom unit.
 - **Header**: dicari sampai 200 baris pertama, jadi blok judul di atas header
   (`DATA PESERTA`, namaPTO, dst.) tidak masalah. Nama kolom dicari lewat alias
   luas + pola teks + cek typo, jadi `NO. TELP/HP`, `NAMA PESERTA (LENGKAP)`,
@@ -59,7 +61,7 @@ hanya ada **nama peserta**; sisanya dibaca seperlunya.
 - **Baris rekap** (`TOTAL`, `JUMLAH`, `TERIMA KASIH`) dan baris kosong tidak
   dianggap peserta.
 - **No duplikat** dirapikan otomatis supaya tidak menimpa peserta lain.
-- **Import ulang** mencocokkan No + armada, jadi tidak menggandakan. Sel kosong
+- **Import ulang** mencocokkan No + unit, jadi tidak menggandakan. Sel kosong
   **tidak** menghapus data lama kecuali centang "Sel kosong menimpa data lama".
 - **Alur**: pilih file → **Cek File** (preview peta kolom, contoh data, daftar
   baris yang dilewati) → **Simpan**. Tidak ada yang tersimpan sebelum Simpan.
@@ -67,14 +69,14 @@ hanya ada **nama peserta**; sisanya dibaca seperlunya.
 
 ## Export data peserta
 Tombol **Export** di panel admin (popover, di sebelah tombol import) mengunduh
-satu file Excel `.xlsx` yang sudah dikelompokkan per armada:
+satu file Excel `.xlsx` yang sudah dikelompokkan per unit:
 
-- **Sheet `Rekap`**: judul event, tanggal acara, lalu tabel per armada
+- **Sheet `Rekap`**: judul event, tanggal acara, lalu tabel per unit
   (`Peserta`, `Hadir`, `Belum`, `Kursi Terisi`, `Kamar Terisi`) + baris `TOTAL`.
-- **Sheet per armada**: `No, Nama, Tempat Lahir, Tgl Lahir, No HP, Kursi, Kamar,
-  VW, Status, Waktu Scan, Crew`. Nama sheet mengikuti nama armada (dibersihkan
+- **Sheet per unit**: `No, Nama, Tempat Lahir, Tgl Lahir, No HP, Kursi, Kamar,
+  VW, Status, Waktu Scan, Crew`. Nama sheet mengikuti nama unit (dibersihkan
   supaya aman untuk Excel: maksimal 31 karakter, tetap unik).
-- **Filter** (dipilih di popover): armada (`Semua armada` / satu armada) dan
+- **Filter** (dipilih di popover): unit (`Semua unit` / satu unit) dan
   status (`Semua peserta` / `Sudah hadir` / `Belum hadir`).
 - **Rapi**: header tebal putih di atas biru tua, baris `HADIR` hijau dan `BELUM`
   abu-abu, header membeku saat di-scroll, auto-filter, lebar kolom menyesuaikan,
@@ -86,7 +88,7 @@ satu file Excel `.xlsx` yang sudah dikelompokkan per armada:
 - Parameter API `GET /api/admin/events/<id>/export`:
   `?bus=<id|all>&status=<all|hadir|belum>&format=<xlsx|csv>`. Tanpa parameter
   menghasilkan Excel semua peserta. `format=csv` menghasilkan satu file CSV datar
-  (semua armada digabung, kolom `Bus` ikut disertakan) untuk kebutuhan lama.
+  (semua unit digabung, kolom `Bus` ikut disertakan) untuk kebutuhan lama.
 - Export hanya membaca data, tidak pernah menulis ke database.
 
 ## Deploy (Hostinger / VPS)
@@ -154,5 +156,5 @@ middleware.ts         # proteksi /admin (ADMIN) & /crew (CREW)
 ## Kehadiran: sumber data & aturan
 - Sumber kebenaran kehadiran adalah `Participant.scannedAt` (siapa pun yang mencatat: admin atau crew). Tabel `ScanLog` adalah **jejak audit** dan tidak boleh dihapus otomatis.
 - **Reset Kehadiran** (panel admin) mengosongkan `scannedAt` tetapi **mempertahankan `ScanLog`**, jadi riwayat scan crew tetap utuh. Halaman publik diberi tahu sinkron ulang lewat flag `reset` dari `GET /api/events/[id]/attendance`.
-- Armadanya **tanpa crew** akan memunculkan peringatan di tab Peserta: pesertanya terhitung di admin, tapi tidak muncul di aplikasi crew dan QR-nya ditolak.
+- Unitnya **tanpa crew** akan memunculkan peringatan di tab Peserta: pesertanya terhitung di admin, tapi tidak muncul di aplikasi crew dan QR-nya ditolak.
 - Di app crew, status riwayat: `Hadir` (baru), `Sudah hadir` (scan ulang), `Kehadiran dicabut` (direset admin).

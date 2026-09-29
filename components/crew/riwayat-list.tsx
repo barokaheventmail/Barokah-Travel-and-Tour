@@ -3,7 +3,7 @@ import { History, ScanBarcode, Search, Users } from 'lucide-react'
 import { formatWaktuLengkap } from '@/lib/dates'
 import { scanStatusUi } from '@/lib/crew-scan-status'
 
-export type RiwayatScope = 'armada' | 'saya'
+export type RiwayatScope = 'unit' | 'saya'
 
 export type RiwayatLog = {
   id: string
@@ -82,9 +82,9 @@ export function CrewRiwayatList({ basePath, tab, scope, q, page, total, todayCou
       </form>
 
       <div className="mt-3 grid grid-cols-2 gap-1.5 rounded-2xl border border-white/10 bg-white/5 p-1.5">
-        <Link href={qs({ scope: 'armada', page: '1' })} className={scopeClass(scope === 'armada')}>
+        <Link href={qs({ scope: 'unit', page: '1' })} className={scopeClass(scope === 'unit')}>
           <span className="flex items-center justify-center gap-1">
-            <Users size={13} /> Hadir di armadaku
+            <Users size={13} /> Hadir di unitku
           </span>
         </Link>
         <Link href={qs({ scope: 'saya', page: '1' })} className={scopeClass(scope === 'saya')}>
@@ -98,13 +98,13 @@ export function CrewRiwayatList({ basePath, tab, scope, q, page, total, todayCou
         <div className="rounded-2xl bg-white/10 p-4">
           <p className="text-2xl font-black text-white">{total.toLocaleString('id-ID')}</p>
           <p className="text-[11px] font-semibold uppercase tracking-wide text-white/50">
-            {scope === 'armada' ? 'Hadir di armadaku' : 'Total scan'}
+            {scope === 'unit' ? 'Hadir di unitku' : 'Total scan'}
           </p>
         </div>
         <div className="rounded-2xl bg-white/10 p-4">
           <p className="text-2xl font-black text-[#8fe3a5]">{todayCount.toLocaleString('id-ID')}</p>
           <p className="text-[11px] font-semibold uppercase tracking-wide text-white/50">
-            {scope === 'armada' ? 'Hadir hari ini' : 'Scan hari ini'}
+            {scope === 'unit' ? 'Hadir hari ini' : 'Scan hari ini'}
           </p>
         </div>
       </div>
@@ -115,14 +115,14 @@ export function CrewRiwayatList({ basePath, tab, scope, q, page, total, todayCou
           <p className="mt-3 text-sm font-bold text-white">
             {q
               ? 'Tidak ada yang cocok'
-              : scope === 'armada'
+              : scope === 'unit'
                 ? 'Belum ada peserta hadir'
                 : 'Belum ada scan'}
           </p>
           <p className="mt-1 text-xs text-white/50">
             {q
               ? `Tidak ditemukan peserta bernama "${q}".`
-              : scope === 'armada'
+              : scope === 'unit'
                 ? 'Kehadiran yang dicatat admin atau crew lain otomatis muncul di sini.'
                 : 'Scan pertama yang kamu lakukan akan tercatat di sini.'}
           </p>
@@ -195,8 +195,8 @@ export function CrewRiwayatList({ basePath, tab, scope, q, page, total, todayCou
 
       <p className="mt-6 flex items-center justify-center gap-1.5 text-[11px] text-white/50">
         <History size={12} />
-        {scope === 'armada'
-          ? 'Kehadiran peserta di armada kamu, termasuk yang dicatat admin atau crew lain.'
+        {scope === 'unit'
+          ? 'Kehadiran peserta di unit kamu, termasuk yang dicatat admin atau crew lain.'
           : 'Riwayat semua scan yang kamu lakukan.'}
       </p>
     </>

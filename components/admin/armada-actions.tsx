@@ -34,7 +34,7 @@ export function ArmadaActions({
 }) {
   const [active, setActive] = useState<Key | null>(null)
 
-  // Belum ada armada: menu hanya berisi satu aksi, jadi chevron-nya tidak
+  // Belum ada unit: menu hanya berisi satu aksi, jadi chevron-nya tidak
   // berguna. Tambah Bus muncul langsung sebagai tombol biasa.
   if (!hasBuses) return <AddBus eventId={eventId} mode="button" />
 
@@ -44,7 +44,7 @@ export function ArmadaActions({
   return (
     <>
       <ActionMenu
-        label="Aksi Armada"
+        label="Aksi Unit"
         align="left"
         items={[
           {
@@ -56,11 +56,11 @@ export function ArmadaActions({
           },
           {
             key: 'reset',
-            label: 'Terapkan Password Crew',
+            label: 'Terapkan Pola Password Crew',
             hint:
               totalCrew === 0
                 ? 'Belum ada crew di event ini'
-                : `${totalCrew} crew · password = username + 1123`,
+                : `${totalCrew} crew · kembalikan ke username + 1123`,
             icon: <KeyRound size={15} />,
             disabled: totalCrew === 0,
             disabledTitle: 'Belum ada crew di event ini.',
@@ -91,7 +91,7 @@ export function ArmadaActions({
           {
             key: 'addbus',
             label: 'Tambah Bus',
-            hint: 'Tambah armada baru ke event ini',
+            hint: 'Tambah unit baru ke event ini',
             icon: <Plus size={15} />,
             dividerBefore: true,
             onSelect: onOpen('addbus'),

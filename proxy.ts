@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { jwtVerify } from 'jose'
-import { LEGACY_COOKIE_NAME, SESSION_COOKIE_NAMES, type SessionRole } from '@/lib/auth'
+import {
+  LEGACY_COOKIE_NAME,
+  SESSION_COOKIE_NAMES,
+  slotOfRole,
+  type SessionRole,
+  type SessionSlot,
+} from '@/lib/auth'
 
 const DEV_SECRET = 'dev-secret-change-me'
 
@@ -12,15 +18,15 @@ const secret = () => {
   return new TextEncoder().encode(value)
 }
 
-type VerifiedSession = { sub: string; role: SessionRole }
+type VerifiedSession = { sub: string; role: SessionRole; slot: SessionSlot }
 
 async function readSession(token: string | undefined): Promise<VerifiedSession | null> {
   if (!token) return null
   try {
     const { payload } = await jwtVerify(token, secret())
     const role = payload.role
-    if (!payload.sub || (role !== 'ADMIN' && role !== 'CREW')) return null
-    return { sub: String(payload.sub), role }
+    if (!payload.sub || (role !== 'ADMIN' && role !== 'OWNER' && role !== 'CREW')) return null
+    return { sub: String(payload.sub), role, slot: slotOfRole(role) }
   } catch {
     return null
   }
@@ -38,7 +44,7 @@ async function routeSession(request: NextRequest, pathname: string): Promise<Ver
 
   if (pathname.startsWith('/admin')) {
     if (adminCookie) return admin
-    return legacy?.role === 'ADMIN' ? legacy : null
+    return legacy?.slot === 'ADMIN' ? legacy : null
   }
 
   if (crewCookie) return crew
@@ -53,7 +59,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next()
   }
 
-  const role: SessionRole = pathname.startsWith('/admin') ? 'ADMIN' : 'CREW'
+  const role: SessionSlot = pathname.startsWith('/admin') ? 'ADMIN' : 'CREW'
   const session = await routeSession(request, pathname)
 
   if (!session) {
@@ -64,7 +70,8 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
-  if (pathname.startsWith('/admin') && session.role !== 'ADMIN') {
+  // ADMIN & OWNER sama-sama memegang sesi admin, jadi keduanya boleh masuk.
+  if (pathname.startsWith('/admin') && session.slot !== 'ADMIN') {
     return NextResponse.redirect(new URL('/login?scope=ADMIN&next=/admin', request.url))
   }
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
-import { requireAdminSession } from '@/lib/auth'
+import { canManage, requireAdminSession } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { logger } from '@/lib/logger'
 import { buildPreview, parseWorkbook, type ExcelParseResult } from '@/lib/excel'
@@ -62,7 +62,7 @@ async function buildForecast(eventId: string, parsed: ExcelParseResult, forceOrd
 
 export async function POST(request: NextRequest, { params }: Params) {
   const session = await requireAdminSession()
-  if (!session || session.role !== 'ADMIN') {
+  if (!canManage(session)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 

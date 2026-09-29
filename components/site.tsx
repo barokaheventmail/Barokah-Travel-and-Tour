@@ -30,7 +30,6 @@ export function Logo({ light=false, className='h-10 w-auto' }: { light?: boolean
 const NAV_LINKS = [
   { label: 'Beranda', anchor: 'beranda' },
   { label: 'Event', anchor: 'event' },
-  { label: 'Panduan Peserta', href: '/panduan' },
   { label: 'Tentang Kami', href: '/#tentang' },
   { label: 'Kontak', anchor: 'kontak' },
 ] as const

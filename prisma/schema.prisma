@@ -10,6 +10,7 @@ datasource db {
 
 enum Role {
   ADMIN
+  OWNER
   CREW
 }
 
@@ -23,6 +24,10 @@ model User {
   id           String   @id @default(cuid())
   username     String   @unique
   passwordHash String
+  // true = password dipilih manual oleh admin/crew, jadi tidak bisa lagi
+  // dihitung dari username. Dipakai supaya panel kredensial tidak menampilkan
+  // pola username+1123 yang sudah tidak berlaku.
+  customPassword Boolean  @default(false)
   name         String?
   phone        String?
   photoUrl     String?

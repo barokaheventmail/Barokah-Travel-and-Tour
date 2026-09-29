@@ -3,9 +3,9 @@
 import { Loader2, ShieldAlert, Trash2 } from 'lucide-react'
 
 /**
- * Konfirmasi untuk aksi yang menimpa SELURUH armada di satu event (hapus massal
+ * Konfirmasi untuk aksi yang menimpa SELURUH unit di satu event (hapus massal
  * layout kursi / fasilitas). Sengaja memakai modal dengan tombol Batal, bukan
- * two-step button seperti aksi per-armada: dampaknya jauh lebih luas sehingga
+ * two-step button seperti aksi per-unit: dampaknya jauh lebih luas sehingga
  * admin harus punya jalan keluar tanpa menjalankan request.
  *
  * `impact` ditulis tegas karena ini satu-satunya kesempatan admin membaca

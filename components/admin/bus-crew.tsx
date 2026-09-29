@@ -8,7 +8,14 @@ import { crewPassword } from '@/lib/crew-password'
 export type BusWorkerData = {
   id: string
   order: number
-  user: { id: string; username: string; name: string | null; phone: string | null; photoUrl: string | null }
+  user: {
+    id: string
+    username: string
+    name: string | null
+    phone: string | null
+    photoUrl: string | null
+    customPassword: boolean
+  }
 }
 
 export type BusWithWorkersData = {
@@ -112,7 +119,7 @@ function ArmadaPicker({
         <span className={`min-w-0 flex-1 ${selectedIds.length > 0 ? 'pr-20' : ''}`}>
           <span className="block truncate text-sm font-bold">
             {selectedIds.length === 0
-              ? 'Pilih Armada'
+              ? 'Pilih Unit'
               : selectedIds.length === 1
                 ? buses.find((b) => b.id === selectedIds[0])?.name
                 : `${selectedIds.length} bus dipilih`}
@@ -318,6 +325,10 @@ export function BusArmadaSection({ eventId, buses }: { eventId: string; buses: B
     [buses, selectedIds],
   )
   const single = selectedBuses.length === 1 ? selectedBuses[0] : null
+  const selectedCrew = useMemo(
+    () => selectedBuses.reduce((s, b) => s + b.workers.length, 0),
+    [selectedBuses],
+  )
 
   return (
     <>
@@ -335,14 +346,14 @@ export function BusArmadaSection({ eventId, buses }: { eventId: string; buses: B
         <div className="animate-fade-up mt-2 rounded-2xl border border-[#1b4f9c]/30 bg-white p-4 shadow-sm">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-sm font-bold text-[#1b3555]">
-              Crew Armada{' '}
+              Crew Unit{' '}
               <span className="text-[#1b4f9c]">
                 {single ? single.name : `${selectedBuses.length} bus dipilih`}
               </span>
             </h3>
             <div className="flex items-center gap-2">
-              {/* Aksi armada ini per-bus, jadi hanya saat tepat satu bus dipilih. */}
-              {single && (
+              {/* Aksi unit ini per-bus, jadi hanya saat tepat satu bus dipilih. */}
+              {single ? (
                 <>
                   <span className="text-[11px] font-semibold text-[#657080]">
                     {single.count} peserta
@@ -350,6 +361,18 @@ export function BusArmadaSection({ eventId, buses }: { eventId: string; buses: B
                   </span>
                   <RenameArmada eventId={eventId} bus={single} />
                   <DeleteArmada eventId={eventId} bus={single} />
+                </>
+              ) : (
+                <>
+                  <span className="text-[11px] font-semibold text-[#657080]">
+                    {selectedBuses.reduce((s, b) => s + b.count, 0)} peserta · {selectedCrew} crew
+                  </span>
+                  <DeleteBusesButton
+                    eventId={eventId}
+                    buses={selectedBuses}
+                    allBusCount={buses.length}
+                    onDone={() => setSelectedIds([])}
+                  />
                 </>
               )}
               <button
@@ -396,11 +419,11 @@ function RenameArmada({ eventId, bus, compact = false }: { eventId: string; bus:
         body: JSON.stringify({ name: clean }),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? 'Gagal mengubah nama armada.')
+      if (!res.ok) throw new Error(data.error ?? 'Gagal mengubah nama unit.')
       setEditing(false)
       router.refresh()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Gagal mengubah nama armada.')
+      setError(err instanceof Error ? err.message : 'Gagal mengubah nama unit.')
     } finally {
       setBusy(false)
     }
@@ -431,7 +454,7 @@ function RenameArmada({ eventId, bus, compact = false }: { eventId: string; bus:
     <button
       type="button"
       onClick={() => { setName(bus.name); setError(null); setEditing(true) }}
-      title="Ubah nama armada"
+      title="Ubah nama unit"
       className={
         compact
           ? 'rounded-full p-1.5 text-[#657080] transition-colors hover:bg-[#f1f3f5]'
@@ -455,11 +478,11 @@ function DeleteArmada({ eventId, bus, compact = false }: { eventId: string; bus:
     try {
       const res = await fetch(`/api/admin/events/${eventId}/bus/${bus.id}`, { method: 'DELETE' })
       const data = await res.json().catch(() => null)
-      if (!res.ok) throw new Error(data?.error ?? 'Gagal menghapus armada.')
+      if (!res.ok) throw new Error(data?.error ?? 'Gagal menghapus unit.')
       setConfirming(false)
       router.refresh()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Gagal menghapus armada.')
+      setError(err instanceof Error ? err.message : 'Gagal menghapus unit.')
     } finally {
       setBusy(false)
     }
@@ -486,15 +509,117 @@ function DeleteArmada({ eventId, bus, compact = false }: { eventId: string; bus:
     <button
       type="button"
       onClick={() => setConfirming(true)}
-      title="Hapus armada"
+      title="Hapus unit"
       className={
         compact
           ? 'rounded-full p-1.5 text-red-500 transition-colors hover:bg-red-50'
           : 'flex items-center gap-1 rounded-full border border-red-200 px-2.5 py-1 text-[11px] font-bold text-red-600 hover:bg-red-50'
       }
     >
-      {compact ? <Trash2 size={13} /> : <><Trash2 size={11} /> Hapus armada</>}
+      {compact ? <Trash2 size={13} /> : <><Trash2 size={11} /> Hapus unit</>}
     </button>
+  )
+}
+
+function DeleteBusesButton({
+  eventId,
+  buses,
+  allBusCount,
+  onDone,
+}: {
+  eventId: string
+  buses: BusWithWorkersData[]
+  allBusCount: number
+  onDone: () => void
+}) {
+  const router = useRouter()
+  const [mode, setMode] = useState<'idle' | 'selected' | 'all'>('idle')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const participants = buses.reduce((s, b) => s + b.count, 0)
+  const workers = buses.reduce((s, b) => s + b.workers.length, 0)
+  const deletingAll = mode === 'all'
+  // "Hapus semua" hanya masuk akal kalau memang masih ada bus yang tidak terpilih.
+  const canDeleteAll = deletingAll || allBusCount > buses.length
+
+  async function remove() {
+    setBusy(true)
+    setError(null)
+    try {
+      const res = await fetch(`/api/admin/events/${eventId}/bus`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(deletingAll ? { all: true } : { busIds: buses.map((b) => b.id) }),
+      })
+      const data = await res.json().catch(() => null)
+      if (!res.ok) throw new Error(data?.error ?? 'Gagal menghapus bus.')
+      setMode('idle')
+      onDone()
+      router.refresh()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Gagal menghapus bus.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  if (mode !== 'idle') {
+    return (
+      <span className="flex flex-wrap items-center gap-1.5 rounded-full border border-red-200 bg-red-50 py-1 pr-2 pl-3">
+        <span className="text-[11px] font-bold text-[#1b3555]">
+          {deletingAll
+            ? `Hapus semua ${allBusCount} bus?`
+            : `Hapus ${buses.length} bus terpilih?`}
+          {participants > 0 && (
+            <span className="text-red-600"> {participants} peserta ikut terhapus.</span>
+          )}
+          {workers > 0 && <span className="text-red-600"> {workers} crew dilepas.</span>}
+        </span>
+        <button
+          type="button"
+          onClick={remove}
+          disabled={busy}
+          className="rounded-full bg-red-600 px-2.5 py-1 text-[11px] font-bold text-white hover:bg-red-700 disabled:opacity-60"
+        >
+          {busy ? <Loader2 size={11} className="animate-spin" /> : 'Ya'}
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setMode('idle')
+            setError(null)
+          }}
+          className="rounded-full px-2 py-1 text-[11px] font-bold text-[#657080] hover:bg-white"
+        >
+          Batal
+        </button>
+        {error && <span className="text-[11px] font-semibold text-red-600">{error}</span>}
+      </span>
+    )
+  }
+
+  return (
+    <span className="flex items-center gap-1.5">
+      <button
+        type="button"
+        onClick={() => setMode('selected')}
+        title="Hapus semua bus yang dipilih sekaligus"
+        className="flex items-center gap-1 rounded-full border border-red-200 px-2.5 py-1 text-[11px] font-bold text-red-600 hover:bg-red-50"
+      >
+        <Trash2 size={11} /> Hapus {buses.length} bus
+      </button>
+      {canDeleteAll && (
+        <button
+          type="button"
+          onClick={() => setMode('all')}
+          title="Hapus seluruh bus di event ini"
+          className="rounded-full px-2 py-1 text-[11px] font-bold text-[#657080] hover:bg-[#fdf1f0] hover:text-red-600"
+        >
+          Hapus semua
+        </button>
+      )}
+    </span>
   )
 }
 
@@ -513,6 +638,10 @@ function WorkerRow({
   const [editingPhone, setEditingPhone] = useState(false)
   const [phone, setPhone] = useState(worker.user.phone ?? '')
   const [resetOpen, setResetOpen] = useState(false)
+  // Password crew boleh diisi manual. Kalau dikosongkan, server mengembalikan
+  // sandi ke pola username+1123.
+  const [newPassword, setNewPassword] = useState('')
+  const [usePattern, setUsePattern] = useState(!worker.user.customPassword)
   const [renaming, setRenaming] = useState(false)
   const [name, setName] = useState(worker.user.name ?? '')
   const [confirmRemove, setConfirmRemove] = useState(false)
@@ -546,11 +675,13 @@ function WorkerRow({
     setMenuOpen(false)
     setEditingPhone(false)
     setResetOpen(false)
+    setNewPassword('')
+    setUsePattern(!worker.user.customPassword)
     setRenaming(false)
     setConfirmRemove(false)
     setPhotoOpen(false)
     setPhotoUrl(worker.user.photoUrl)
-  }, [worker.id, worker.user.photoUrl])
+  }, [worker.id, worker.user.photoUrl, worker.user.customPassword])
 
   function closeAll() {
     setMenuOpen(false)
@@ -668,16 +799,17 @@ function WorkerRow({
       const res = await fetch(`/api/admin/events/${eventId}/bus/${busId}/workers/${worker.id}/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({}),
+        body: JSON.stringify(usePattern ? {} : { password: newPassword }),
       })
       if (!res.ok) {
         const data = await res.json().catch(() => null)
-        throw new Error(data?.error ?? 'Gagal reset password.')
+        throw new Error(data?.error ?? 'Gagal ganti password.')
       }
       setResetOpen(false)
+      setNewPassword('')
       router.refresh()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Gagal reset password.')
+      setError(err instanceof Error ? err.message : 'Gagal ganti password.')
     } finally {
       setBusy(false)
     }
@@ -710,6 +842,11 @@ function WorkerRow({
             <span className="flex items-center gap-1">
               <Phone size={10} /> {worker.user.phone || '—'}
             </span>
+            {worker.user.customPassword && (
+              <span className="flex items-center gap-1 rounded-full bg-[#fff7e0] px-1.5 py-0.5 text-[10px] font-bold text-[#b98a12]">
+                <KeyRound size={9} /> password manual
+              </span>
+            )}
           </p>
         </div>
 
@@ -751,7 +888,7 @@ function WorkerRow({
                 }}
                 className="flex w-full items-center gap-2 px-3 py-2 text-left text-[11px] font-bold text-[#1b3555] hover:bg-[#f4f7fb]"
               >
-                <KeyRound size={12} className="shrink-0 text-[#1b4f9c]" /> Terapkan Password
+                <KeyRound size={12} className="shrink-0 text-[#1b4f9c]" /> Ganti Password
               </button>
               <button
                 type="button"
@@ -937,27 +1074,81 @@ function WorkerRow({
       )}
 
       {resetOpen && (
-        <div className="mt-1 flex flex-wrap items-center gap-2 rounded-xl bg-[#f8fafc] p-2">
-          <span className="text-[11px] font-semibold text-[#657080]">
-            Password: <span className="font-mono font-bold text-[#1b3555]">{crewPassword(worker.user.username)}</span>
-          </span>
-          <button
-            type="button"
-            onClick={() => {
-              void navigator.clipboard?.writeText(crewPassword(worker.user.username))
-            }}
-            className="rounded-full border border-[#dfe4e8] bg-white px-2.5 py-1.5 text-[11px] font-bold text-[#657080] hover:bg-[#f1f3f5]"
-          >
-            <Copy size={11} /> Salin
-          </button>
-          <button
-            type="button"
-            onClick={resetPassword}
-            disabled={busy}
-            className="rounded-full bg-[#1b4f9c] px-3 py-1.5 text-[11px] font-bold text-white hover:bg-[#143d79] disabled:opacity-60"
-          >
-            {busy ? <Loader2 size={11} className="animate-spin" /> : 'Terapkan'}
-          </button>
+        <div className="mt-1 space-y-2 rounded-xl bg-[#f8fafc] p-2.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="flex cursor-pointer select-none items-center gap-1.5 text-[11px] font-bold text-[#1b3555]">
+              <input
+                type="radio"
+                name={`pw-mode-${worker.id}`}
+                checked={usePattern}
+                onChange={() => setUsePattern(true)}
+                className="h-3.5 w-3.5 accent-[#1b4f9c]"
+              />
+              Pakai pola username+1123
+              <span className="font-mono font-bold text-[#1b4f9c]">
+                ({crewPassword(worker.user.username)})
+              </span>
+            </label>
+            <label className="flex cursor-pointer select-none items-center gap-1.5 text-[11px] font-bold text-[#1b3555]">
+              <input
+                type="radio"
+                name={`pw-mode-${worker.id}`}
+                checked={!usePattern}
+                onChange={() => setUsePattern(false)}
+                className="h-3.5 w-3.5 accent-[#1b4f9c]"
+              />
+              Password manual
+            </label>
+            {!usePattern && (
+              <input
+                type="text"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    if (newPassword.trim().length >= 6) resetPassword()
+                  }
+                }}
+                autoFocus
+                placeholder="Minimal 6 karakter"
+                aria-label={`Password baru untuk ${worker.user.username}`}
+                className="w-48 rounded-full border border-[#dfe4e8] bg-white px-3 py-1.5 font-mono text-xs font-bold text-[#1b3555] outline-none placeholder:font-sans placeholder:font-semibold placeholder:text-[#9aa3af] focus:border-[#1b4f9c] focus:ring-2 focus:ring-[#1b4f9c]/15"
+              />
+            )}
+            {usePattern && (
+              <button
+                type="button"
+                onClick={() => void navigator.clipboard?.writeText(crewPassword(worker.user.username))}
+                className="rounded-full border border-[#dfe4e8] bg-white px-2.5 py-1.5 text-[11px] font-bold text-[#657080] hover:bg-[#f1f3f5]"
+              >
+                <Copy size={11} /> Salin
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={resetPassword}
+              disabled={busy || (!usePattern && newPassword.trim().length < 6)}
+              className="rounded-full bg-[#1b4f9c] px-3 py-1.5 text-[11px] font-bold text-white hover:bg-[#143d79] disabled:opacity-60"
+            >
+              {busy ? <Loader2 size={11} className="animate-spin" /> : 'Simpan'}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setResetOpen(false)
+                setNewPassword('')
+              }}
+              className="rounded-full border border-[#dfe4e8] bg-white px-2.5 py-1.5 text-[11px] font-bold text-[#657080] hover:bg-[#f1f3f5]"
+            >
+              Batal
+            </button>
+          </div>
+          <p className="text-[10px] font-semibold text-[#8a93a3]">
+            {worker.user.customPassword
+              ? 'Crew ini memakai password manual — pola di atas tidak berlaku sampai kamu memilihnya lagi.'
+              : 'Password crew hanya disimpan sebagai hash, jadi yang tampil di sini adalah pola, bukan hasil baca database.'}
+          </p>
         </div>
       )}
 
@@ -977,7 +1168,7 @@ function WorkerRow({
 // dengan form yang terbuka tepat di bawah baris yang dipilih.
 function AddCrewForm({ eventId, bus, onClose }: { eventId: string; bus: BusWithWorkersData; onClose: () => void }) {
   const router = useRouter()
-  const [form, setForm] = useState({ name: '', phone: '', username: '' })
+  const [form, setForm] = useState({ name: '', phone: '', username: '', password: '' })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -993,7 +1184,7 @@ function AddCrewForm({ eventId, bus, onClose }: { eventId: string; bus: BusWithW
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Gagal menambah crew.')
-      setForm({ name: '', phone: '', username: '' })
+      setForm({ name: '', phone: '', username: '', password: '' })
       onClose()
       router.refresh()
     } catch (err) {
@@ -1058,12 +1249,23 @@ function AddCrewForm({ eventId, bus, onClose }: { eventId: string; bus: BusWithW
             <Copy size={11} />
           </button>
         </div>
+        <input
+          type="text"
+          value={form.password}
+          onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+          placeholder="Password manual (opsional, min 6 karakter)"
+          aria-label="Password crew manual"
+          className={inputCls}
+        />
       </div>
+      {form.password.trim().length > 0 && form.password.trim().length < 6 && (
+        <p className="text-[11px] font-semibold text-amber-600">Password manual minimal 6 karakter.</p>
+      )}
       {error && <p className="rounded-xl bg-red-50 px-3 py-2 text-[11px] font-semibold text-red-600">{error}</p>}
       <div className="flex justify-end">
         <button
           type="submit"
-          disabled={loading || !form.name.trim() || !form.username.trim()}
+          disabled={loading || !form.name.trim() || !form.username.trim() || (form.password.trim().length > 0 && form.password.trim().length < 6)}
           className="flex items-center gap-1.5 rounded-full bg-[#1b4f9c] px-4 py-2 text-xs font-bold text-white transition-colors duration-200 hover:bg-[#143d79] active:scale-95 disabled:opacity-60"
         >
           {loading ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />} Simpan Crew
@@ -1079,7 +1281,7 @@ function BusCrewPanel({ eventId, bus }: { eventId: string; bus: BusWithWorkersDa
   return (
     <div>
       <p className="text-[11px] font-semibold uppercase tracking-wide text-[#9aa3af]">
-        {bus.workers.length} crew bertugas di armada ini
+        {bus.workers.length} crew bertugas di unit ini
       </p>
       {bus.workers.length === 0 ? (
         <p className="mt-1 text-xs text-[#657080]">Belum ada crew. Tambah manual atau pakai tombol Generate Akun Crew.</p>

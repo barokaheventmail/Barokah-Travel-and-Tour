@@ -76,10 +76,10 @@ export type UnmappedSeat = {
 /**
  * Peserta yang tidak bisa digambar di Peta Kursi.
  *
- * Peta Kursi hanya bisa memetakan nomor kursi yang ada di layout armada, jadi
+ * Peta Kursi hanya bisa memetakan nomor kursi yang ada di layout unit, jadi
  * peserta dengan kursi non-numerik, tanpa nomor, atau nomor di luar layout
- * (mis. "Kursi 5" pada armada tanpa layout) muncul di Daftar Nama tapi
- * lenyap dari peta. Kalau armadanya belum punya layout, semua peserta hadir
+ * (mis. "Kursi 5" pada unit tanpa layout) muncul di Daftar Nama tapi
+ * lenyap dari peta. Kalau unitnya belum punya layout, semua peserta hadir
  * dianggap belum tergambar.
  *
  * Hanya peserta yang HADIR yang dikembalikan, karena peta hanya menggambar

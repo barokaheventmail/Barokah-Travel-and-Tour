@@ -25,7 +25,7 @@ export default async function CrewProfilPage({ searchParams }: { searchParams: S
 
   const sp = await searchParams
   const tab = sp.tab === 'riwayat' ? 'riwayat' : sp.tab === 'itinerary' ? 'itinerary' : 'profile'
-  const scope: RiwayatScope = sp.scope === 'saya' ? 'saya' : 'armada'
+  const scope: RiwayatScope = sp.scope === 'saya' ? 'saya' : 'unit'
   const page = Math.max(1, Number(sp.page) || 1)
   const q = typeof sp.q === 'string' ? sp.q.trim().slice(0, 100) : ''
   const userId = session.sub
@@ -44,8 +44,8 @@ export default async function CrewProfilPage({ searchParams }: { searchParams: S
   let todayCount = 0
 
   if (tab === 'riwayat') {
-    if (scope === 'armada') {
-      // Kehadiran di armada crew, siapa pun yang mencatatnya (admin, crew lain,
+    if (scope === 'unit') {
+      // Kehadiran di unit crew, siapa pun yang mencatatnya (admin, crew lain,
       // atau device lain). Ini yang dipakai tab scan supaya sinkron dengan panel admin.
       // Event CLOSED ikut dibaca: setelah event ditutup, riwayat tetap berguna
       // walau tidak bisa discan lagi.
@@ -242,7 +242,7 @@ export default async function CrewProfilPage({ searchParams }: { searchParams: S
                 </div>
                 <p className="mt-3 text-sm font-bold text-[#1b3555]">Belum Ada Itinerary</p>
                 <p className="mt-1 text-xs leading-relaxed text-[#657080]">
-                  Kamu belum terdaftar di armada/event sehingga belum ada itinerary untuk ditampilkan.
+                  Kamu belum terdaftar di unit/event sehingga belum ada itinerary untuk ditampilkan.
                 </p>
               </div>
             ) : (

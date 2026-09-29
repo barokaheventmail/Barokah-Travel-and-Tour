@@ -31,7 +31,8 @@ async function logScanReject(
 
 export async function POST(request: NextRequest) {
   const session = await requireCrewSession()
-  if (!session || (session.role !== 'CREW' && session.role !== 'ADMIN')) {
+  // requireCrewSession() hanya mengembalikan sesi crew atau sesi admin (ADMIN/OWNER).
+  if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -96,7 +97,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Event tidak aktif.' }, { status: 409 })
   }
 
-  // Pembatasan armada: crew hanya boleh scan peserta di armada yang ditugaskan kepadanya.
+  // Pembatasan unit: crew hanya boleh scan peserta di unit yang ditugaskan kepadanya.
   if (session.role === 'CREW') {
     const assignments = await prisma.busWorker.findMany({
       where: { userId: session.sub },
@@ -116,7 +117,7 @@ export async function POST(request: NextRequest) {
         detail: {},
       })
       return NextResponse.json(
-        { error: 'Kamu belum ditugaskan ke armada mana pun. Hubungi admin untuk ditugaskan dahulu.', code: 'NO_ASSIGNMENT' },
+        { error: 'Kamu belum ditugaskan ke unit mana pun. Hubungi admin untuk ditugaskan dahulu.', code: 'NO_ASSIGNMENT' },
         { status: 403 },
       )
     }
@@ -134,7 +135,7 @@ export async function POST(request: NextRequest) {
       })
       return NextResponse.json(
         {
-          error: 'Bukan armada kamu.',
+          error: 'Bukan unit kamu.',
           code: 'WRONG_BUS',
           participant: participantInfo,
           assignments: assignmentInfo,

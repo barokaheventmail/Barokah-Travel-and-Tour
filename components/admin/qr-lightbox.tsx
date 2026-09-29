@@ -178,7 +178,7 @@ export function QrLightbox() {
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="text-[11px] font-bold uppercase tracking-wide text-[#9aa3af]">
-                {card.bus || 'Armada'}
+                {card.bus || 'Unit'}
                 {card.pos > 0 ? ` · ${card.pos} dari ${card.total}` : ''}
               </p>
               <h3 className="mt-0.5 truncate text-lg font-black text-[#1b3555]">{card.name}</h3>

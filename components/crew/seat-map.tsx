@@ -90,9 +90,9 @@ export function CrewSeatMap() {
         ) : buses.length === 0 ? (
           <div className="mt-4 rounded-xl bg-[#f8fafc] px-4 py-6 text-center">
             <Bus className="mx-auto text-[#c3cad2]" size={26} />
-            <p className="mt-2 text-xs font-bold text-[#657080]">Belum ada armada aktif</p>
+            <p className="mt-2 text-xs font-bold text-[#657080]">Belum ada unit aktif</p>
             <p className="mt-0.5 text-[11px] text-[#9aa3af]">
-              Peta kursi muncul saat kamu ditugaskan ke armada pada event yang sedang berjalan.
+              Peta kursi muncul saat kamu ditugaskan ke unit pada event yang sedang berjalan.
             </p>
           </div>
         ) : (
@@ -122,7 +122,7 @@ export function CrewSeatMap() {
               <div className="mt-3 space-y-2">
                 {(() => {
                   const punyaLayout = bus.seatRows > 0 && bus.seatCols > 0
-                  // Peserta yang nomornya tidak ada di layout (atau armadanya
+                  // Peserta yang nomornya tidak ada di layout (atau unitnya
                   // belum punya layout) tidak bisa digambar di peta, jadi
                   // ditampilkan terpisah supaya Peta Kursi dan Daftar Nama
                   // tidak terlihat berbeda.
@@ -153,7 +153,7 @@ export function CrewSeatMap() {
                         <div className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-[#dfe4e8] px-4 py-8 text-center">
                           <Armchair size={22} className="text-[#c3cad2]" />
                           <p className="text-xs font-bold text-[#657080]">Belum ada layout kursi</p>
-                          <p className="text-[11px] text-[#9aa3af]">Peta kursi armada ini diatur oleh admin.</p>
+                          <p className="text-[11px] text-[#9aa3af]">Peta kursi unit ini diatur oleh admin.</p>
                         </div>
                       )}
 
@@ -164,8 +164,8 @@ export function CrewSeatMap() {
                           </p>
                           <p className="mt-0.5 text-[10px] text-[#9aa3af]">
                             {punyaLayout
-                              ? 'Nomor kursinya tidak ada di layout armada ini, jadi tidak muncul di peta.'
-                              : 'Peta kursi armada ini belum diatur, jadi peserta belum bisa digambar.'}
+                              ? 'Nomor kursinya tidak ada di layout unit ini, jadi tidak muncul di peta.'
+                              : 'Peta kursi unit ini belum diatur, jadi peserta belum bisa digambar.'}
                           </p>
                           <ul className="mt-2 space-y-1">
                             {diLuarPeta.map((s) => (

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/db'
-import { cookieOpts, getSessionCookieName, signSession } from '@/lib/auth'
+import { cookieOpts, getSessionCookieName, signSession, slotOfRole } from '@/lib/auth'
 import { logger } from '@/lib/logger'
 
 const DUMMY_HASH = '$2b$10$OyeDM9NMGCtakHwJ/qrORutPReVjNeD.uQzUWcs7heLGsU9xpREV.'
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
   })
   logger.info('login ok', { username, role: user.role })
 
-  const res = NextResponse.json({ ok: true, role: user.role, username: user.username, scope: user.role })
-  res.cookies.set(getSessionCookieName(user.role), token, cookieOpts())
+  const res = NextResponse.json({ ok: true, role: user.role, username: user.username, scope: slotOfRole(user.role) })
+  res.cookies.set(getSessionCookieName(slotOfRole(user.role)), token, cookieOpts())
   return res
 }

@@ -99,17 +99,17 @@ export function ExportMenu({ eventId, buses }: Props) {
       >
         <p className="text-[13px] font-bold text-[#1b3555]">Export Peserta</p>
         <p className="mt-0.5 text-[11px] font-semibold text-[#8a93a3]">
-          Hasilnya 1 sheet per armada + sheet Rekap, sudah dikelompokkan dan rapi.
+          Hasilnya 1 sheet per unit + sheet Rekap, sudah dikelompokkan dan rapi.
         </p>
 
         <label className="mt-3 block text-[11px] font-bold text-[#1b3555]">
-          Armada
+          Unit
           <select
             value={bus}
             onChange={(e) => setBus(e.target.value)}
             className="mt-1 w-full rounded-xl border border-[#dfe4e8] bg-white px-2.5 py-2 text-xs font-semibold text-[#1b3555] outline-none focus:border-[#1b4f9c]"
           >
-            <option value="all">Semua armada</option>
+            <option value="all">Semua unit</option>
             {buses.map((b) => (
               <option key={b.id} value={b.id}>
                 {b.name}

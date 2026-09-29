@@ -4,22 +4,24 @@ import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2, LogIn, ShieldCheck } from 'lucide-react'
 
-type LoginSession = { sub: string; username: string; role: 'ADMIN' | 'CREW'; slot: 'ADMIN' | 'CREW' }
+type LoginRole = 'ADMIN' | 'OWNER' | 'CREW'
+type LoginSession = { sub: string; username: string; role: LoginRole; slot: 'ADMIN' | 'CREW' }
 
+// ADMIN & OWNER sama-sama masuk ke panel admin; crew masuk ke aplikasinya.
 function resolveDest(next: string | null, role: string): string {
-  const target = role === 'ADMIN' ? '/admin' : '/crew'
+  const target = role === 'CREW' ? '/crew' : '/admin'
   if (!next || !next.startsWith('/') || next.startsWith('//')) return target
   const isAdminPath = next.startsWith('/admin')
-  const allowed = role === 'ADMIN' || !isAdminPath
+  const allowed = role !== 'CREW' || !isAdminPath
   return allowed ? next : target
 }
 
 function isAllowedNext(next: string | null, role: string): boolean {
   if (!next || !next.startsWith('/') || next.startsWith('//')) return false
-  return role === 'ADMIN' || !next.startsWith('/admin')
+  return role !== 'CREW' || !next.startsWith('/admin')
 }
 
-function roleFromNext(next: string | null): LoginSession['role'] | null {
+function roleFromNext(next: string | null): LoginSession['slot'] | null {
   if (!next) return null
   if (next.startsWith('/admin')) return 'ADMIN'
   if (next.startsWith('/crew')) return 'CREW'
@@ -48,7 +50,7 @@ export default function LoginPage() {
     const params = new URLSearchParams(window.location.search)
     const requestedNext = params.get('next')
     const scopeParam = params.get('scope')?.toUpperCase()
-    const requestedRole: LoginSession['role'] | null =
+    const requestedSlot: LoginSession['slot'] | null =
       scopeParam === 'ADMIN' || scopeParam === 'CREW' ? scopeParam : roleFromNext(requestedNext)
     setNext(requestedNext)
     fetch('/api/auth/me')
@@ -57,8 +59,9 @@ export default function LoginPage() {
         const data = await r.json()
         const activeSessions: LoginSession[] = (data.sessions ?? (data.user ? [data.user] : [])) as LoginSession[]
         setSessions(activeSessions)
-        if (params.get('switch') === '1' || !requestedRole) return
-        const active = activeSessions.find((session) => session.role === requestedRole)
+        if (params.get('switch') === '1' || !requestedSlot) return
+        // Dicari per slot: sesi owner tetap memenuhi permintaan scope admin.
+        const active = activeSessions.find((session) => session.slot === requestedSlot)
         if (!active) return
         if (requestedNext && !isAllowedNext(requestedNext, active.role)) return
         router.replace(resolveDest(requestedNext, active.role))
@@ -99,7 +102,7 @@ export default function LoginPage() {
               <ShieldCheck size={28} />
             </div>
             <h1 className="mt-4 text-xl font-bold text-[#1b3555]">Panel Barokah Tour</h1>
-            <p className="mt-1 text-sm text-[#657080]">Masuk untuk Admin & Crew</p>
+            <p className="mt-1 text-sm text-[#657080]">Masuk untuk Owner, Admin &amp; Crew</p>
           </div>
 
           {sessions.length > 0 && (
@@ -109,7 +112,8 @@ export default function LoginPage() {
                 Sesi login aktif
               </p>
               <p className="mt-1 leading-relaxed text-[#657080]">
-                Admin &amp; Crew bisa login bersamaan. Login akun lain tidak akan mengeluarkan sesi yang sudah aktif.
+                Akun lain bisa login bersamaan di sesi terpisah. Login akun baru tidak akan mengeluarkan sesi yang
+                sudah aktif.
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
                 {sessions.map((session) => (
@@ -135,7 +139,7 @@ export default function LoginPage() {
                 onChange={(e) => setUsername(e.target.value)}
                 autoFocus
                 disabled={checking}
-                placeholder="admin / crew"
+                placeholder="owner / admin / crew"
                 className="mt-1.5 w-full rounded-xl border border-[#dfe4e8] bg-[#f8fafc] px-4 py-3 text-sm font-semibold text-[#1b3555] outline-none transition-colors placeholder:text-[#9aa3af] focus:border-[#1b4f9c] focus:bg-white focus:ring-2 focus:ring-[#1b4f9c]/15"
               />
             </div>

@@ -9,18 +9,18 @@ import { PrintButton } from '@/components/admin/print-button'
 import { crewPassword } from '@/lib/crew-password'
 import { formatTanggal } from '@/lib/dates'
 
-export type CredentialBus = { name: string; usernames: string[] }
+export type CredentialBus = { name: string; usernames: string[]; customUsernames?: string[] }
 
-type Row = { busName: string; username: string; password: string }
+type Row = { busName: string; username: string; password: string; custom: boolean }
 
 /**
  * Daftar kredensial crew untuk admin. Password dihitung di client dari username
  * (pola username + 1123) -- tidak ada password plaintext yang diambil dari
  * server, karena yang tersimpan di database tetap hash bcrypt.
  *
- * Konsekuensinya: password yang ditampilkan HANYA berlaku kalau crew-nya
- * dibuat setelah pola ini aktif, atau setelah admin menekan "Terapkan Password
- * Crew" di menu Aksi Armada. Karena itu banner peringatan itu wajib ada.
+ * Crew yang sandinya diganti manual tidak bisa ditampilkan di sini (hanya
+ * hash-nya yang tersimpan), jadi barisnya ditandai "password manual" dan
+ * reminded untuk dibaca dari panel crew.
  */
 export function CrewCredentialsButton({
   eventId,
@@ -52,8 +52,14 @@ export function CrewCredentialsButton({
   const [error, setError] = useState<string | null>(null)
 
   const rows: Row[] = buses.flatMap((b) =>
-    b.usernames.map((u) => ({ busName: b.name, username: u, password: crewPassword(u) })),
+    b.usernames.map((u) => ({
+      busName: b.name,
+      username: u,
+      password: crewPassword(u),
+      custom: b.customUsernames?.includes(u) ?? false,
+    })),
   )
+  const customCount = rows.filter((r) => r.custom).length
 
   async function copy(text: string, key: string) {
     try {
@@ -132,8 +138,18 @@ export function CrewCredentialsButton({
                   Password dihitung dari username (username + 1123), bukan dibaca dari database.
                 </p>
                 <p className="mt-1 text-[11px] font-semibold text-[#8a6d1d]">
-                  Crew yang dibuat sebelum pola ini ada masih memakai password lamanya. Tekan "Terapkan ke Semua Crew"
-                  agar password di bawah benar-benar berlaku.
+                  {customCount > 0 ? (
+                    <>
+                      <span className="font-bold">{customCount} crew</span> memakai password manual sehingga tidak
+                      bisa ditampilkan di sini — bagikan sandi yang kamu tentukan saat mengganti password mereka di tab
+                      Bus &amp; Unit.
+                    </>
+                  ) : (
+                    <>
+                      Crew yang dibuat sebelum pola ini ada masih memakai password lamanya. Tekan "Terapkan ke Semua
+                      Crew" (atau ganti password satu per satu) agar password di bawah benar-benar berlaku.
+                    </>
+                  )}
                 </p>
               </div>
             </div>
@@ -147,7 +163,7 @@ export function CrewCredentialsButton({
                 <table className="w-full text-left text-xs">
                   <thead className="bg-[#f8fafc] text-[11px] font-bold uppercase tracking-wide text-[#9aa3af] print:bg-[#f8fafc]">
                     <tr>
-                      <th className="px-3 py-2">Armada</th>
+                      <th className="px-3 py-2">Unit</th>
                       <th className="px-3 py-2">Username</th>
                       <th className="px-3 py-2">Password</th>
                       <th className="px-3 py-2 text-right print:hidden">Salin</th>
@@ -158,12 +174,20 @@ export function CrewCredentialsButton({
                       <tr key={`${r.busName}-${r.username}-${i}`} className="print-avoid-break">
                         <td className="px-3 py-2 font-semibold text-[#1b3555]">{r.busName}</td>
                         <td className="px-3 py-2 font-mono text-[#1b4f9c]">@{r.username}</td>
-                        <td className="px-3 py-2 font-mono text-[#1b3555]">{r.password}</td>
+                        <td className="px-3 py-2 font-mono text-[#1b3555]">
+                          {r.custom ? (
+                            <span className="font-sans text-[11px] font-bold text-[#b98a12]">password manual</span>
+                          ) : (
+                            r.password
+                          )}
+                        </td>
                         <td className="px-3 py-2 text-right print:hidden">
                           <button
                             type="button"
+                            disabled={r.custom}
+                            title={r.custom ? 'Password manual tidak bisa dibaca dari database.' : undefined}
                             onClick={() => copy(`${r.username} / ${r.password}`, `row-${i}`)}
-                            className="inline-flex items-center gap-1 rounded-full border border-[#dfe4e8] px-2 py-1 text-[11px] font-bold text-[#657080] hover:bg-[#f1f3f5]"
+                            className="inline-flex items-center gap-1 rounded-full border border-[#dfe4e8] px-2 py-1 text-[11px] font-bold text-[#657080] hover:bg-[#f1f3f5] disabled:cursor-not-allowed disabled:opacity-40"
                           >
                             {copied === `row-${i}` ? <Check size={11} /> : <Copy size={11} />}
                           </button>
@@ -193,9 +217,15 @@ export function CrewCredentialsButton({
               <button
                 type="button"
                 onClick={() =>
-                  copy(rows.map((r) => `${r.busName}\t${r.username}\t${r.password}`).join('\n'), 'all')
+                  copy(
+                    rows
+                      .filter((r) => !r.custom)
+                      .map((r) => `${r.busName}\t${r.username}\t${r.password}`)
+                      .join('\n'),
+                    'all',
+                  )
                 }
-                disabled={rows.length === 0}
+                disabled={rows.filter((r) => !r.custom).length === 0}
                 className="flex items-center gap-1.5 rounded-full bg-[#f5b915] px-4 py-2 text-xs font-bold text-[#1d2733] hover:bg-[#e4aa09] disabled:opacity-60"
               >
                 {copied === 'all' ? <Check size={13} /> : <Copy size={13} />} Salin Semua

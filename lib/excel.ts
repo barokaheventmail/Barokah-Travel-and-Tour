@@ -91,7 +91,7 @@ const FIELD_LABEL: Record<AssignableField, string> = {
   seat: 'No Kursi',
   room: 'No Kamar',
   vw: 'No VW',
-  bus: 'Armada',
+  bus: 'Unit',
 }
 
 const FIELD_ORDER: AssignableField[] = [
@@ -158,7 +158,7 @@ const FIELD_ALIASES: Record<AssignableField, string[]> = {
   seat: ['no kursi', 'kursi', 'no seat', 'seat', 'nomor kursi', 'no kursi bus', 'kursi bus', 'seat number'],
   room: ['no kamar', 'kamar', 'no room', 'room', 'penginapan', 'nomor kamar', 'no kamar hotel', 'kamar hotel'],
   vw: ['no vw', 'vw', 'vehicle', 'no kendaraan', 'kendaraan', 'mobil', 'no mobil', 'nomor vw'],
-  bus: ['bus', 'armada', 'no bus', 'nama bus', 'kendaraan bus', 'bus armada', 'nama armada', 'no armada', 'armada bus'],
+  bus: ['bus', 'unit', 'armada', 'no bus', 'nama bus', 'kendaraan bus', 'bus armada', 'nama armada', 'no armada', 'armada bus', 'nama unit', 'no unit', 'unit bus', 'bus unit'],
 }
 
 /** Regex cadangan kalau alias literal tidak kena, mis. "NO. HP / WA". */
@@ -174,7 +174,7 @@ const FIELD_PATTERNS: { field: AssignableField; re: RegExp }[] = [
   { field: 'seat', re: /(no\.?\s*)?(kursi|seat)\b/ },
   { field: 'room', re: /(no\.?\s*)?(kamar|room|penginapan)\b/ },
   { field: 'vw', re: /(no\.?\s*)?(vw|vehicle|kendaraan|mobil)\b/ },
-  { field: 'bus', re: /\b(bus|armada)\b/ },
+  { field: 'bus', re: /\b(bus|unit|armada)\b/ },
 ]
 
 /** Baris rekap di kaki tabel sering ikut terbaca sebagai peserta. */
@@ -729,7 +729,7 @@ function parseSheet(sheetName: string, rows: unknown[][]): SheetParse {
 
   const byBus = new Map<string, ExcelParticipant[]>()
   const usedOrder = new Map<string, Set<number>>()
-  const sheetBus = sanitizeBusName(sheetName, 'Armada 1')
+  const sheetBus = sanitizeBusName(sheetName, 'Unit 1')
   let duplicatedOrder = 0
   let junkRows = 0
   let blankRows = 0
@@ -839,7 +839,7 @@ function parseSheet(sheetName: string, rows: unknown[][]): SheetParse {
     return { buses: [], diagnostic: diag, skippedRows, skippedCount }
   }
   if (byBus.size > 1) {
-    diag.notes.push(`Sheet ini memuat ${byBus.size} armada (dari kolom armada), dipecah menjadi ${byBus.size} armada.`)
+    diag.notes.push(`Sheet ini memuat ${byBus.size} unit (dari kolom unit), dipecah menjadi ${byBus.size} unit.`)
   }
 
   diag.status = 'ok'
@@ -893,7 +893,7 @@ export function parseWorkbook(buffer: ArrayBuffer, fileName = ''): ExcelParseRes
     }
   }
 
-  // Nama armada ganda antar sheet tetap harus dibedakan karena ada unique di DB.
+  // Nama unit ganda antar sheet tetap harus dibedakan karena ada unique di DB.
   const seen = new Map<string, number>()
   for (const bus of result.buses) {
     const n = seen.get(bus.name) ?? 0
@@ -901,9 +901,9 @@ export function parseWorkbook(buffer: ArrayBuffer, fileName = ''): ExcelParseRes
     if (n > 0) bus.name = `${bus.name} (${n + 1})`
   }
 
-  // CSV/ODS hanya punya satu sheet; pakai nama file sebagai nama armada.
+  // CSV/ODS hanya punya satu sheet; pakai nama file sebagai nama unit.
   if (result.buses.length === 1 && isGenericSheetName(result.buses[0].name) && fileBase) {
-    result.buses[0].name = sanitizeBusName(fileBase, 'Armada 1')
+    result.buses[0].name = sanitizeBusName(fileBase, 'Unit 1')
   }
 
   const ignored = result.diagnostics.sheets.filter((s) => s.status === 'ignored')

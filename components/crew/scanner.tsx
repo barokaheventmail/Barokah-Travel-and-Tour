@@ -310,7 +310,7 @@ export function CrewScanner({ username }: { username: string }) {
         Valid scan otomatis menandai kehadiran peserta di panel admin.
       </p>
 
-      {/* Popup scan ditolak (bukan armada / belum ditugaskan) */}
+      {/* Popup scan ditolak (bukan unit / belum ditugaskan) */}
       {block && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-5 backdrop-blur-sm">
           <div className="animate-fade-up w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
@@ -320,11 +320,11 @@ export function CrewScanner({ username }: { username: string }) {
               </span>
               <div>
                 <h3 className="text-sm font-black text-[#8b1e1e]">
-                  {block.code === 'WRONG_BUS' ? 'Bukan Armada Kamu' : 'Belum Ada Tugas'}
+                  {block.code === 'WRONG_BUS' ? 'Bukan Unit Kamu' : 'Belum Ada Tugas'}
                 </h3>
                 <p className="mt-1 text-xs font-semibold text-[#657080]">
                   {block.code === 'WRONG_BUS'
-                    ? 'Scan ditolak. Peserta ini tidak tercatat di armada yang kamu pegang.'
+                    ? 'Scan ditolak. Peserta ini tidak tercatat di unit yang kamu pegang.'
                     : block.error}
                 </p>
               </div>
@@ -335,13 +335,13 @@ export function CrewScanner({ username }: { username: string }) {
                 <div className="rounded-xl border-l-4 border-red-400 bg-red-50 px-3 py-2">
                   <p className="text-[11px] font-bold uppercase tracking-wide text-[#9aa3af]">Peserta ini di</p>
                   <p className="text-sm font-bold text-[#1b3555]">
-                    Armada {block.participant.busName}
+                    Unit {block.participant.busName}
                     <span className="font-semibold text-[#657080]"> · {block.participant.eventTitle}</span>
                   </p>
                   <p className="mt-0.5 text-xs font-semibold text-[#657080]">{block.participant.name}</p>
                 </div>
                 <div className="rounded-xl px-3 py-2">
-                  <p className="text-[11px] font-bold uppercase tracking-wide text-[#9aa3af]">Armada yang kamu pegang</p>
+                  <p className="text-[11px] font-bold uppercase tracking-wide text-[#9aa3af]">Unit yang kamu pegang</p>
                   {block.assignments.map((a, i) => (
                     <p key={i} className="text-xs font-bold text-[#2ca84a]">
                       • {a.busName} · {a.eventTitle}
@@ -349,7 +349,7 @@ export function CrewScanner({ username }: { username: string }) {
                   ))}
                 </div>
                 <p className="rounded-xl bg-[#eef3fb] px-3 py-2 text-xs font-semibold text-[#1b4f9c]">
-                  Arahkan peserta ke armada <span className="font-bold">{block.participant.busName}</span> sesuai dengan
+                  Arahkan peserta ke unit <span className="font-bold">{block.participant.busName}</span> sesuai dengan
                   kursi yang tertera di tiketnya.
                 </p>
               </div>

@@ -1,5 +1,5 @@
 /**
- * Pencocokan baris import Excel dengan peserta yang sudah ada di satu armada.
+ * Pencocokan baris import Excel dengan peserta yang sudah ada di satu unit.
  *
  * Kenapa modul ini ada: sebelumnya import mencocokkan baris file ke peserta lewat
  * kolom "No" (`Participant.order`). "No" itu POSISI di daftar, bukan identitas.
@@ -75,7 +75,7 @@ function conflictMessage(row: ImportRow, occupiedBy: string | null, reason: 'slo
 }
 
 /**
- * Susun rencana import untuk satu armada. Fungsi murni: tidak menyentuh database,
+ * Susun rencana import untuk satu unit. Fungsi murni: tidak menyentuh database,
  * jadi bisa diuji penuh tanpa Prisma.
  *
  * `forceByOrder` mengembalikan perilaku lama (cocokkan murni lewat kolom "No").

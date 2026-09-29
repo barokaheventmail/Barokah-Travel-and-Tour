@@ -56,7 +56,7 @@ const FIELD_LABEL: Record<string, string> = {
   seat: 'No Kursi',
   room: 'No Kamar',
   vw: 'No VW',
-  bus: 'Armada',
+  bus: 'Unit',
 }
 
 function downloadCsv(name: string, rows: (string | number)[][]) {
@@ -184,7 +184,7 @@ function PreviewPanel({
         </div>
         {/* Ringkasan satu baris supaya tidak kepanjangan. */}
         <p className="mt-1 text-xs font-semibold text-[#657080]">
-          {total} peserta · {buses.length} armada
+          {total} peserta · {buses.length} unit
           {skipped > 0 ? ` · ${skipped} baris dilewati` : ''}
           {ignored.length > 0 ? ` · ${ignored.length} sheet tidak terbaca` : ''}
           {empty.length > 0 ? ` · ${empty.length} sheet kosong` : ''}
@@ -280,7 +280,7 @@ function PreviewPanel({
               onClick={() => setShowSamples((v) => !v)}
               className="flex w-full items-center gap-1.5 text-xs font-bold text-[#1b3555]"
             >
-              {showSamples ? <ChevronUp size={13} /> : <ChevronDown size={13} />} Contoh data per armada ({buses.length}
+              {showSamples ? <ChevronUp size={13} /> : <ChevronDown size={13} />} Contoh data per unit ({buses.length}
               )<span className="font-semibold text-[#9aa3af]">(20 baris pertama)</span>
             </button>
             {showSamples && (
@@ -401,7 +401,7 @@ function ResultPanel({ result, onReset }: { result: Result; onReset: () => void 
     <div className="animate-fade-up mt-3 rounded-xl bg-white p-4 shadow-sm">
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-bold text-[#2ca84a]">
         <CheckCircle2 size={16} /> Import berhasil — {result.created + result.updated} peserta di {result.buses.length}{' '}
-        armada
+        unit
         <span className="text-xs font-semibold text-[#657080]">
           ({result.created} baru · {result.updated} diperbarui
           {result.skipped > 0 ? ` · ${result.skipped} dilewati` : ''})
@@ -524,8 +524,8 @@ export function ImportExcel({ eventId }: { eventId: string }) {
       <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs leading-relaxed text-[#657080]">
         <p className="min-w-0">
           Template tidak harus sama persis. Urutan kolom bebas, kolom boleh tidak lengkap, dan kolom yang tidak dikenali
-          otomatis diabaikan. <strong>1 sheet = 1 armada</strong>, atau pakai kolom <strong>Bus/Armada</strong> di dalam
-          sheet. Import ulang memperbarui peserta yang sama (No + armada), bukan menggandakan.
+          otomatis diabaikan. <strong>1 sheet = 1 unit</strong>, atau pakai kolom <strong>Bus/Unit</strong> di dalam
+          sheet. Import ulang memperbarui peserta yang sama (No + unit), bukan menggandakan.
         </p>
         <a
           href="/api/admin/template"

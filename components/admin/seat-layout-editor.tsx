@@ -131,7 +131,7 @@ export function SeatLayoutEditor({ eventId, buses }: { eventId: string; buses: S
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Gagal menyimpan layout.')
-      setStatus({ kind: 'ok', msg: applyToAll ? 'Layout disimpan & diterapkan ke semua armada.' : 'Layout kursi tersimpan.' })
+      setStatus({ kind: 'ok', msg: applyToAll ? 'Layout disimpan & diterapkan ke semua unit.' : 'Layout kursi tersimpan.' })
       router.refresh()
     } catch (err) {
       setStatus({ kind: 'err', msg: err instanceof Error ? err.message : 'Gagal menyimpan layout.' })
@@ -155,7 +155,7 @@ export function SeatLayoutEditor({ eventId, buses }: { eventId: string; buses: S
       if (!res.ok) throw new Error(data.error ?? 'Gagal menghapus layout kursi.')
       setLayout({ rows: 0, cols: 0, cells: [] })
       setConfirmClear(false)
-      setStatus({ kind: 'ok', msg: 'Layout kursi armada ini dihapus.' })
+      setStatus({ kind: 'ok', msg: 'Layout kursi unit ini dihapus.' })
       router.refresh()
     } catch (err) {
       setConfirmClear(false)
@@ -176,16 +176,16 @@ export function SeatLayoutEditor({ eventId, buses }: { eventId: string; buses: S
         body: JSON.stringify({ clearSeatLayout: true, applyToAll: true }),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? 'Gagal menghapus layout kursi semua armada.')
+      if (!res.ok) throw new Error(data.error ?? 'Gagal menghapus layout kursi semua unit.')
       setLayout({ rows: 0, cols: 0, cells: [] })
       setBulkClearOpen(false)
       setStatus({
         kind: 'ok',
-        msg: `Layout kursi dihapus di ${(data.buses ?? 0).toLocaleString('id-ID')} armada.`,
+        msg: `Layout kursi dihapus di ${(data.buses ?? 0).toLocaleString('id-ID')} unit.`,
       })
       router.refresh()
     } catch (err) {
-      setBulkError(err instanceof Error ? err.message : 'Gagal menghapus layout kursi semua armada.')
+      setBulkError(err instanceof Error ? err.message : 'Gagal menghapus layout kursi semua unit.')
     } finally {
       setLoading(false)
     }
@@ -199,7 +199,7 @@ export function SeatLayoutEditor({ eventId, buses }: { eventId: string; buses: S
           <h2 className="text-sm font-bold text-[#1b3555]">Layout Kursi</h2>
         </div>
         <p className="mt-1 text-xs leading-relaxed text-[#657080]">
-          Atur grid kursi per armada seperti membuat tabel: tentukan Baris × Kolom, lalu klik kursi untuk mengaktifkan.
+          Atur grid kursi per unit seperti membuat tabel: tentukan Baris × Kolom, lalu klik kursi untuk mengaktifkan.
           Kursi aktif dinomori otomatis 1 sampai terakhir (kiri→kanan per baris, dari atas). Posisi kotak yang diklik
           akan konsisten & dipakai di peta kursi crew.
         </p>
@@ -207,12 +207,12 @@ export function SeatLayoutEditor({ eventId, buses }: { eventId: string; buses: S
 
       {buses.length === 0 ? (
         <p className="rounded-xl bg-[#f8fafc] px-4 py-6 text-center text-xs font-semibold text-[#9aa3af]">
-          Belum ada armada. Tambah bus terlebih dahulu di tab Bus & Armada.
+          Belum ada unit. Tambah bus terlebih dahulu di tab Bus & Unit.
         </p>
       ) : (
         <>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[11px] font-bold uppercase tracking-wide text-[#657080]">Pilih Armada</span>
+            <span className="text-[11px] font-bold uppercase tracking-wide text-[#657080]">Pilih Unit</span>
             <div className="relative w-full max-w-xs">
               <select
                 value={selectedId ?? ''}
@@ -220,7 +220,7 @@ export function SeatLayoutEditor({ eventId, buses }: { eventId: string; buses: S
                   const bus = buses.find((b) => b.id === e.target.value)
                   if (bus) selectBus(bus)
                 }}
-                aria-label="Pilih armada"
+                aria-label="Pilih unit"
                 className="w-full cursor-pointer appearance-none rounded-full border border-[#dfe4e8] bg-white py-2 pl-4 pr-9 text-xs font-bold text-[#1b3555] outline-none transition-colors hover:bg-[#eef4fb]"
               >
                 {buses.map((b) => (
@@ -304,16 +304,16 @@ export function SeatLayoutEditor({ eventId, buses }: { eventId: string; buses: S
                       type="button"
                       onClick={() => save(true)}
                       disabled={loading || layout.rows === 0 || layout.cols === 0}
-                      title="Menyalin layout ini ke semua armada lain di event"
+                      title="Menyalin layout ini ke semua unit lain di event"
                       className="inline-flex items-center gap-1.5 rounded-full border border-[#dfe4e8] px-4 py-2.5 text-xs font-bold text-[#1b4f9c] transition-colors hover:bg-[#eef4fb] active:scale-95 disabled:opacity-60"
                     >
-                      Terapkan ke Semua Armada
+                      Terapkan ke Semua Unit
                     </button>
                     <button
                       type="button"
                       onClick={() => (confirmClear ? clearSeatLayout() : setConfirmClear(true))}
                       disabled={loading || layout.rows === 0 || layout.cols === 0}
-                      aria-label={confirmClear ? 'Konfirmasi hapus layout kursi' : 'Hapus layout kursi armada ini'}
+                      aria-label={confirmClear ? 'Konfirmasi hapus layout kursi' : 'Hapus layout kursi unit ini'}
                       className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2.5 text-xs font-bold transition-colors active:scale-95 disabled:opacity-60 ${
                         confirmClear
                           ? 'border-[#c0392b] bg-[#c0392b] text-white hover:bg-[#a93226]'
@@ -330,11 +330,11 @@ export function SeatLayoutEditor({ eventId, buses }: { eventId: string; buses: S
                         setBulkClearOpen(true)
                       }}
                       disabled={loading || busesWithLayout === 0}
-                      title="Menghapus layout kursi di seluruh armada event ini sekaligus"
+                      title="Menghapus layout kursi di seluruh unit event ini sekaligus"
                       className="inline-flex items-center gap-1.5 rounded-full border border-[#dfe4e8] px-4 py-2.5 text-xs font-bold text-[#c0392b] transition-colors hover:bg-[#fdf1f0] active:scale-95 disabled:opacity-60"
                     >
                       <Trash2 size={13} />
-                      Hapus di Semua Armada
+                      Hapus di Semua Unit
                     </button>
                   </div>
                 </div>
@@ -363,8 +363,8 @@ export function SeatLayoutEditor({ eventId, buses }: { eventId: string; buses: S
 
           <ConfirmBulkDialog
             open={bulkClearOpen}
-            title="Hapus layout kursi semua armada?"
-            impact={`${busesWithLayout.toLocaleString('id-ID')} dari ${buses.length.toLocaleString('id-ID')} armada akan kehilangan layout kursinya.`}
+            title="Hapus layout kursi semua unit?"
+            impact={`${busesWithLayout.toLocaleString('id-ID')} dari ${buses.length.toLocaleString('id-ID')} unit akan kehilangan layout kursinya.`}
             note="Nomor kursi peserta tidak ikut terhapus, jadi saat layout dibuat ulang penomoran kembali otomatis. Peta kursi peserta & crew langsung kosong sampai itu terjadi."
             error={bulkError}
             confirmLabel="Ya, hapus semua"

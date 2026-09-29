@@ -46,7 +46,7 @@ export default async function EventDetail({
       include: {
         buses: {
           orderBy: { order: 'asc' },
-          include: { workers: { orderBy: { order: 'asc' }, include: { user: { select: { id: true, username: true, name: true, phone: true, photoUrl: true } } } } },
+          include: { workers: { orderBy: { order: 'asc' }, include: { user: { select: { id: true, username: true, name: true, phone: true, photoUrl: true, customPassword: true } } } } },
         },
       },
     }),
@@ -87,7 +87,14 @@ export default async function EventDetail({
     workers: b.workers.map((w) => ({
       id: w.id,
       order: w.order,
-      user: { id: w.user.id, username: w.user.username, name: w.user.name, phone: w.user.phone, photoUrl: w.user.photoUrl },
+      user: {
+        id: w.user.id,
+        username: w.user.username,
+        name: w.user.name,
+        phone: w.user.phone,
+        photoUrl: w.user.photoUrl,
+        customPassword: w.user.customPassword,
+      },
     })),
   }))
 
@@ -99,6 +106,7 @@ export default async function EventDetail({
   const credentialBuses: CredentialBus[] = event.buses.map((b) => ({
     name: b.name,
     usernames: b.workers.map((w) => w.user.username).sort((a, c) => a.localeCompare(c)),
+    customUsernames: b.workers.filter((w) => w.user.customPassword).map((w) => w.user.username),
   }))
 
   const seatBuses: SeatBus[] = event.buses.map((b) => ({
@@ -116,7 +124,7 @@ export default async function EventDetail({
   const totalParticipants = buses.reduce((acc, b) => acc + b.count, 0)
   const totalAttended = buses.reduce((acc, b) => acc + b.attended, 0)
 
-  // Peserta di armada tanpa crew tetap dihitung admin, tapi tidak akan muncul
+  // Peserta di unit tanpa crew tetap dihitung admin, tapi tidak akan muncul
   // di aplikasi crew dan QR-nya ditolak => beri tahu admin sejak awal.
   const busesWithoutCrew = armadasTanpaCrew(
     event.buses.map((b) => ({ name: b.name, count: totalMap.get(b.id) ?? 0, workerCount: b.workers.length })),
@@ -129,7 +137,7 @@ export default async function EventDetail({
         <div className="rounded-2xl border border-[#dfe4e8] bg-white p-4 shadow-sm">
           <Bus className="text-[#1b4f9c]" size={18} />
           <p className="mt-2 text-2xl font-black text-[#1b3555]">{buses.length}</p>
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-[#9aa3af]">Bus / Armada</p>
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-[#9aa3af]">Bus / Unit</p>
         </div>
       )}
       <div className="rounded-2xl border border-[#dfe4e8] bg-white p-4 shadow-sm">
@@ -279,17 +287,17 @@ export default async function EventDetail({
           {busesWithoutCrew.length > 0 && (
             <div className="rounded-2xl border border-[#f0c4c4] bg-[#fdf0f0] p-5 shadow-sm">
               <h2 className="flex items-center gap-1.5 text-sm font-bold text-[#c03a3a]">
-                <ShieldAlert size={15} /> {busesWithoutCrew.length} armada belum punya crew
+                <ShieldAlert size={15} /> {busesWithoutCrew.length} unit belum punya crew
               </h2>
               <p className="mt-0.5 text-xs text-[#657080]">
                 {participantsWithoutCrew} peserta ({busesWithoutCrew.map((b) => b.name).join(', ')}) tidak bisa discan
                 dari aplikasi crew sampai ada crew yang ditugaskan.
               </p>
               <Link
-                href={`/admin/events/${event.id}?tab=armada`}
+                href={`/admin/events/${event.id}?tab=unit`}
                 className="mt-3 inline-flex items-center gap-1 rounded-full border border-[#f0c4c4] bg-white px-4 py-2 text-xs font-bold text-[#c03a3a] transition-colors duration-200 hover:bg-[#fdecec] active:scale-95"
               >
-                Tambahkan crew di tab Armada <ArrowRight size={13} />
+                Tambahkan crew di tab Unit <ArrowRight size={13} />
               </Link>
             </div>
           )}
@@ -311,7 +319,7 @@ export default async function EventDetail({
         </div>
       )}
 
-      {active === 'armada' && (
+      {active === 'unit' && (
         <div className="mt-5 space-y-2">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
             <ArmadaActions
@@ -326,9 +334,9 @@ export default async function EventDetail({
               hasBuses={event.buses.length > 0}
             />
             <div>
-              <h2 className="text-sm font-bold text-[#1b3555]">Bus & Armada</h2>
+              <h2 className="text-sm font-bold text-[#1b3555]">Bus & Unit</h2>
               <p className="text-xs text-[#657080]">
-                Klik armada untuk kelola crew dan namanya. Akun crew dibuat dari Generate Akun Crew.
+                Klik unit untuk kelola crew dan namanya. Akun crew dibuat dari Generate Akun Crew.
               </p>
             </div>
           </div>
@@ -336,7 +344,7 @@ export default async function EventDetail({
             <BusArmadaSection eventId={event.id} buses={busesWithWorkers} />
           ) : (
             <p className="rounded-xl bg-[#f8fafc] px-4 py-6 text-center text-xs font-semibold text-[#9aa3af]">
-              Belum ada bus/armada. Tambah manual lewat tombol di atas, atau impor dari Excel.
+              Belum ada bus/unit. Tambah manual lewat tombol di atas, atau impor dari Excel.
             </p>
           )}
         </div>

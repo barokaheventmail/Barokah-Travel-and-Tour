@@ -77,7 +77,7 @@ export default async function TicketPage({ params }: { params: Promise<{ token: 
                 </dd>
               </div>
               <div>
-                <dt className="text-xs text-[#657080]">Bus / Armada</dt>
+                <dt className="text-xs text-[#657080]">Bus / Unit</dt>
                 <dd className="mt-0.5 flex items-center gap-1 font-bold text-[#1b4f9c]">
                   <Bus size={13} /> {p.bus.name}
                 </dd>

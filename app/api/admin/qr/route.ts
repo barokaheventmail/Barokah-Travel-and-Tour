@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { requireAdminSession } from '@/lib/auth'
+import { canManage, requireAdminSession } from '@/lib/auth'
 import { encodeToken, qrDataUrl } from '@/lib/scan'
 
 const MIN_SIZE = 128
@@ -19,7 +19,7 @@ const DEFAULT_SIZE = 480
  */
 export async function GET(request: Request) {
   const session = await requireAdminSession()
-  if (!session || session.role !== 'ADMIN') {
+  if (!canManage(session)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 

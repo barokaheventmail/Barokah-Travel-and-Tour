@@ -1,11 +1,11 @@
 export type LogDetail = Record<string, unknown> | null
 
-export type LogGroup = 'Import' | 'Kelola Event' | 'Armada' | 'Peserta' | 'Kehadiran' | 'Scan' | 'Keamanan' | 'Lainnya'
+export type LogGroup = 'Import' | 'Kelola Event' | 'Unit' | 'Peserta' | 'Kehadiran' | 'Scan' | 'Keamanan' | 'Lainnya'
 
 const GROUP_STYLE: Record<LogGroup, string> = {
   Import: 'bg-[#e6f4ea] text-[#2ca84a]',
   'Kelola Event': 'bg-[#eef3fb] text-[#1b4f9c]',
-  Armada: 'bg-[#f3ecfb] text-[#7b3fd4]',
+  Unit: 'bg-[#f3ecfb] text-[#7b3fd4]',
   Peserta: 'bg-[#e8f4fb] text-[#0d7bb5]',
   Kehadiran: 'bg-[#fff7e0] text-[#b98a12]',
   Scan: 'bg-[#eff1f4] text-[#657080]',
@@ -21,22 +21,22 @@ const ACTION_GROUP: Record<string, LogGroup> = {
   'event.clearData': 'Kelola Event',
   'event.crewPhoto': 'Kelola Event',
   'event.crewPhotoRemove': 'Kelola Event',
-  'bus.create': 'Armada',
-  'bus.update': 'Armada',
-  'bus.delete': 'Armada',
-  'bus.seatLayout': 'Armada',
-  'bus.seatLayoutClear': 'Armada',
-  'bus.facilities': 'Armada',
-  'bus.facilitiesClear': 'Armada',
-  'busCrew.create': 'Armada',
-  'busCrew.update': 'Armada',
-  'busCrew.remove': 'Armada',
-  'busCrew.generate': 'Armada',
-  'busCrew.resetPassword': 'Armada',
-  'busCrew.resetPasswords': 'Armada',
-  'busCrew.deleteAccounts': 'Armada',
-  'busCrew.photo': 'Armada',
-  'busCrew.photoRemove': 'Armada',
+  'bus.create': 'Unit',
+  'bus.update': 'Unit',
+  'bus.delete': 'Unit',
+  'bus.seatLayout': 'Unit',
+  'bus.seatLayoutClear': 'Unit',
+  'bus.facilities': 'Unit',
+  'bus.facilitiesClear': 'Unit',
+  'busCrew.create': 'Unit',
+  'busCrew.update': 'Unit',
+  'busCrew.remove': 'Unit',
+  'busCrew.generate': 'Unit',
+  'busCrew.resetPassword': 'Unit',
+  'busCrew.resetPasswords': 'Unit',
+  'busCrew.deleteAccounts': 'Unit',
+  'busCrew.photo': 'Unit',
+  'busCrew.photoRemove': 'Unit',
   'participant.create': 'Peserta',
   'participant.update': 'Peserta',
   'participant.delete': 'Peserta',
@@ -48,6 +48,7 @@ const ACTION_GROUP: Record<string, LogGroup> = {
   'auth.login.success': 'Keamanan',
   'auth.login.failed': 'Keamanan',
   'auth.logout': 'Keamanan',
+  'auth.password.change': 'Keamanan',
   'log.delete': 'Keamanan',
 }
 
@@ -76,21 +77,21 @@ export const LOG_ACTIONS: { group: LogGroup; actions: { value: string; label: st
     ],
   },
   {
-    group: 'Armada',
+    group: 'Unit',
     actions: [
       { value: 'bus.create', label: 'Tambah bus' },
       { value: 'bus.update', label: 'Ubah bus' },
       { value: 'bus.delete', label: 'Hapus bus' },
       { value: 'bus.seatLayout', label: 'Atur layout kursi' },
       { value: 'bus.seatLayoutClear', label: 'Hapus layout kursi' },
-      { value: 'bus.facilities', label: 'Atur fasilitas armada' },
-      { value: 'bus.facilitiesClear', label: 'Hapus fasilitas armada' },
+      { value: 'bus.facilities', label: 'Atur fasilitas unit' },
+      { value: 'bus.facilitiesClear', label: 'Hapus fasilitas unit' },
       { value: 'busCrew.create', label: 'Tambah crew' },
       { value: 'busCrew.update', label: 'Ubah crew' },
       { value: 'busCrew.remove', label: 'Lepas crew' },
       { value: 'busCrew.generate', label: 'Generate crew' },
-      { value: 'busCrew.resetPassword', label: 'Reset password crew' },
-      { value: 'busCrew.resetPasswords', label: 'Reset password semua crew' },
+      { value: 'busCrew.resetPassword', label: 'Ganti password crew' },
+      { value: 'busCrew.resetPasswords', label: 'Terapkan pola password crew' },
       { value: 'busCrew.deleteAccounts', label: 'Hapus akun crew' },
       { value: 'busCrew.photo', label: 'Ganti foto crew' },
       { value: 'busCrew.photoRemove', label: 'Hapus foto crew' },
@@ -125,6 +126,7 @@ export const LOG_ACTIONS: { group: LogGroup; actions: { value: string; label: st
       { value: 'auth.login.success', label: 'Login berhasil' },
       { value: 'auth.login.failed', label: 'Percobaan login gagal' },
       { value: 'auth.logout', label: 'Logout' },
+      { value: 'auth.password.change', label: 'Ganti sandi' },
       { value: 'log.delete', label: 'Hapus riwayat' },
     ],
   },
@@ -135,15 +137,20 @@ export function getValue(d: LogDetail, key: string): string | number | null {
   return typeof v === 'string' || typeof v === 'number' ? v : null
 }
 
-// Aksi massal (hapus layout kursi / fasilitas di seluruh armada) memakai satu baris
-// log dengan scope 'all' + jumlah armada, bukan satu log per armada.
+/** Detail log bertipe boolean (mis. `manual` pada ganti password crew). */
+function getFlag(d: LogDetail, key: string): boolean {
+  return d != null && (d[key] as unknown) === true
+}
+
+// Aksi massal (hapus layout kursi / fasilitas di seluruh unit) memakai satu baris
+// log dengan scope 'all' + jumlah unit, bukan satu log per unit.
 function isAllScope(d: LogDetail): boolean {
   return d != null && d.scope === 'all'
 }
 
 function busesLabel(d: LogDetail): string {
   const n = getValue(d, 'buses')
-  return `${typeof n === 'number' ? n.toLocaleString('id-ID') : '???'} armada`
+  return `${typeof n === 'number' ? n.toLocaleString('id-ID') : '???'} unit`
 }
 
 export function labelLog(action: string): string {
@@ -206,7 +213,7 @@ export function formatLogDetail(action: string, detail: LogDetail): string {
       const active = getValue(detail, 'active')
       const applied = detail && typeof detail.appliedToAll === 'number' ? detail.appliedToAll : 0
       const base = `Layout kursi ${rows}×${cols} (${typeof active === 'number' ? active : 0} kursi)${n ? ` • ${n}` : ''}`
-      return applied > 0 ? `${base} + diterapkan ke ${applied.toLocaleString('id-ID')} armada lain` : base
+      return applied > 0 ? `${base} + diterapkan ke ${applied.toLocaleString('id-ID')} unit lain` : base
     }
     case 'bus.seatLayoutClear': {
       const all = isAllScope(detail)
@@ -221,7 +228,7 @@ export function formatLogDetail(action: string, detail: LogDetail): string {
       const list = names.slice(0, 4).join(', ')
       const more = names.length > 4 ? `, +${names.length - 4} lainnya` : ''
       const base = `${count} fasilitas${n ? ` • ${n}` : ''}${list ? ` (${list}${more})` : ''}`
-      return applied > 0 ? `${base} + diterapkan ke ${applied.toLocaleString('id-ID')} armada lain` : base
+      return applied > 0 ? `${base} + diterapkan ke ${applied.toLocaleString('id-ID')} unit lain` : base
     }
     case 'bus.facilitiesClear': {
       const all = isAllScope(detail)
@@ -259,11 +266,13 @@ export function formatLogDetail(action: string, detail: LogDetail): string {
     }
     case 'busCrew.resetPassword': {
       const u = getValue(detail, 'username') ?? '???'
-      return `Reset password crew ${u}`
+      return getFlag(detail, 'manual')
+        ? `Password crew ${u} diganti manual`
+        : `Reset password crew ${u} ke pola username+1123`
     }
     case 'busCrew.resetPasswords': {
       const n = getValue(detail, 'count')
-      return `Reset password ${(typeof n === 'number' ? n : 0).toLocaleString('id-ID')} crew`
+      return `Reset password ${(typeof n === 'number' ? n : 0).toLocaleString('id-ID')} crew ke pola username+1123`
     }
     case 'busCrew.deleteAccounts': {
       const n = getValue(detail, 'count')
@@ -325,6 +334,11 @@ export function formatLogDetail(action: string, detail: LogDetail): string {
     case 'auth.logout': {
       const n = getValue(detail, 'username')
       return `Logout${n ? ` • ${n}` : ''}`
+    }
+    case 'auth.password.change': {
+      const n = getValue(detail, 'username')
+      const ok = detail?.ok === true
+      return `Sandi ${n ?? '???'} ${ok ? 'diganti' : 'gagal diganti'}`
     }
     case 'log.delete': {
       const n = getValue(detail, 'count')

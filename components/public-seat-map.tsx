@@ -124,7 +124,7 @@ export function PublicSeatMap({
           <button
             type="button"
             onClick={() => step(-1)}
-            aria-label="Armada sebelumnya"
+            aria-label="Unit sebelumnya"
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#dfe4e8] bg-white p-0 text-[#1b4f9c] transition-colors duration-150 hover:bg-[#eef4fb] active:scale-95"
           >
             <ChevronLeft size={16} />
@@ -138,7 +138,7 @@ export function PublicSeatMap({
           <button
             type="button"
             onClick={() => step(1)}
-            aria-label="Armada berikutnya"
+            aria-label="Unit berikutnya"
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#dfe4e8] bg-white p-0 text-[#1b4f9c] transition-colors duration-150 hover:bg-[#eef4fb] active:scale-95"
           >
             <ChevronRight size={16} />
@@ -186,7 +186,7 @@ export function PublicSeatMap({
           <div className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-[#dfe4e8] px-4 py-8 text-center">
             <Armchair size={22} className="text-[#c3cad2]" />
             <p className="text-xs font-bold text-[#657080]">Belum ada layout kursi</p>
-            <p className="text-[11px] text-[#9aa3af]">Peta kursi armada ini diatur oleh admin.</p>
+            <p className="text-[11px] text-[#9aa3af]">Peta kursi unit ini diatur oleh admin.</p>
           </div>
         )}
       </div>
@@ -257,7 +257,7 @@ export function PublicSeatMap({
             aria-label={facilityOpen ? 'Tutup daftar fasilitas' : 'Buka daftar fasilitas'}
             className="flex w-full items-center justify-between gap-3 bg-[linear-gradient(100deg,#1b4f9c_0%,#163d78_55%,#0d2850_100%)] px-4 py-2.5 text-left transition-[filter] duration-150 hover:brightness-110 active:scale-[0.995]"
           >
-            <p className="min-w-0 truncate text-sm font-bold text-white">Fasilitas Armada — {data.busName}</p>
+            <p className="min-w-0 truncate text-sm font-bold text-white">Fasilitas Unit — {data.busName}</p>
             <span className="flex shrink-0 items-center gap-2">
               <span className="rounded-full border border-white/25 bg-white/10 px-2.5 py-0.5 text-[11px] font-bold tabular-nums text-white">
                 {data.facilities.length} fasilitas

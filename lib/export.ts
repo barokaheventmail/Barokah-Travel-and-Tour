@@ -75,7 +75,7 @@ function matchesStatus(p: ExportParticipant, status: ExportStatusFilter): boolea
   return true
 }
 
-/** Buang armada yang tidak dipilih & peserta yang tidak sesuai filter status. */
+/** Buang unit yang tidak dipilih & peserta yang tidak sesuai filter status. */
 export function filterBuses(buses: ExportBus[], filter: ExportFilter): ExportBus[] {
   return buses
     .filter((b) => !filter.busId || b.id === filter.busId)
@@ -84,8 +84,8 @@ export function filterBuses(buses: ExportBus[], filter: ExportFilter): ExportBus
 
 /** Nama sheet Excel: maksimal 31 karakter, tanpa karakter terlarang, tetap unik. */
 export function sanitizeSheetName(raw: string, taken: Set<string>): string {
-  const cleaned = (raw || 'Armada').replace(/[\\/?*[\]:]/g, ' ').replace(/\s+/g, ' ').trim()
-  const base = (cleaned || 'Armada').slice(0, 31)
+  const cleaned = (raw || 'Unit').replace(/[\\/?*[\]:]/g, ' ').replace(/\s+/g, ' ').trim()
+  const base = (cleaned || 'Unit').slice(0, 31)
   if (!taken.has(base)) {
     taken.add(base)
     return base
@@ -202,7 +202,7 @@ function addRekapSheet(wb: ExcelJS.Workbook, input: ExportInput, buses: ExportBu
 
   // Label header ditulis eksplisit ke baris 4, bukan lewat `header:` di ws.columns
   // (itu selalu menulis ke baris 1 dan akan tertimpa judul).
-  const REKAP_HEADERS = ['Armada', 'Peserta', 'Hadir', 'Belum', 'Kursi Terisi', 'Kamar Terisi']
+  const REKAP_HEADERS = ['Unit', 'Peserta', 'Hadir', 'Belum', 'Kursi Terisi', 'Kamar Terisi']
   const header = ws.getRow(4)
   REKAP_HEADERS.forEach((label, i) => {
     header.getCell(i + 1).value = label
@@ -260,7 +260,7 @@ function addRekapSheet(wb: ExcelJS.Workbook, input: ExportInput, buses: ExportBu
   return ws
 }
 
-/** Workbook export: sheet Rekap + 1 sheet per armada. */
+/** Workbook export: sheet Rekap + 1 sheet per unit. */
 export function buildExportWorkbook(input: ExportInput, filter: ExportFilter): ExcelJS.Workbook {
   const buses = filterBuses(input.buses, filter)
   const wb = new ExcelJS.Workbook()

@@ -15,7 +15,7 @@ export type ArmadaOption = {
 const optionId = (id: string) => `armada-option-${id}`
 
 /**
- * Single-select armada untuk editor layout kursi. Popup-nya adalah elemen kita,
+ * Single-select unit untuk editor layout kursi. Popup-nya adalah elemen kita,
  * bukan `<option>` native, jadi bentuk, radius, shadow, dan animasinya bisa
  * dibuat lembut — popup `<option>` digambar OS dan selalu datang mendadak.
  *
@@ -112,7 +112,7 @@ export function ArmadaPicker({
     ? selected.activeSeats > 0
       ? `${selected.count} peserta · ${selected.activeSeats} kursi aktif`
       : `${selected.count} peserta · belum ada layout`
-    : `${options.length} armada tersedia`
+    : `${options.length} unit tersedia`
 
   function choose(o: ArmadaOption) {
     onChange(o.id)
@@ -167,7 +167,7 @@ export function ArmadaPicker({
         onKeyDown={onKeyDown}
         aria-expanded={open}
         aria-haspopup="listbox"
-        aria-label={label ?? 'Pilih armada'}
+        aria-label={label ?? 'Pilih unit'}
         className={`flex w-full items-center gap-2.5 rounded-full border py-2 pl-2 pr-2.5 text-left transition-[background-color,border-color,box-shadow] duration-200 ease-out ${
           open
             ? 'border-[#1b4f9c]/45 bg-white shadow-[0_10px_24px_-16px_rgba(9,32,74,0.6)]'
@@ -179,7 +179,7 @@ export function ArmadaPicker({
         </span>
         <span className="min-w-0 flex-1">
           <span className="block truncate text-xs font-bold text-[#1b3555]">
-            {selected ? selected.name : 'Pilih Armada'}
+            {selected ? selected.name : 'Pilih Unit'}
           </span>
           <span className="mt-0.5 block truncate text-[11px] font-semibold text-[#9aa3af]">{summary}</span>
         </span>
@@ -221,7 +221,7 @@ export function ArmadaPicker({
             onKeyDown={onKeyDown}
             onFocus={() => inputRef.current?.select()}
             placeholder="Cari bus…"
-            aria-label="Cari armada"
+            aria-label="Cari unit"
             className="w-full rounded-xl border border-[#dfe4e8] bg-[#f8fafc] py-2 pl-8 pr-3 text-xs font-semibold text-[#1b3555] outline-none transition-[background-color,border-color,box-shadow] duration-200 placeholder:text-[#9aa3af] focus:border-[#1b4f9c] focus:bg-white focus:ring-2 focus:ring-[#1b4f9c]/15"
           />
         </div>
@@ -229,7 +229,7 @@ export function ArmadaPicker({
         <div
           ref={listRef}
           role="listbox"
-          aria-label={label ?? 'Daftar armada'}
+          aria-label={label ?? 'Daftar unit'}
           aria-activedescendant={cursor >= 0 && filtered[cursor] ? optionId(filtered[cursor].id) : undefined}
           className="relative max-h-[min(24rem,60vh)] overflow-y-auto overscroll-contain"
         >
@@ -277,14 +277,14 @@ export function ArmadaPicker({
 
           {filtered.length === 0 && (
             <p className="px-3 py-6 text-center text-xs font-semibold text-[#9aa3af]">
-              {options.length === 0 ? 'Belum ada armada.' : 'Tidak ada bus yang cocok.'}
+              {options.length === 0 ? 'Belum ada unit.' : 'Tidak ada bus yang cocok.'}
             </p>
           )}
         </div>
 
         {filtered.length > 0 && (
           <p className="mt-1 border-t border-[#f1f3f5] px-2.5 pt-1.5 text-[10px] font-semibold tabular-nums text-[#b0b8c2]">
-            {filtered.length} dari {options.length} armada · ↑↓ geser, Enter pilih
+            {filtered.length} dari {options.length} unit · ↑↓ geser, Enter pilih
           </p>
         )}
       </div>

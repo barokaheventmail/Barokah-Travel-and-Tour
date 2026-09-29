@@ -246,11 +246,11 @@ export const TicketSearch = forwardRef<
           </div>
           <dl className="grid gap-3 px-5 py-5 text-sm sm:grid-cols-2">
             <div className="rounded-xl bg-[#f8fafc] p-3">
-              <dt className="text-[11px] font-semibold uppercase tracking-wide text-[#9aa3af]">Bus / Armada</dt>
+              <dt className="text-[11px] font-semibold uppercase tracking-wide text-[#9aa3af]">Bus / Unit</dt>
               <dd className="mt-0.5 font-bold text-[#1b4f9c]">{selected.busName}</dd>
             </div>
             <div className="rounded-xl bg-[#f8fafc] p-3">
-              <dt className="text-[11px] font-semibold uppercase tracking-wide text-[#9aa3af]">Nomor Peserta</dt>
+              <dt className="text-[11px] font-semibold uppercase tracking-wide text-[#9aa3af]">Nomor Kursi</dt>
               <dd className="mt-0.5 font-semibold text-[#1b3555]">{selected.order}</dd>
             </div>
             <div className="rounded-xl bg-[#f8fafc] p-3">
@@ -297,7 +297,7 @@ export const TicketSearch = forwardRef<
                 )}
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-bold text-[#1b3555]">{selected.crew.name}</p>
-                  <p className="truncate text-xs text-[#657080]">Penanggung jawab armada {selected.busName}</p>
+                  <p className="truncate text-xs text-[#657080]">Penanggung jawab unit {selected.busName}</p>
                 </div>
                 <a
                   href={wa}

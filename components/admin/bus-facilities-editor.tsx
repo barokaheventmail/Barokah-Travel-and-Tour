@@ -95,7 +95,7 @@ export function BusFacilitiesEditor({
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Gagal menyimpan fasilitas.')
       const base = applyToAll
-        ? `${payload.length} fasilitas disimpan & diterapkan ke semua armada.`
+        ? `${payload.length} fasilitas disimpan & diterapkan ke semua unit.`
         : `${payload.length} fasilitas untuk ${busName} tersimpan.`
       setStatus({ kind: 'ok', msg: skipped > 0 ? `${base} ${skipped} baris kosong dilewati.` : base })
       router.refresh()
@@ -139,16 +139,16 @@ export function BusFacilitiesEditor({
         body: JSON.stringify({ clearFacilities: true, applyToAll: true }),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? 'Gagal menghapus fasilitas semua armada.')
+      if (!res.ok) throw new Error(data.error ?? 'Gagal menghapus fasilitas semua unit.')
       setItems([])
       setBulkClearOpen(false)
       setStatus({
         kind: 'ok',
-        msg: `Fasilitas dihapus di ${(data.buses ?? 0).toLocaleString('id-ID')} armada.`,
+        msg: `Fasilitas dihapus di ${(data.buses ?? 0).toLocaleString('id-ID')} unit.`,
       })
       router.refresh()
     } catch (err) {
-      setBulkError(err instanceof Error ? err.message : 'Gagal menghapus fasilitas semua armada.')
+      setBulkError(err instanceof Error ? err.message : 'Gagal menghapus fasilitas semua unit.')
     } finally {
       setLoading(false)
     }
@@ -158,7 +158,7 @@ export function BusFacilitiesEditor({
     <div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">
       <div className="flex flex-wrap items-center gap-2">
         <Sparkles size={18} className="text-[#d9a40c]" />
-        <h2 className="text-sm font-bold text-[#1b3555]">Fasilitas Armada</h2>
+        <h2 className="text-sm font-bold text-[#1b3555]">Fasilitas Unit</h2>
         <span className="rounded-full bg-[#fffdf5] px-2.5 py-0.5 text-[11px] font-bold text-[#8a6a08]">{busName}</span>
         <span className="ml-auto flex items-center gap-1.5">
           {blankCount > 0 && (
@@ -172,8 +172,8 @@ export function BusFacilitiesEditor({
         </span>
       </div>
       <p className="mt-1 text-xs leading-relaxed text-[#657080]">
-        Daftar fasilitas unit per unit — tiap armada bisa berbeda. Muncul di panduan peserta tepat di bawah Peta Kursi &amp;
-        Daftar Nama, mengikuti armada yang dipilih peserta.
+        Daftar fasilitas unit per unit — tiap unit bisa berbeda. Muncul di panduan peserta tepat di bawah Peta Kursi &amp;
+        Daftar Nama, mengikuti unit yang dipilih peserta.
       </p>
 
       {items.length === 0 ? (
@@ -361,16 +361,16 @@ export function BusFacilitiesEditor({
           type="button"
           onClick={() => save(true)}
           disabled={loading}
-          title="Menyalin daftar fasilitas ini ke semua armada lain di event"
+          title="Menyalin daftar fasilitas ini ke semua unit lain di event"
           className="inline-flex items-center gap-1.5 rounded-full border border-[#dfe4e8] px-4 py-2.5 text-xs font-bold text-[#1b4f9c] transition-colors hover:bg-[#eef4fb] active:scale-95 disabled:opacity-60"
         >
-          Terapkan ke Semua Armada
+          Terapkan ke Semua Unit
         </button>
         <button
           type="button"
           onClick={() => (confirmClear ? clearFacilities() : setConfirmClear(true))}
           disabled={loading || items.length === 0}
-          aria-label={confirmClear ? 'Konfirmasi hapus fasilitas' : 'Hapus semua fasilitas armada ini'}
+          aria-label={confirmClear ? 'Konfirmasi hapus fasilitas' : 'Hapus semua fasilitas unit ini'}
           className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2.5 text-xs font-bold transition-colors active:scale-95 disabled:opacity-60 ${
             confirmClear
               ? 'border-[#c0392b] bg-[#c0392b] text-white hover:bg-[#a93226]'
@@ -387,11 +387,11 @@ export function BusFacilitiesEditor({
             setBulkClearOpen(true)
           }}
           disabled={loading || busesWithFacilities === 0}
-          title="Menghapus fasilitas di seluruh armada event ini sekaligus"
+          title="Menghapus fasilitas di seluruh unit event ini sekaligus"
           className="inline-flex items-center gap-1.5 rounded-full border border-[#dfe4e8] px-4 py-2.5 text-xs font-bold text-[#c0392b] transition-colors hover:bg-[#fdf1f0] active:scale-95 disabled:opacity-60"
         >
           <Trash2 size={13} />
-          Hapus di Semua Armada
+          Hapus di Semua Unit
         </button>
       </div>
 
@@ -408,9 +408,9 @@ export function BusFacilitiesEditor({
 
       <ConfirmBulkDialog
         open={bulkClearOpen}
-        title="Hapus fasilitas semua armada?"
-        impact={`${busesWithFacilities.toLocaleString('id-ID')} dari ${totalBuses.toLocaleString('id-ID')} armada akan kehilangan daftar fasilitasnya.`}
-        note="Kartu fasilitas langsung hilang dari panduan peserta, crew, dan armada untuk semua bus. Data peserta tidak ikut berubah."
+        title="Hapus fasilitas semua unit?"
+        impact={`${busesWithFacilities.toLocaleString('id-ID')} dari ${totalBuses.toLocaleString('id-ID')} unit akan kehilangan daftar fasilitasnya.`}
+        note="Kartu fasilitas langsung hilang dari panduan peserta, crew, dan unit untuk semua bus. Data peserta tidak ikut berubah."
         error={bulkError}
         confirmLabel="Ya, hapus semua"
         loading={loading}

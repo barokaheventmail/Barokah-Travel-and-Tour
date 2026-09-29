@@ -87,7 +87,7 @@ export function DeleteCrewButton({
                   <ShieldAlert className="mt-0.5 shrink-0 text-[#c03a3a]" size={16} />
                   <div>
                     <p className="text-xs font-bold text-[#c03a3a]">
-                      {totalCrew === 0 ? 'Belum ada crew di event ini.' : `${totalCrew} akun crew (semua armada) akan dihapus sepenuhnya.`}
+                      {totalCrew === 0 ? 'Belum ada crew di event ini.' : `${totalCrew} akun crew (semua unit) akan dihapus sepenuhnya.`}
                     </p>
                     <p className="mt-1 text-[11px] font-semibold text-[#a04545]">
                       Login akun langsung tidak berlaku lagi. Riwayat scan tetap tersimpan. Generate ulang nanti akan dimulai dari
@@ -133,7 +133,7 @@ export function DeleteCrewButton({
                     {result.unlinked.length > 0 && (
                       <div className="rounded-xl bg-[#fff7e0] px-3 py-2">
                         <p className="text-xs font-bold text-[#b98a12]">
-                          {result.unlinked.length} akun masih dipakai armada lain, hanya dilepas dari event ini
+                          {result.unlinked.length} akun masih dipakai unit lain, hanya dilepas dari event ini
                         </p>
                         <p className="mt-1 text-[11px] font-semibold text-[#9aa3af]">
                           {result.unlinked.map((d) => `@${d.username}`).join(', ')}

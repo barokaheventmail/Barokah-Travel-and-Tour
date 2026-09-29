@@ -148,7 +148,7 @@ export default async function EventPanduanPage({
                           <dd className="font-bold text-[#1b4f9c]">{ownBus.ticketCode}</dd>
                         </>
                       )}
-                      <dt className="mt-1.5 font-bold uppercase tracking-wide text-[#9aa3af]">Armada / Kursi</dt>
+                      <dt className="mt-1.5 font-bold uppercase tracking-wide text-[#9aa3af]">Unit / Kursi</dt>
                       <dd className="font-bold text-[#1b4f9c]">
                         {ownBusName ?? '—'}
                         {ownBus.seat ? ` · No ${ownBus.seat}` : ''}
@@ -415,8 +415,8 @@ export default async function EventPanduanPage({
               <section className="border border-[#dfe4e8] bg-white p-5">
                 <h2 className="text-xl font-bold text-[#1b3555]">Peta Kursi &amp; Daftar Nama</h2>
                 <p className="mt-1 text-xs leading-relaxed text-[#657080]">
-                  Cek posisi kursi di armada Anda sebelum keberangkatan. Kursi hijau menandakan sudah terisi penumpang.
-                  Gunakan tombol panah untuk berpindah armada.
+                  Cek posisi kursi di unit Anda sebelum keberangkatan. Kursi hijau menandakan sudah terisi penumpang.
+                  Gunakan tombol panah untuk berpindah unit.
                 </p>
                 <PublicSeatMap
                   eventId={id}
@@ -435,8 +435,8 @@ export default async function EventPanduanPage({
                 <h2 className="mt-3 text-xl font-bold text-[#1b3555]">Unduh Panduan (PDF)</h2>
                 <p className="mx-auto mt-1.5 max-w-md text-xs leading-relaxed text-[#657080]">
                   Simpan seluruh isi panduan peserta — itinerary, tata tertib, doa, tata cara salat jamak
-                  {ownBusName ? `, peta kursi & daftar nama ${ownBusName}` : ', peta kursi & daftar nama armada'}
-                  , serta fasilitas armada — dalam satu file PDF untuk dibaca kapan saja, bahkan tanpa koneksi.
+                  {ownBusName ? `, peta kursi & daftar nama ${ownBusName}` : ', peta kursi & daftar nama unit'}
+                  , serta fasilitas unit — dalam satu file PDF untuk dibaca kapan saja, bahkan tanpa koneksi.
                 </p>
                 <div className="mt-4 flex justify-center">
                   <PrintButton />

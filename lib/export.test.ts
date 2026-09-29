@@ -170,7 +170,7 @@ describe('buildExportWorkbook', () => {
     const ws = buildExportWorkbook(input(), { status: 'all' }).getWorksheet('Rekap')!
     expect(ws.getCell('A1').value).toBe('Rekap Peserta — Rihlah Umrah Bandung')
     expect([1, 2, 3, 4, 5, 6].map((i) => ws.getRow(4).getCell(i).value)).toEqual([
-      'Armada',
+      'Unit',
       'Peserta',
       'Hadir',
       'Belum',

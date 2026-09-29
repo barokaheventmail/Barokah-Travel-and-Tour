@@ -4,7 +4,7 @@ export const EVENT_TABS = [
   { id: 'ringkasan', label: 'Ringkasan' },
   { id: 'panduan', label: 'Panduan' },
   { id: 'peserta', label: 'Peserta' },
-  { id: 'armada', label: 'Bus & Armada' },
+  { id: 'unit', label: 'Bus & Unit' },
   { id: 'kursi', label: 'Kursi & Fasilitas' },
   { id: 'riwayat', label: 'Riwayat' },
 ] as const

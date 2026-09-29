@@ -23,7 +23,7 @@ export async function POST(request: NextRequest, { params }: Params) {
   })
   if (!event) return NextResponse.json({ error: 'Event tidak ditemukan.' }, { status: 404 })
 
-  let body: { prefix?: unknown; perBus?: unknown }
+  let body: { prefix?: unknown; perBus?: unknown; perBusByBus?: unknown }
   try {
     body = await request.json()
   } catch {
@@ -35,6 +35,18 @@ export async function POST(request: NextRequest, { params }: Params) {
   const perBus = Number.isFinite(rawPer) ? Math.min(Math.max(1, Math.floor(Number(rawPer))), 10) : 1
   if (!PREFIX_RE.test(prefix)) {
     return NextResponse.json({ error: 'Kode event hanya huruf/angka tanpa spasi, maks 20 karakter.' }, { status: 400 })
+  }
+
+  // Jumlah akun diinput manual per unit. Bus yang tidak mentioned pakai nilai
+  // global `perBus` supaya request lama (tanpa peta per bus) tetap jalan.
+  const perBusByBus = new Map<string, number>()
+  if (body?.perBusByBus && typeof body.perBusByBus === 'object' && !Array.isArray(body.perBusByBus)) {
+    for (const [busId, raw] of Object.entries(body.perBusByBus as Record<string, unknown>)) {
+      const n = typeof raw === 'string' ? Number(raw) : raw
+      if (typeof n === 'number' && Number.isFinite(n)) {
+        perBusByBus.set(busId, Math.min(Math.max(0, Math.floor(n)), 10))
+      }
+    }
   }
 
   // Nomor yang sedang dipakai untuk prefix ini (global). Generate memakai
@@ -51,7 +63,8 @@ export async function POST(request: NextRequest, { params }: Params) {
   }
 
   const plan = event.buses
-    .map((b) => ({ bus: b, needed: perBus - b.workers.length }))
+    .map((b) => ({ bus: b, target: perBusByBus.get(b.id) ?? perBus }))
+    .map((p) => ({ ...p, needed: p.target - p.bus.workers.length }))
     .filter((p) => p.needed > 0)
 
   const created: { busName: string; username: string; password: string }[] = []
@@ -95,7 +108,7 @@ export async function POST(request: NextRequest, { params }: Params) {
         await tx.event.update({ where: { id }, data: { crewPrefix: prefix } })
       }, {
         maxWait: 15000,
-        timeout: 60000 // Beri kelonggaran waktu 60 detik jika armada sangat banyak
+        timeout: 60000 // Beri kelonggaran waktu 60 detik jika unit sangat banyak
       })
     } catch (err) {
       logger.error('gagal membuat akun crew', { error: err instanceof Error ? err.message : String(err) })
@@ -108,7 +121,14 @@ export async function POST(request: NextRequest, { params }: Params) {
       eventId: id,
       userId: session.sub,
       action: 'busCrew.generate',
-      detail: { prefix, perBus, buses: plan.length, created: created.length, pattern: `username+${CREW_PASSWORD_SUFFIX}` },
+      detail: {
+        prefix,
+        perBus,
+        perBusByBus: Object.fromEntries(perBusByBus),
+        buses: plan.length,
+        created: created.length,
+        pattern: `username+${CREW_PASSWORD_SUFFIX}`,
+      },
     },
   })
 
