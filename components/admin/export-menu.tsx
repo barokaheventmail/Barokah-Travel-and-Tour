@@ -67,6 +67,26 @@ export function ExportMenu({ eventId, buses }: Props) {
   const xlsxHref = query ? `${base}?${query}` : base
   const csvHref = `${base}?format=csv${query ? `&${query}` : ''}`
 
+  const [downloading, setDownloading] = useState(false)
+
+  async function handleDownload(href: string) {
+    setDownloading(true)
+    try {
+      const res = await fetch(href)
+      if (!res.ok) throw new Error('Gagal mengunduh')
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = res.headers.get('Content-Disposition')?.match(/filename="(.+)"/)?.[1] ?? 'export'
+      a.click()
+      URL.revokeObjectURL(url)
+    } finally {
+      setDownloading(false)
+      setOpen(false)
+    }
+  }
+
   return (
     <div ref={wrapRef} className="relative">
       <button
@@ -90,8 +110,8 @@ export function ExportMenu({ eventId, buses }: Props) {
         role="dialog"
         aria-label="Pilihan export peserta"
         aria-hidden={!open}
-        style={{ marginRight: -shift }}
-        className={`absolute right-0 z-40 mt-2 w-80 max-w-[calc(100vw-1.5rem)] rounded-2xl border border-[#ece3cd] bg-white p-3 transition-[opacity,visibility,box-shadow] duration-200 ease-out ${
+       
+        className={`absolute left-1/2 z-40 -translate-x-1/2 mt-2 w-80 max-w-[calc(100vw-1.5rem)] rounded-2xl border border-[#ece3cd] bg-white p-3 transition-[opacity,visibility,box-shadow] duration-200 ease-out ${
           open
             ? 'visible opacity-100 shadow-[0_28px_70px_-22px_rgba(9,32,74,0.6)]'
             : 'pointer-events-none invisible opacity-0 shadow-[0_12px_28px_-20px_rgba(9,32,74,0.4)]'
@@ -132,22 +152,22 @@ export function ExportMenu({ eventId, buses }: Props) {
           </select>
         </label>
 
-        <a
-          href={xlsxHref}
-          download
-          onClick={() => setOpen(false)}
-          className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-full bg-[#2ca84a] px-4 py-2.5 text-xs font-bold text-white transition-colors duration-200 hover:bg-[#219b42] active:scale-95"
+        <button
+          type="button"
+          onClick={() => handleDownload(xlsxHref)}
+          disabled={downloading}
+          className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-full bg-[#2ca84a] px-4 py-2.5 text-xs font-bold text-white transition-colors duration-200 hover:bg-[#219b42] active:scale-95 disabled:opacity-50"
         >
-          <FileSpreadsheet size={14} /> Unduh Excel (.xlsx)
-        </a>
-        <a
-          href={csvHref}
-          download
-          onClick={() => setOpen(false)}
-          className="mt-1.5 flex w-full items-center justify-center gap-1.5 rounded-full border border-[#dfe4e8] px-4 py-2 text-[11px] font-bold text-[#657080] transition-colors duration-200 hover:bg-[#f1f3f5]"
+          <FileSpreadsheet size={14} /> {downloading ? 'Mengunduh...' : 'Unduh Excel (.xlsx)'}
+        </button>
+        <button
+          type="button"
+          onClick={() => handleDownload(csvHref)}
+          disabled={downloading}
+          className="mt-1.5 flex w-full items-center justify-center gap-1.5 rounded-full border border-[#dfe4e8] px-4 py-2 text-[11px] font-bold text-[#657080] transition-colors duration-200 hover:bg-[#f1f3f5] disabled:opacity-50"
         >
           <Sheet size={13} /> Unduh CSV (satu file)
-        </a>
+        </button>
       </div>
     </div>
   )
