@@ -47,10 +47,9 @@ export function SeatGrid({
               return (
                 <div
                   key={`${r}-${c}`}
-                  aria-hidden
                   className="flex aspect-square items-center justify-center rounded-lg bg-[#f6f8fa] text-[10px] font-bold text-[#c3cad2]"
                 >
-                  ×
+                  {'×'}
                 </div>
               )
             }

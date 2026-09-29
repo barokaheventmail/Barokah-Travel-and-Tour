@@ -185,33 +185,35 @@ export default async function EventPanduanPage({
             {itinerary.length > 0 && (
               <section className="print-avoid-break border border-[#dfe4e8] bg-white p-5">
                 <h2 className="text-xl font-bold text-[#1b3555]">Itinerary Perjalanan</h2>
-                <div className="mt-4 space-y-6">
+                <div className="space-y-6">
                   {dayGroups.map((group) => (
                     <div key={group.day}>
                       {multiDay && (
-                        <h3 className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-[#eef4fb] px-3 py-1 text-xs font-bold text-[#1b4f9c]">
-                          <CalendarDays size={13} /> Day {group.day}
-                        </h3>
+                        <div className="mb-3 flex items-center gap-3">
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#1b4f9c] px-3 py-1 text-xs font-bold text-white">
+                            <CalendarDays size={13} /> Day {group.day}
+                          </span>
+                          <div className="h-px flex-1 bg-[#dfe4e8]" />
+                        </div>
                       )}
-                      <div className="overflow-x-auto">
-                        <table className="w-full border-collapse text-left text-sm">
-                          <thead>
-                            <tr className="border-b border-[#dfe4e8] text-[11px] font-bold uppercase tracking-wide text-[#657080]">
-                              <th className="px-2 py-2">Waktu</th>
-                              <th className="px-2 py-2">Agenda</th>
-                              <th className="px-2 py-2">Keterangan</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {group.rows.map((item, i) => (
-                              <tr key={`${group.day}-${item.time}-${i}`} className="border-b border-[#dfe4e8] last:border-0">
-                                <td className="whitespace-nowrap px-2 py-2.5 font-bold text-[#1b4f9c]">{item.time}</td>
-                                <td className="px-2 py-2.5 font-semibold text-[#1b3555]">{item.agenda}</td>
-                                <td className="px-2 py-2.5 text-[#657080]">{item.keterangan || '–'}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                      <div className="overflow-hidden rounded-xl border border-[#dfe4e8]">
+                        <div className="grid grid-cols-[80px_1fr_1fr] gap-0 bg-[#f8fafc] px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-[#657080]">
+                          <span>Waktu</span>
+                          <span>Agenda</span>
+                          <span>Keterangan</span>
+                        </div>
+                        <div className="divide-y divide-[#edf0f3]">
+                          {group.rows.map((item, i) => (
+                            <div
+                              key={`${group.day}-${item.time}-${i}`}
+                              className="grid grid-cols-[80px_1fr_1fr] gap-0 px-4 py-3 transition-colors hover:bg-[#f8fafc]"
+                            >
+                              <span className="text-sm font-bold tabular-nums text-[#1b4f9c]">{item.time}</span>
+                              <span className="pr-4 text-sm font-semibold text-[#1b3555]">{item.agenda}</span>
+                              <span className="text-sm text-[#657080]">{item.keterangan || '–'}</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -398,7 +400,7 @@ export default async function EventPanduanPage({
                           {rule.items.map((item, j) => (
                             <li key={item} className="flex gap-2">
                               <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-[#e3e8ee] text-[11px] font-bold text-[#1b3555]">
-                                {String.fromCharCode(97 + j)}
+                                {'-'}
                               </span>
                               {item}
                             </li>
@@ -409,6 +411,52 @@ export default async function EventPanduanPage({
                   </li>
                 ))}
               </ol>
+            </section>
+
+
+            <section className="print-avoid-break border border-[#dfe4e8] bg-white p-5">
+              <h2 className="text-xl font-bold text-[#1b3555]">Visi & Misi</h2>
+
+              <div className="mt-4 space-y-4">
+                <div>
+                  <h3 className="text-sm font-bold uppercase tracking-wide text-[#1b4f9c]">Our Vision</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-[#1b3555]">
+                    Menjadi biro perjalanan terkemuka dengan menciptakan produk-produk berkualitas yang berbasis budaya dan pendidikan dalam rangka pengembangan pariwisata.
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="text-sm font-bold uppercase tracking-wide text-[#1b4f9c]">Our Mission</h3>
+                  <ul className="mt-2 space-y-2 text-sm leading-relaxed text-[#1b3555]">
+                    <li className="flex gap-2">
+                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#2ca84a]" />
+                      Ikut menjaga keajegan Pariwisata yang berlandaskan Budaya dengan mengemas paket-paket wisata yang berkualitas dengan penekanan pada pelayanan yang ramah, sopan dan jujur.
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#2ca84a]" />
+                      Mendayagunakan seluruh sumber daya yang tersedia bagi upaya pengembangan perusahaan yang berkesinambungan demi tercapainya kepuasan bagi 4 (empat) stake holder penunjang terlaksananya kegiatan usaha yaitu : pelanggan, karyawan, perusahaan dan para partner kerja.
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#2ca84a]" />
+                      Mengembangkan pariwisata berbasis kerakyatan dengan memberdayakan kelompok-kelompok masyarakat seperti kelompok petani, nelayan, peternak dan pengerajin yang disinergikan dengan membuat paket-paket wisata yang berhubungan dengan kegiatan kelompok-kelompok masyarakat tersebut.
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="border-t border-[#dfe4e8] pt-4">
+                  <h3 className="text-sm font-bold uppercase tracking-wide text-[#1b4f9c]">Ujung Tombak</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-[#1b3555]">
+                    Tantangan terberat yang dihadapi adalah tantangan dalam memberikan pelayanan terbaik kepada setiap customer. Tanggung jawab terberat untuk memberikan pelayanan terbaik itu ada pada ujung tombak yang setiap hari berinteraksi dengan customer. Mereka ini dibekali dengan suatu pemahaman bahwa sebagai ujung tombak bagi perusahaan haruslah memiliki hati yang tulus dan pikiran yang jernih, karena hanya dengan ketulusan dan kejernihan kita dapat melayani dengan baik.
+                  </p>
+                </div>
+
+                <div className="rounded-lg bg-[#eef4fb] p-4 text-center">
+                  <p className="text-sm font-bold italic text-[#1b4f9c]">
+                    &ldquo;Your Satisfaction Is Our Pride&rdquo;
+                  </p>
+                  <p className="mt-1 text-xs text-[#657080]">diatas doa bepergian jauh</p>
+                </div>
+              </div>
             </section>
 
             {buses.length > 0 && (
