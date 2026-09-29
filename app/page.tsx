@@ -153,7 +153,7 @@ export default async function Home() {
                 <li className="text-[#44576d]"><span><strong className="font-semibold text-[#1b3555]">ASITA:</strong> 0704/IX/DPP/2018</span></li>
                 <li className="text-[#44576d]"><span><strong className="font-semibold text-[#1b3555]">Alamat:</strong> Graha Barokah Jl. Cisaat Sukamanah, Kec. Cisaat, Kab. Sukabumi (43152)</span></li>
                 <li className="text-[#44576d]"><span><strong className="font-semibold text-[#1b3555]">No. Telepon:</strong> (0266) 230-408 / 0859 3000 5544</span></li>
-                <li className="text-[#44576d]"><span><strong className="font-semibold text-[#1b3555]">E-mail:</strong> adminbarokahtour@gmail.com</span></li>
+                <li className="text-[#44576d]"><span><strong className="font-semibold text-[#1b3555]">E-mail:</strong> admbarokahtour@gmail.com</span></li>
                 <li className="text-[#44576d]"><span><strong className="font-semibold text-[#1b3555]">Website:</strong> www.barokahtour.com</span></li>
               </ul>
             </div>
