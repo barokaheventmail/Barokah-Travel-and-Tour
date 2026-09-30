@@ -34,7 +34,7 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
   const attendedMap = new Map(attendedRows.map((r) => [r.eventId, r._count._all]))
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="mx-auto max-w-4xl" suppressHydrationWarning>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-[#1b3555]">Event</h1>

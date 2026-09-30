@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
-import { CalendarDays, Phone } from 'lucide-react'
+import { Phone } from 'lucide-react'
 import { BannerSlideshow } from '@/components/banner-slideshow'
 import { Footer, Navbar, TrustStrip } from '@/components/site'
 import { TicketSearch } from '@/components/ticket-search'
-import { EventCard } from '@/components/event-card'
+import { EventSearchGrid } from '@/components/event-search-grid'
 import { prisma } from '@/lib/db'
 import { formatTanggalPendek } from '@/lib/dates'
 
@@ -73,43 +73,7 @@ export default async function Home() {
           }}
         />
         <div className="container-wide relative">
-          <div className="mb-14 max-w-2xl">
-            <span className="inline-flex items-center gap-3">
-              <span aria-hidden className="h-px w-12 bg-gradient-to-r from-[#f5b915] to-transparent" />
-              <span className="eyebrow !text-[#a97c07]">Agenda perjalanan</span>
-            </span>
-            <h2 className="mt-5 text-4xl font-bold leading-none tracking-[-0.03em] text-[#1b3555] md:text-[3.25rem]">
-              Event
-            </h2>
-            <span aria-hidden className="mt-6 block h-px w-24 bg-gradient-to-r from-[#1b3555]/25 to-transparent" />
-            <p className="mt-6 text-[15px] leading-[1.75] text-[#657080]">
-              Event perjalanan yang sedang berlangsung, dikelola langsung oleh admin. Pilih event untuk melihat
-              rincian bus dan peserta.
-            </p>
-          </div>
-          {events.length > 0 ? (
-            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-              {events.map((event) => (
-                <EventCard key={event.id} event={event} />
-              ))}
-            </div>
-          ) : (
-            <div className="relative overflow-hidden rounded-2xl border border-dashed border-[#e0dccd] bg-white/60 p-14 text-center">
-              <div
-                aria-hidden
-                className="pointer-events-none absolute inset-0"
-                style={{
-                  backgroundImage: 'radial-gradient(ellipse 55% 55% at 50% 0%, rgba(245,185,21,0.1) 0%, rgba(245,185,21,0) 72%)',
-                }}
-              />
-              <CalendarDays className="relative mx-auto text-[#c9c2ab]" size={30} />
-              <p className="relative mt-4 text-lg font-bold text-[#1b3555]">Belum ada event</p>
-              <p className="relative mx-auto mt-2 max-w-md text-xs leading-relaxed text-[#657080]">
-                Admin belum menambahkan event. Anda tetap bisa mengecek tiket &amp; QR peserta lewat halaman event saat
-                tersedia.
-              </p>
-            </div>
-          )}
+          <EventSearchGrid events={events} />
         </div>
       </section>
 

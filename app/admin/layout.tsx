@@ -16,7 +16,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const session = await requireAdminSession()
   if (!session) redirect('/login?scope=ADMIN&next=/admin')
   return (
-    <div className="min-h-screen bg-[#f4f7fa]">
+    <div className="min-h-screen bg-[#f4f7fa]" suppressHydrationWarning>
       <AutoRefresh />
       <header className="sticky top-0 z-30 border-b border-[#dfe4e8] bg-white/90 print:hidden backdrop-blur">
         <div className="container-wide flex h-16 items-center justify-between gap-3">
