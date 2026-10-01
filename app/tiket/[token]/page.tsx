@@ -6,7 +6,7 @@ import { prisma } from '@/lib/db'
 import { qrDataUrl, encodeToken } from '@/lib/scan'
 import { formatTanggalPendek } from '@/lib/dates'
 import { AutoRefresh } from '@/components/admin/auto-refresh'
-import { PrintButton } from '@/components/admin/print-button'
+import { DownloadTicketPdf } from '@/components/admin/download-ticket-pdf'
 
 export const metadata: Metadata = { title: 'Tiket Peserta – Barokah Tour and Travel', robots: { index: false } }
 export const dynamic = 'force-dynamic'
@@ -32,8 +32,8 @@ export default async function TicketPage({ params }: { params: Promise<{ token: 
     <main className="min-h-screen bg-[#f4f7fa] px-4 py-8">
       <AutoRefresh />
       <div className="mx-auto w-full max-w-md">
-        <div className="mb-4 flex justify-center print:hidden">
-          <PrintButton />
+        <div className="mb-4 flex flex-col items-center gap-3 print:hidden">
+          <DownloadTicketPdf token={p.token} name={p.name} />
         </div>
         <div className="print-ticket overflow-hidden rounded-2xl border border-[#dfe4e8] bg-white shadow-2xl">
           <div className="bg-[#1b4f9c] px-6 py-5 text-white">

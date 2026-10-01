@@ -12,9 +12,14 @@ export async function GET(request: NextRequest) {
     .slice(0, 50)
   if (!q) return NextResponse.json({ matches: [] })
 
-  const matches = await prisma.participant.findMany({
+  // Satu kata kunci harusnya otomatis cocok dengan semua peserta yang namanya
+  // mengandungnya, termasuk huruf besar-kecil dan urutan kata yang berbeda.
+  const terms = q.split(/\s+/).filter(Boolean).slice(0, 6)
+  if (terms.length === 0) return NextResponse.json({ matches: [] })
+
+  const rows = await prisma.participant.findMany({
     where: {
-      name: { contains: q },
+      AND: terms.map((term) => ({ name: { contains: term, mode: 'insensitive' } })),
       event: { status: 'ACTIVE' },
       ...(eventId ? { eventId } : {}),
       ...(busIds.length ? { busId: { in: busIds } } : {}),
@@ -36,12 +41,31 @@ export async function GET(request: NextRequest) {
       event: { select: { id: true, title: true, date: true } },
     },
     orderBy: [{ event: { date: 'desc' } }, { order: 'asc' }],
-    take: 8,
+    take: 500,
   })
 
-  logger.info('public search', { q, hits: matches.length })
+  const needle = terms.join(' ')
+
+  // Relevance: exact match dulu, lalu nama yang diawali, lalu awal kata,
+  // baru Contain di tengah. Tanpa ini hasil untuk satu huruf apa pun akan
+  // berantakan dan accuses first participant yang kebetulan match.
+  const rank = (name: string) => {
+    const n = name.trim().toLowerCase()
+    const p = needle.toLowerCase()
+    if (n === p) return 0
+    if (n.startsWith(p)) return 1
+    if (terms.every((t) => n.split(/\s+/).some((w) => w.startsWith(t.toLowerCase())))) return 2
+    return 3
+  }
+
+  rows.sort((a, b) => rank(a.name) - rank(b.name) || a.name.localeCompare(b.name, 'id'))
+  const total = rows.length
+  const matches = rows.slice(0, 200)
+
+  logger.info('public search', { q, hits: matches.length, total })
 
   return NextResponse.json({
+    total,
     matches: matches.map((p) => {
       const resp = p.bus.workers.find((w) => w.user.phone)?.user
       return {

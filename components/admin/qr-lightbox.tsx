@@ -160,7 +160,8 @@ export function QrLightbox() {
             animation: none !important;
             transform: none !important;
           }
-          html[data-qr-print='one'] .qr-lightbox-qr { width: 72mm !important; height: 72mm !important; }
+          html[data-qr-print='one'] .qr-lightbox-qr { width: 68mm !important; height: 68mm !important; }
+          html[data-qr-print='one'] .qr-lightbox-logo { height: 10mm !important; }
         }
       `}</style>
 
@@ -194,7 +195,15 @@ export function QrLightbox() {
             </button>
           </div>
 
-          <div className="mt-4 flex justify-center">
+          <div className="mt-4 flex flex-col items-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo-barokah-event.png"
+              alt="Barokah Tour and Travel"
+              width={640}
+              height={238}
+              className="qr-lightbox-logo mx-auto mb-2 h-8 w-auto object-contain"
+            />
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               key={card.token}

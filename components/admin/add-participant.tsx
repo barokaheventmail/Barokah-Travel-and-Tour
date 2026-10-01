@@ -3,12 +3,12 @@
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { Loader2, UserPlus, X } from 'lucide-react'
-import { notifyParticipantsChanged } from '@/lib/events'
+import { notifyParticipantAdded } from '@/lib/events'
 
 export function AddParticipant({ eventId, buses }: { eventId: string; buses: { id: string; name: string }[] }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
-  const [form, setForm] = useState({ name: '', busName: buses[0]?.name ?? 'Bus 1', phone: '', seat: '', room: '', vw: '' })
+  const [form, setForm] = useState({ name: '', busName: buses[0]?.name ?? 'Bus 1', phone: '', seat: '', room: '', vw: '', birthDate: '' })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -28,8 +28,8 @@ export function AddParticipant({ eventId, buses }: { eventId: string; buses: { i
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Gagal menambah peserta.')
-      setForm({ name: '', busName: form.busName, phone: '', seat: '', room: '', vw: '' })
-      notifyParticipantsChanged()
+      setForm({ name: '', busName: form.busName, phone: '', seat: '', room: '', vw: '', birthDate: '' })
+      notifyParticipantAdded()
       router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Gagal menambah peserta.')
@@ -75,6 +75,7 @@ export function AddParticipant({ eventId, buses }: { eventId: string; buses: { i
         <input value={form.seat} onChange={(e) => set('seat', e.target.value)} placeholder="No Kursi" className={inputCls} />
         <input value={form.room} onChange={(e) => set('room', e.target.value)} placeholder="No Kamar" className={inputCls} />
         <input value={form.vw} onChange={(e) => set('vw', e.target.value)} placeholder="No VW" className={inputCls} />
+        <input type="date" value={form.birthDate} onChange={(e) => set('birthDate', e.target.value)} placeholder="Tanggal Lahir" className={inputCls} />
       </div>
       {error && <p className="rounded-xl bg-red-50 px-4 py-2.5 text-xs font-semibold text-red-600">{error}</p>}
       <div className="flex justify-end gap-2">

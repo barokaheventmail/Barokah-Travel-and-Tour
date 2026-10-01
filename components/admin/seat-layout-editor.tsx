@@ -1,11 +1,20 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { Armchair, Check, ChevronDown, Loader2, Minus, Plus, Trash2, Users } from 'lucide-react'
 import { BusFacilitiesEditor } from '@/components/admin/bus-facilities-editor'
 import { ConfirmBulkDialog } from '@/components/admin/confirm-bulk-dialog'
-import { parseSeatLayout, seatCount, seatNumberMatrix, type SeatLayout } from '@/lib/seat'
+import {
+  parseSeatLayout,
+  rowFirstSeat,
+  seatCount,
+  seatNumberMatrix,
+  toggleCell,
+  toggleCol,
+  toggleRow,
+  type SeatLayout,
+} from '@/lib/seat'
 
 export type SeatBus = {
   id: string
@@ -24,7 +33,7 @@ function resizeCells(prev: number[][], rows: number, cols: number): number[][] {
   const out: number[][] = []
   for (let r = 0; r < rows; r++) {
     const row: number[] = []
-    for (let c = 0; c < cols; c++) row.push(prev[r]?.[c] === 1 ? 1 : 0)
+    for (let c = 0; c < cols; c++) row.push(Math.max(0, Math.floor(prev[r]?.[c] ?? 0)))
     out.push(row)
   }
   return out
@@ -107,10 +116,15 @@ export function SeatLayoutEditor({ eventId, buses }: { eventId: string; buses: S
   }
 
   function toggle(r: number, c: number) {
-    setLayout((prev) => {
-      const cells = prev.cells.map((row, ri) => (ri === r ? row.map((v, ci) => (ci === c ? (v === 1 ? 0 : 1) : v)) : row))
-      return { ...prev, cells }
-    })
+    setLayout((prev) => ({ ...prev, cells: toggleCell(prev.cells, r, c) }))
+  }
+
+  function toggleRowClick(r: number) {
+    setLayout((prev) => ({ ...prev, cells: toggleRow(prev.cells, r) }))
+  }
+
+  function toggleColClick(c: number) {
+    setLayout((prev) => ({ ...prev, cells: toggleCol(prev.cells, c) }))
   }
 
   async function save(applyToAll: boolean) {
@@ -200,8 +214,9 @@ export function SeatLayoutEditor({ eventId, buses }: { eventId: string; buses: S
         </div>
         <p className="mt-1 text-xs leading-relaxed text-[#657080]">
           Atur grid kursi per unit seperti membuat tabel: tentukan Baris × Kolom, lalu klik kursi untuk mengaktifkan.
-          Kursi aktif dinomori otomatis 1 sampai terakhir (kiri→kanan per baris, dari atas). Posisi kotak yang diklik
-          akan konsisten & dipakai di peta kursi crew.
+          Nomor kursi mengikuti urutan klik &mdash; baris 3 lalu 1 lalu 2 menghasilkan [3, 1, 2], bukan [1, 2, 3].
+          Klik kotak biru di tepi atas atau tepi kiri untuk menyalakan/mematikan seluruh kolom atau baris sekaligus.
+          Posisi kotak yang diklik akan konsisten & dipakai di peta kursi crew.
         </p>
       </div>
 
@@ -258,21 +273,22 @@ export function SeatLayoutEditor({ eventId, buses }: { eventId: string; buses: S
                   >
                     {numbers.map((row, r) =>
                       row.map((n, c) => {
-                        const isActive = layout.cells[r]?.[c] === 1
+                        const isActive = (layout.cells[r]?.[c] ?? 0) > 0
                         return (
                           <button
                             key={`${r}-${c}`}
                             type="button"
-                            onClick={() => toggle(r, c)}
+                            onClick={(e) => (e.shiftKey ? toggleRowClick(r) : toggle(r, c))}
                             aria-pressed={isActive}
                             aria-label={`Kursi baris ${r + 1} kolom ${c + 1}${n !== null ? ` (nomor ${n})` : ''}`}
+                            title={isActive ? 'Klik untuk mematikan, Shift+klik untuk mematikan sebaris' : 'Klik untuk menyalakan, Shift+klik untuk menyalakan sebaris'}
                             className={`flex aspect-square min-w-0 items-center justify-center rounded-lg text-sm font-bold tabular-nums leading-none transition-colors duration-150 ${
                               isActive
                                 ? 'bg-[#1b4f9c] text-white shadow-sm hover:bg-[#143d79] active:scale-95'
                                 : 'bg-[#eef1f4] text-[#9aa3af] hover:bg-[#e3e8ee] active:scale-95'
                             }`}
                           >
-                            {n ?? '×'}
+                            {n}
                           </button>
                         )
                       }),
@@ -288,6 +304,9 @@ export function SeatLayoutEditor({ eventId, buses }: { eventId: string; buses: S
                     </span>
                     <span className="flex items-center gap-1.5">
                       <span className="inline-block h-3 w-3 rounded bg-[#eef1f4]" /> Nonaktif
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <span className="inline-block h-3 w-3 rounded bg-[#eef3fb]" /> Tepi birat = tombol baris/kolom
                     </span>
                   </div>
                   <div className="flex flex-wrap gap-2">

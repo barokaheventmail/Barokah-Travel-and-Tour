@@ -219,7 +219,7 @@ export function PublicSeatMap({
                 <div key={s.order} className={`flex items-center gap-x-2.5 px-3 py-2 ${isMine ? 'bg-[#eef4fb]' : ''}`}>
                   <span
                     className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold tabular-nums ${
-                      s.present ? 'bg-emerald-100 text-emerald-600' : 'bg-[#eef3fb] text-[#163d78]'
+                      s.present ? 'bg-[#d1fae5] text-[#059669]' : 'bg-[#eef3fb] text-[#163d78]'
                     }`}
                   >
                     {s.seat ?? s.order}
@@ -233,7 +233,7 @@ export function PublicSeatMap({
                     )}
                   </p>
                   {s.present ? (
-                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-600">
+                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#ecfdf5] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#059669]">
                       <BadgeCheck size={11} /> Hadir
                     </span>
                   ) : (

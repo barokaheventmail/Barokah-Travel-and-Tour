@@ -116,54 +116,6 @@ export default async function EventPanduanPage({
         </div>
       ) : (
         <>
-          <div className="hidden print:block">
-            <div className="print-avoid-break border-b-2 border-[#1b4f9c] pb-4">
-              <div className="flex items-start justify-between gap-6">
-                <div className="min-w-0">
-                  <Logo className="h-9 w-auto" />
-                  <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.18em] text-[#9aa3af]">
-                    Panduan Peserta
-                  </p>
-                  <h1 className="mt-1 text-lg font-bold leading-tight text-[#1b3555]">{event.title}</h1>
-                  <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-[#657080]">
-                    <span className="flex items-center gap-1">
-                      <Clock3 size={11} /> {formatDate(event.date)}
-                    </span>
-                    {event.location && (
-                      <span className="flex items-center gap-1">
-                        <MapPin size={11} /> {event.location}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {ownBus && (
-                  <div className="flex shrink-0 items-start gap-4">
-                    <dl className="text-right text-[11px]">
-                      <dt className="font-bold uppercase tracking-wide text-[#9aa3af]">Peserta</dt>
-                      <dd className="mt-0.5 text-sm font-bold text-[#1b3555]">{ownBus.name}</dd>
-                      {ownBus.ticketCode && (
-                        <>
-                          <dt className="mt-1.5 font-bold uppercase tracking-wide text-[#9aa3af]">No. Tiket</dt>
-                          <dd className="font-bold text-[#1b4f9c]">{ownBus.ticketCode}</dd>
-                        </>
-                      )}
-                      <dt className="mt-1.5 font-bold uppercase tracking-wide text-[#9aa3af]">Unit / Kursi</dt>
-                      <dd className="font-bold text-[#1b4f9c]">
-                        {ownBusName ?? '—'}
-                        {ownBus.seat ? ` · No ${ownBus.seat}` : ''}
-                      </dd>
-                    </dl>
-                    {ownQr && (
-                      /* eslint-disable-next-line @next/next/no-img-element */
-                      <img src={ownQr} alt={`QR absensi ${ownBus.name}`} className="h-24 w-24" />
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
           <div className="border-b border-[#dfe4e8] px-4 py-10 print:hidden">
             <div className="mx-auto max-w-2xl">
               <p className="eyebrow">Perjalanan Anda</p>
@@ -181,7 +133,59 @@ export default async function EventPanduanPage({
             </div>
           </div>
 
-          <div className="mx-auto max-w-2xl space-y-4 px-4 py-7">
+          <div id="panduan-isi" className="mx-auto max-w-2xl space-y-4 px-4 py-7">
+            {/* Kop dokumen. `hidden print:block` = tak terlihat di layar tapi
+                ikut tercetak lewat Print; `data-pdf-only` = downloader
+                menghidupkannya lagi supaya ikut jadi sampul PDF. */}
+            <div className="hidden print:block" data-pdf-only>
+              <div className="print-avoid-break overflow-hidden rounded-xl border border-[#dfe4e8] bg-white">
+                <div className="h-1.5 bg-[#f5b915]" />
+                <div className="flex flex-wrap items-start justify-between gap-6 p-5">
+                  <div className="min-w-0 flex-1">
+                    <Logo className="h-10 w-auto" />
+                    <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.2em] text-[#b08700]">
+                      Panduan Peserta
+                    </p>
+                    <h1 className="mt-1 text-xl font-bold leading-tight text-[#1b3555]">{event.title}</h1>
+                    <div className="mt-3 flex flex-col gap-1.5 text-[11px] text-[#657080]">
+                      <span className="flex items-center gap-1.5">
+                        <Clock3 size={12} className="text-[#2ca84a]" /> {formatDate(event.date)}
+                      </span>
+                      {event.location && (
+                        <span className="flex items-center gap-1.5">
+                          <MapPin size={12} className="text-[#2ca84a]" /> {event.location}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {ownBus && (
+                    <div className="flex shrink-0 items-start gap-4">
+                      <dl className="text-right text-[11px]">
+                        <dt className="font-bold uppercase tracking-wide text-[#9aa3af]">Peserta</dt>
+                        <dd className="mt-0.5 text-sm font-bold text-[#1b3555]">{ownBus.name}</dd>
+                        {ownBus.ticketCode && (
+                          <>
+                            <dt className="mt-1.5 font-bold uppercase tracking-wide text-[#9aa3af]">No. Tiket</dt>
+                            <dd className="font-bold text-[#1b4f9c]">{ownBus.ticketCode}</dd>
+                          </>
+                        )}
+                        <dt className="mt-1.5 font-bold uppercase tracking-wide text-[#9aa3af]">Unit / Kursi</dt>
+                        <dd className="font-bold text-[#1b4f9c]">
+                          {ownBusName ?? '—'}
+                          {ownBus.seat ? ` · No ${ownBus.seat}` : ''}
+                        </dd>
+                      </dl>
+                      {ownQr && (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img src={ownQr} alt={`QR absensi ${ownBus.name}`} className="h-24 w-24" />
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
             {itinerary.length > 0 && (
               <section className="print-avoid-break border border-[#dfe4e8] bg-white p-5">
                 <h2 className="text-xl font-bold text-[#1b3555]">Itinerary Perjalanan</h2>
@@ -480,7 +484,7 @@ export default async function EventPanduanPage({
                 <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#eef4fb] text-[#1b4f9c]">
                   <Download size={20} />
                 </span>
-                <h2 className="mt-3 text-xl font-bold text-[#1b3555]">Unduh Panduan (PDF)</h2>
+                <h2 className="mt-3 text-xl font-bold text-[#1b3555]">Cetak / Simpan PDF</h2>
                 <p className="mx-auto mt-1.5 max-w-md text-xs leading-relaxed text-[#657080]">
                   Simpan seluruh isi panduan peserta — itinerary, tata tertib, doa, tata cara salat jamak
                   {ownBusName ? `, peta kursi & daftar nama ${ownBusName}` : ', peta kursi & daftar nama unit'}
@@ -507,8 +511,7 @@ export default async function EventPanduanPage({
                 </p>
               </div>
             </section>
-
-            </div>
+          </div>
         </>
       )}
     </main>

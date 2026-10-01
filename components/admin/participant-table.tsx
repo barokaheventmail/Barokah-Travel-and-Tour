@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { BadgeCheck, Bus, Check, ChevronDown, Loader2, RefreshCcw, Search, SearchX, X } from 'lucide-react'
 import { formatTanggalPendek } from '@/lib/dates'
-import { PARTICIPANTS_CHANGED_EVENT } from '@/lib/events'
+import { PARTICIPANTS_CHANGED_EVENT, PARTICIPANT_ADDED_EVENT } from '@/lib/events'
 import { EditParticipant } from './edit-participant'
 import { DeleteParticipant } from './delete-participant'
 import { ToggleAttendance } from './toggle-attendance'
@@ -344,6 +344,17 @@ export function ParticipantTable({
     window.addEventListener(PARTICIPANTS_CHANGED_EVENT, onChanged)
     return () => window.removeEventListener(PARTICIPANTS_CHANGED_EVENT, onChanged)
   }, [refreshVisible])
+
+  // Peserta baru ditambah: muat ulang penuh dari halaman pertama supaya
+  // peserta tersebut langsung terlihat tanpa perlu scroll ke bawah.
+  useEffect(() => {
+    const onAdded = () => {
+      setLoading(true)
+      loadPage(0, false)
+    }
+    window.addEventListener(PARTICIPANT_ADDED_EVENT, onAdded)
+    return () => window.removeEventListener(PARTICIPANT_ADDED_EVENT, onAdded)
+  }, [loadPage])
 
   // Bus bisa terhapus (mis. digabung) sementara pilihannya masih aktif.
   useEffect(() => {

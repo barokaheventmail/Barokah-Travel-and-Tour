@@ -57,12 +57,14 @@ export const TicketSearch = forwardRef<
   useEffect(() => {
     if (disabled) {
       setMatches([])
+      setTotal(0)
       setLoading(false)
       return
     }
     const q = query.trim()
     if (!q) {
       setMatches([])
+      setTotal(0)
       setLoading(false)
       return
     }
@@ -74,6 +76,7 @@ export const TicketSearch = forwardRef<
         const data = await res.json()
         const list = (data.matches ?? []) as SearchMatch[]
         setMatches(list)
+        setTotal(typeof data.total === 'number' ? data.total : list.length)
         if (didApplyInitial.current && !didAutoSelect.current && list.length > 0) {
           didAutoSelect.current = true
           const match = list.find((m) => m.name === q) ?? list[0]
@@ -93,7 +96,8 @@ export const TicketSearch = forwardRef<
     }
   }, [query, eventId, disabled, busIds, initialQuery])
 
-  const display = useMemo(() => matches.slice(0, 6), [matches])
+  const [total, setTotal] = useState(0)
+  const listRef = useRef<HTMLUListElement>(null)
 
   function select(match: SearchMatch) {
     // pencarian lintas event (mis. di beranda): masuk ke halaman event yang cocok
@@ -132,6 +136,7 @@ export const TicketSearch = forwardRef<
         const data = await res.json()
         const list = (data.matches ?? []) as SearchMatch[]
         setMatches(list)
+        setTotal(typeof data.total === 'number' ? data.total : list.length)
         if (list.length > 0) {
         const match = token ? list.find((m) => m.token === token) : undefined
         if (token && !match) {
@@ -165,14 +170,38 @@ export const TicketSearch = forwardRef<
               setNotFound(false)
               setSelected(null)
             }}
+            onKeyDownCapture={(e) => {
+              if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
+              if (!open || matches.length === 0) return
+              e.preventDefault()
+              const ul = listRef.current
+              if (!ul) return
+              const buttons = ul.querySelectorAll<HTMLButtonElement>('[data-hit]')
+              const at = Array.from(buttons).indexOf(document.activeElement as HTMLButtonElement)
+              const next = e.key === 'ArrowDown' ? Math.min(at + 1, buttons.length - 1) : Math.max(at - 1, 0)
+              buttons[at === -1 ? 0 : next]?.focus()
+            }}
             onFocus={() => {
               setOpen(true)
               setNotFound(false)
             }}
-            onBlur={() => setTimeout(() => setOpen(false), 150)}
+            onBlur={() => setTimeout(() => setOpen(false), 250)}
             onKeyDown={(e) => {
+              if (e.key === 'Escape') {
+                setOpen(false)
+                return
+              }
               if (e.key === 'Enter') {
                 e.preventDefault()
+                const focused = listRef.current?.querySelector<HTMLButtonElement>(':focus')
+                if (focused) {
+                  const idx = Array.from(listRef.current?.querySelectorAll('[data-hit]') ?? []).indexOf(focused)
+                  if (idx >= 0 && idx < matches.length) {
+                    select(matches[idx])
+                    setOpen(false)
+                    return
+                  }
+                }
                 submit()
               }
             }}
@@ -198,32 +227,39 @@ export const TicketSearch = forwardRef<
         </p>
       )}
 
-      {open && (display.length > 0 || loading) && (
-        <ul className="absolute left-0 right-0 top-full z-20 mt-2 overflow-hidden rounded-2xl border border-[#dfe4e8] bg-white shadow-2xl">
-          {loading && (
-            <li className="px-4 py-3 text-xs font-semibold text-[#657080]">Mencari…</li>
-          )}
-          {!loading &&
-            display.map((m) => (
-              <li key={m.token}>
-                <button
-                  type="button"
-                  onMouseDown={() => select(m)}
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors duration-150 hover:bg-[#edf5ef]"
-                >
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#e6f4ea] text-[#2ca84a]">
-                    <BadgeCheck size={16} />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-semibold text-[#1b3555]">{m.name}</span>
-                    <span className="block truncate text-xs text-[#657080]">
-                      {eventId ? m.busName : `${m.eventTitle} · ${m.busName}`}
+      {open && (matches.length > 0 || loading) && (
+        <div className="absolute left-0 right-0 top-full z-20 mt-2 overflow-hidden rounded-2xl border border-[#dfe4e8] bg-white shadow-2xl">
+          <ul ref={listRef} className="max-h-72 overflow-y-auto overscroll-contain">
+            {loading && <li className="px-4 py-3 text-xs font-semibold text-[#657080]">Mencari…</li>}
+            {!loading &&
+              matches.map((m, i) => (
+                <li key={m.token}>
+                  <button
+                    type="button"
+                    data-hit={i}
+                    onMouseDown={() => select(m)}
+                    className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors duration-150 hover:bg-[#edf5ef] focus:bg-[#edf5ef] focus:outline-none"
+                  >
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#e6f4ea] text-[#2ca84a]">
+                      <BadgeCheck size={16} />
                     </span>
-                  </span>
-                </button>
-              </li>
-            ))}
-        </ul>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-semibold text-[#1b3555]">{m.name}</span>
+                      <span className="block truncate text-xs text-[#657080]">
+                        {eventId ? m.busName : `${m.eventTitle} · ${m.busName}`}
+                      </span>
+                    </span>
+                    <span className="shrink-0 text-xs tabular-nums text-[#9aa3af]">{m.order}</span>
+                  </button>
+                </li>
+              ))}
+          </ul>
+          {!loading && (
+            <div className="border-t border-[#edf0f3] bg-[#f8fafc] px-4 py-2.5 text-xs text-[#657080]">
+              {total} peserta cocok &mdash; gunakan ↑ ↓ untuk memilih, Enter untuk membuka tiket.
+            </div>
+          )}
+        </div>
       )}
 
       {selected && (

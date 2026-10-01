@@ -88,6 +88,14 @@ function QrCard({
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
+        src="/logo-barokah-event.png"
+        alt="Barokah Tour and Travel"
+        width={640}
+        height={238}
+        className={`mx-auto object-contain ${single ? 'mb-1.5 h-4 w-auto' : 'mb-1 h-3 w-auto'}`}
+      />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
         src={qr}
         alt={`QR ${p.name}`}
         className={`mx-auto aspect-square w-full ${single ? 'max-w-[52mm]' : 'max-w-[132px]'}`}

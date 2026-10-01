@@ -14,6 +14,7 @@ const participantSchema = z.object({
   room: z.string().trim().nullish(),
   vw: z.string().trim().nullish(),
   busName: z.string().trim().nullish(),
+  birthDate: z.string().trim().nullish(),
 })
 
 type Params = { params: Promise<{ id: string }> }
@@ -114,7 +115,7 @@ export async function POST(request: NextRequest, { params }: Params) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Data tidak valid' }, { status: 400 })
   }
 
-  const { name, phone, seat, room, vw, busName } = parsed.data
+  const { name, phone, seat, room, vw, busName, birthDate } = parsed.data
   const wantedBus = busName || 'Bus 1'
 
   const participant = await prisma.$transaction(async (tx) => {
@@ -140,6 +141,7 @@ export async function POST(request: NextRequest, { params }: Params) {
         seat: seat || null,
         room: room || null,
         vw: vw || null,
+        birthDate: birthDate ? new Date(birthDate) : null,
         token,
         ticketCode: ticketCodeFromToken(event.date, token),
       },
