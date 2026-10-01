@@ -1,7 +1,6 @@
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { NextResponse } from 'next/server'
-import { canManage, requireAdminSession } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { formatTanggalPendek } from '@/lib/dates'
 import { buildTicketPdf, ticketFileName } from '@/lib/ticket-pdf'
@@ -16,16 +15,25 @@ export const dynamic = 'force-dynamic'
  * QR disisipkan sebagai PNG resolusi tinggi (bukan difoto dari DOM, yang
  * bisa membuat QR gagal discan) dan teksnya tetap bisa disalin.
  *
- * `proxy.ts` hanya mencocokkan `/admin/*`, bukan `/api/admin/*`, jadi route
- * ini wajib cek session sendiri seperti route admin lain.
+ * Route ini sengaja TIDAK memakai `requireAdminSession()`, walaupun path-nya
+ * ada di `/api/admin/*`. Tombol unduhnya ada di `/tiket/[token]` yang publik,
+ * jadi kalau route ini dijaga admin, peserta yang membuka tiketnya di HP
+ * selalu dapat 403 dan tombolnya jadi tidak berguna. Yang membatasi di sini
+ * adalah `token` peserta: UUID-nya yang jadi capability — halaman tiketnya
+ * sendiri sudah menampilkan QR dan seluruh isi PDF ini tanpa login, jadi
+ * mengizinkan PDF-nya tidak menambah kebocoran apa pun. Path `/api/admin/*`
+ * memang tidak dicocokkan `proxy.ts` (hanya `/admin/*`), jadi tidak ada
+ * redirect login yang perlu ditangani di sini.
+ *
+ * `?dl=1` memaksa `Content-Disposition: attachment`. Tanpa itu defaultnya
+ * `inline` supaya HP bisa membuka viewer PDF-nya (tombol Save/Share) — iOS
+ * Safari mengabaikan atribut `download` pada URL `blob:`, jadi cara unduh
+ * lewat anchor tidak jalan di sana.
  */
 export async function GET(request: Request) {
-  const session = await requireAdminSession()
-  if (!canManage(session)) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  }
-
-  const token = (new URL(request.url).searchParams.get('token') ?? '').trim()
+  const url = new URL(request.url)
+  const forceDownload = url.searchParams.get('dl') === '1'
+  const token = (url.searchParams.get('token') ?? '').trim()
   if (!token) {
     return NextResponse.json({ error: 'Token peserta wajib diisi.' }, { status: 400 })
   }
@@ -71,7 +79,7 @@ export async function GET(request: Request) {
   return new NextResponse(Buffer.from(bytes), {
     headers: {
       'Content-Type': 'application/pdf',
-      'Content-Disposition': `attachment; filename="${ticketFileName(p.name, p.ticketCode)}"`,
+      'Content-Disposition': `${forceDownload ? 'attachment' : 'inline'}; filename="${ticketFileName(p.name, p.ticketCode)}"`,
       // Isi tiket berubah tiap sesi/status absensi, jadi tidak di-cache lama.
       'Cache-Control': 'private, no-store',
     },
