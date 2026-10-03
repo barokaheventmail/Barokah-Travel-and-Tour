@@ -1,4 +1,0 @@
--- AlterTable
-ALTER TABLE "Bus" ADD COLUMN     "seatCols" INTEGER NOT NULL DEFAULT 0,
-ADD COLUMN     "seatLayout" TEXT,
-ADD COLUMN     "seatRows" INTEGER NOT NULL DEFAULT 0;

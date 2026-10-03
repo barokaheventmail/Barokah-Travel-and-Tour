@@ -19,7 +19,9 @@ export async function GET(request: NextRequest) {
 
   const rows = await prisma.participant.findMany({
     where: {
-      AND: terms.map((term) => ({ name: { contains: term, mode: 'insensitive' } })),
+      // MySQL default collation sudah case-insensitive, jadi `mode: 'insensitive'`
+      // tidak dipakai (Prisma connector MySQL tidak menerima argumen itu).
+      AND: terms.map((term) => ({ name: { contains: term } })),
       event: { status: 'ACTIVE' },
       ...(eventId ? { eventId } : {}),
       ...(busIds.length ? { busId: { in: busIds } } : {}),

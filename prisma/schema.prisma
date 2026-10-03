@@ -3,9 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "mysql"
+  url      = env("DATABASE_URL")
 }
 
 enum Role {
@@ -30,7 +29,7 @@ model User {
   customPassword Boolean  @default(false)
   name         String?
   phone        String?
-  photoUrl     String?
+  photoUrl     String?  @db.VarChar(500)
   role         Role     @default(CREW)
   createdAt    DateTime @default(now())
 
@@ -42,18 +41,21 @@ model User {
 
 model Event {
   id        String      @id @default(cuid())
-  title     String
+  title     String      @db.VarChar(500)
   date      DateTime
-  location  String      @default("")
+  location  String      @default("") @db.VarChar(500)
   status    EventStatus @default(ACTIVE)
-  note      String?
-  imageUrl  String?
+  note      String?     @db.Text
+  imageUrl  String?     @db.VarChar(500)
   crewPrefix String?
-  panduanItinerary String?
-  panduanRules      String?
-  crewName   String?
+  // MySQL: Prisma memetakan String ke VARCHAR(191). Konten panduan & layout
+  // kursi jauh lebih panjang dari itu, jadi pakai TEXT supaya tidak error
+  // "Data too long for column".
+  panduanItinerary String? @db.LongText
+  panduanRules      String? @db.LongText
+  crewName   String?    @db.VarChar(500)
   crewPhone  String?
-  crewPhotoUrl String?
+  crewPhotoUrl String?  @db.VarChar(500)
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
 
@@ -71,8 +73,8 @@ model Bus {
   order     Int      @default(0)
   seatRows  Int      @default(0)
   seatCols  Int      @default(0)
-  seatLayout String?
-  facilities String?
+  seatLayout String?  @db.Text
+  facilities String?  @db.Text
   createdAt DateTime @default(now())
 
   event        Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
