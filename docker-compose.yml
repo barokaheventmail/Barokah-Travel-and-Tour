@@ -1,21 +1,28 @@
 services:
   db:
-    image: postgres:16-alpine
+    # Hostinger paket Web/Cloud menjalankan MariaDB (ditampilkan sebagai "MySQL"
+    # di hPanel), jadi dev lokal memakai MariaDB juga supaya perilaku identik
+    # dengan produksi. Prisma tetap memakai provider `mysql`.
+    image: mariadb:10.11
     container_name: barokah-db
     restart: unless-stopped
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
     environment:
-      POSTGRES_USER: barokah
-      POSTGRES_PASSWORD: barokah
-      POSTGRES_DB: barokah
+      MARIADB_ROOT_PASSWORD: barokah
+      MARIADB_DATABASE: barokah
+      MARIADB_USER: barokah
+      MARIADB_PASSWORD: barokah
     ports:
-      - '5433:5432'
+      - '3307:3306'
     volumes:
-      - barokah_pgdata:/var/lib/postgresql/data
+      - barokah_mariadbdata:/var/lib/mysql
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U barokah -d barokah']
+      test: ['CMD-SHELL', 'mariadb-admin ping -h 127.0.0.1 -uroot -p"$$MARIADB_ROOT_PASSWORD" --silent']
       interval: 5s
       timeout: 5s
-      retries: 10
+      retries: 20
 
 volumes:
-  barokah_pgdata:
+  barokah_mariadbdata:

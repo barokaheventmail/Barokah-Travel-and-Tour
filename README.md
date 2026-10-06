@@ -1,6 +1,10 @@
 # Barokah Tour and Travel — Website + Sistem Event QR Absensi
 
-Next.js (App Router) 16 + Prisma + PostgreSQL. URL utama: `http://localhost:3000`.
+Next.js (App Router) 16 + Prisma + **MySQL/MariaDB**. URL utama: `http://localhost:3000`.
+
+> **Catatan hosting**: paket Web/Cloud Hostinger menyediakan **MariaDB** (ditampilkan
+> sebagai "MySQL" di hPanel), jadi dev lokal juga memakai MariaDB supaya perilakunya
+> sama persis. Schema Prisma tetap memakai provider `mysql`.
 
 ## Alur utama
 - **Publik**: halaman event → kotak **Cari Nama Peserta** → ketik nama → **Lihat Tiket & QR** → tunjukkan QR ke crew. (Pencarian di hero beranda sengaja non-aktif.)
@@ -12,26 +16,34 @@ Akun awal (dari `.env`): owner / `owner123`, admin / `admin123`, admin2 /
 tombol **Ganti Sandi** di header panel.
 
 ## Persyaratan
-- Node 20+, pnpm, Docker (untuk Postgres lokal).
+- Node 20+, pnpm, Docker (untuk MariaDB lokal).
 
 ## Menjalankan di laptop (development)
 
 ```bash
 pnpm install
 
-# 1. Siapkan environment
-cp .env.example .env      # lalu isi DATABASE_URL & JWT_SECRET
+# 1. Siapkan environment (file lokal, tidak ikut commit)
+cp .env.example .env && cp .env.example .env.local   # lalu ganti JWT_SECRET
 
-# 2. Nyalakan Postgres (Docker, port host 5433)
+# 2. Nyalakan MariaDB (Docker, port host 3307)
 pnpm db:up
 
-# 3. Buat tabel database + seed 2 user
-pnpm db:migrate          # prisma migrate dev
-pnpm db:seed             # membuat admin & crew
+# 3. Buat tabel database + seed 4 akun awal
+pnpm db:migrate               # prisma migrate dev
+pnpm db:seed                  # owner / admin / admin2 / crew
 
 # 4. Jalankan aplikasi
-pnpm dev                 # localhost:3000
+pnpm dev                      # localhost:3000
 ```
+
+Tiga file env punya peran berbeda:
+
+| File | Dipakai oleh | Isi |
+| --- | --- | --- |
+| `.env` | Prisma CLI (`pnpm db:*`) | koneksi lokal |
+| `.env.local` | Next.js (`pnpm dev/build/start`) lokal | koneksi lokal (precedence tertinggi) |
+| `.env.production` | server production Hostinger | koneksi Hostinger — **wajib diisi sendiri** |
 
 Cek kesehatan: `GET /api/health` → `{ "status": "ok", "db": "ok" }`.
 
@@ -92,25 +104,79 @@ satu file Excel `.xlsx` yang sudah dikelompokkan per unit:
 - Export hanya membaca data, tidak pernah menulis ke database.
 
 ## Deploy (Hostinger / VPS)
-1. Siapkan Postgres (mis. Hostinger Database), set `DATABASE_URL` dan `JWT_SECRET` yang kuat.
-2. `pnpm install && pnpm build`
-3. Terapkan migration: `pnpm db:deploy` (`prisma migrate deploy`)
-4. Jalankan production: `pnpm start` (atau PM2/systemd).
 
-Untuk Vercel: cukup set env yang sama, pakai Postgres managed (bukan Docker).
+Hostinger paket Web/Cloud **tidak menyediakan PostgreSQL** — database yang tersedia
+adalah MariaDB (ditampilkan sebagai MySQL di hPanel), port **3306**.
 
-## Backup & restore Postgres
-Skrip disediakan di `scripts/`:
+### 1. Siapkan database di hPanel
+1. `Websites → Dashboard → Databases → Management` → **Create database** (catat
+   nama DB, user, password).
+2. `Databases → Remote MySQL` → tambahkan IP (atau centang *Any Host*) supaya
+   bisa diakses dari luar, dan **salin hostname** yang ditampilkan di sana
+   (mis. `srv1517.hstgr.io`). Aplikasi Node.js **tidak memakai `localhost`**,
+   tapi hostname itu.
+
+### 2. Isi environment di server
+```bash
+# .env.production (atau env vars di panel) — isi dengan data hPanel
+DATABASE_URL="mysql://USER:PASSWORD@srvXXXX.hstgr.io:3306/DBNAME?connection_limit=20"
+JWT_SECRET="<string acak panjang>"
+```
+Tambahkan `?connection_limit=20` bila limit koneksi shared hosting ketat —
+Prisma membuka pool koneksi sesuai jumlah CPU tanpa opsi ini.
+
+### 3. Build & jalankan
+```bash
+pnpm install
+pnpm build        # prisma generate && prisma migrate deploy && next build
+pnpm start        # atau PM2/systemd (lihat release.sh)
+```
+`prisma migrate deploy` membuat seluruh tabel di database baru (migrasi sudah
+tersedia di `prisma/migrations/`).
+
+### 4. Pindahkan data dari Supabase
+Kalau database Supabase masih menjadi sumber data (event, peserta, absensi),
+pindahkan dengan skrip khusus:
+
+```bash
+# Sekali jalan. PG_URL = koneksi langsung Supabase (port 5432),
+# MYSQL_URL = DATABASE_URL target Hostinger.
+PG_URL="postgresql://...?sslmode=require" \
+MYSQL_URL="mysql://USER:PASS@srvXXXX.hstgr.io:3306/DBNAME" \
+  node scripts/migrate-pg-to-mysql.mjs
+```
+
+- `--dry-run` hanya membandingkan jumlah baris tanpa menulis.
+- Skrip mengecek kecocokan kolom, menulis per batch sesuai urutan foreign key,
+  lalu memverifikasi jumlah baris tiap tabel.
+- Kalau Remote MySQL tidak mau diaktifkan: jalankan skrip ke MySQL Docker
+  lokal, lalu `mysqldump` hasilnya dan **impor via phpMyAdmin** di hPanel.
+- Alternatif termudah: `pnpm db:deploy` lalu impor lewat phpMyAdmin.
+
+Setelah pindah data, pastikan akun login ada: `pnpm db:seed` (tidak menimpa
+user yang sudah ada).
+
+### 5. Setelah live
+- Cek `GET /api/health` → `{ "status": "ok", "db": "ok" }`.
+- Ganti `JWT_SECRET` kalau masih memakai nilai lama (koneksi Supabase sudah tidak
+  dipakai, tapi nilai lama pernah ter-commit di repo).
+
+Untuk Vercel/VPS non-Hostinger: set env yang sama ke MySQL managed apa pun.
+
+## Backup & restore database
+Skrip disediakan di `scripts/` (kerja untuk lokal Docker maupun Hostinger,
+kredensial dibaca dari `DATABASE_URL`):
 
 ```bash
 # Backup ke file (default: backups/barokah-YYYYMMDD-HHMMSS.sql.gz)
-bash scripts/backup-pg.sh
+bash scripts/backup-mysql.sh
 
 # Restore dari file backup
-bash scripts/restore-pg.sh backups/barokah-20260925-120000.sql.gz
+bash scripts/restore-mysql.sh backups/barokah-20261003-120000.sql.gz
 ```
 
-Saran: jadwalkan `backup-pg.sh` via cron/systemd timer setiap hari.
+Saran: jadwalkan `backup-mysql.sh` via cron/systemd timer setiap hari, atau
+pakai backup otomatis dari hPanel.
 
 ## Operasional & monitoring
 - **Log terstruktur** (JSON di production) untuk: login, import Excel, scan, dan error — lihat log proses (PM2/log systemd).
@@ -139,8 +205,10 @@ middleware.ts         # proteksi /admin (ADMIN) & /crew (CREW)
 | --- | --- |
 | `pnpm dev` | dev server |
 | `pnpm build` / `pnpm start` | build & run production |
-| `pnpm db:up` / `pnpm db:migrate` / `pnpm db:seed` | database |
+| `pnpm db:up` / `pnpm db:migrate` / `pnpm db:seed` | database (MariaDB Docker) |
 | `pnpm db:studio` | Prisma Studio (navigate DB) |
+| `node scripts/migrate-pg-to-mysql.mjs` | pindah data Supabase → MySQL (`--dry-run` untuk cek) |
+| `bash scripts/backup-mysql.sh` | backup database ke `backups/` |
 
 ## Batas data (skalabilitas)
 - Tidak ada batas jumlah peserta per event; semua layar memakai agregasi (`_count`/`groupBy`) dan daftar peserta admin dimuat sebagian (200 baris + "Muat lebih banyak", pencarian server-side). Pengalaman nyaman sampai ±10.000 peserta/event; di atas itu tetap berfungsi, tetapi melihat massal sebaiknya via ekspor CSV (belum tersedia).
