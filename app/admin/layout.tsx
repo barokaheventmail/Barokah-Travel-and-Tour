@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { Eye, History, QrCode } from 'lucide-react'
+import { Eye, History, Package, QrCode } from 'lucide-react'
 import { AutoRefresh } from '@/components/admin/auto-refresh'
 import { LogoutButton } from '@/components/admin/logout-button'
 import { Logo } from '@/components/site'
@@ -46,6 +46,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               className="flex items-center gap-1.5 rounded-full border border-[#dfe4e8] bg-white px-3 py-1.5 text-xs font-bold text-[#1b3555] transition-colors duration-200 hover:bg-[#f1f3f5]"
             >
               <QrCode size={13} /> Event
+            </Link>
+            <Link
+              href="/admin/paket"
+              className="flex items-center gap-1.5 rounded-full border border-[#dfe4e8] bg-white px-3 py-1.5 text-xs font-bold text-[#1b3555] transition-colors duration-200 hover:bg-[#f1f3f5]"
+            >
+              <Package size={13} /> Paket Event
             </Link>
             <LogoutButton />
           </nav>

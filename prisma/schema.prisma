@@ -66,6 +66,51 @@ model Event {
   @@index([date])
 }
 
+// Paket event wisata yang ditampilkan di halaman publik /paket.
+// Dikelola manual lewat panel admin, tidak terkait dengan model Event.
+model PaketEvent {
+  id          String   @id @default(cuid())
+  title       String   @db.VarChar(500)
+  location    String   @default("") @db.VarChar(500)
+  description String?  @db.Text
+  subtitle    String?  @db.VarChar(500)
+  body        String?  @db.Text
+  badge       String?  @db.VarChar(100)
+  imageUrl    String?  @db.VarChar(500)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  prices PaketPrice[]
+  images PaketImage[]
+
+  @@index([order])
+}
+
+model PaketImage {
+  id        String   @id @default(cuid())
+  paketId   String
+  url       String   @db.VarChar(500)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  paket     PaketEvent @relation(fields: [paketId], references: [id], onDelete: Cascade)
+
+  @@index([paketId, order])
+}
+
+model PaketPrice {
+  id         String  @id @default(cuid())
+  paketId    String
+  label      String  @db.VarChar(200)
+  price      Int     @default(0)
+  facilities Json?
+  badge      String? @db.VarChar(100)
+  order      Int     @default(0)
+  paket      PaketEvent @relation(fields: [paketId], references: [id], onDelete: Cascade)
+
+  @@index([paketId, order])
+}
+
 model Bus {
   id        String   @id @default(cuid())
   eventId   String

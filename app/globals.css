@@ -117,3 +117,7 @@ input[type='number'] { -moz-appearance:textfield; appearance:textfield; }
 @media (prefers-reduced-motion: reduce) {
   .event-card:hover::after { animation: none; }
 }
+
+/* Saat lightbox galeri terbuka, sembunyikan iframe (mis. peta Google di footer)
+   agar tidak menembus overlay karena iframe punya layer komposit sendiri. */
+body.gallery-lightbox-open iframe { visibility: hidden !important; }

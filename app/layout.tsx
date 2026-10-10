@@ -1,5 +1,6 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
+import { WhatsAppFloat } from '@/components/whatsapp-float'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -34,6 +35,7 @@ export default function RootLayout({
     <html lang="id" data-scroll-behavior="smooth" suppressHydrationWarning>
       <body className="antialiased" suppressHydrationWarning>
         {children}
+        <WhatsAppFloat />
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>

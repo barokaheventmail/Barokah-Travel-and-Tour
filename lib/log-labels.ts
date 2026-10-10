@@ -1,10 +1,11 @@
 export type LogDetail = Record<string, unknown> | null
 
-export type LogGroup = 'Import' | 'Kelola Event' | 'Unit' | 'Peserta' | 'Kehadiran' | 'Scan' | 'Keamanan' | 'Lainnya'
+export type LogGroup = 'Import' | 'Kelola Event' | 'Kelola Paket' | 'Unit' | 'Peserta' | 'Kehadiran' | 'Scan' | 'Keamanan' | 'Lainnya'
 
 const GROUP_STYLE: Record<LogGroup, string> = {
   Import: 'bg-[#e6f4ea] text-[#2ca84a]',
   'Kelola Event': 'bg-[#eef3fb] text-[#1b4f9c]',
+  'Kelola Paket': 'bg-[#e8f4fb] text-[#0d7bb5]',
   Unit: 'bg-[#f3ecfb] text-[#7b3fd4]',
   Peserta: 'bg-[#e8f4fb] text-[#0d7bb5]',
   Kehadiran: 'bg-[#fff7e0] text-[#b98a12]',
@@ -21,6 +22,11 @@ const ACTION_GROUP: Record<string, LogGroup> = {
   'event.clearData': 'Kelola Event',
   'event.crewPhoto': 'Kelola Event',
   'event.crewPhotoRemove': 'Kelola Event',
+  'paket.create': 'Kelola Paket',
+  'paket.update': 'Kelola Paket',
+  'paket.delete': 'Kelola Paket',
+  'paket.image': 'Kelola Paket',
+  'paket.imageRemove': 'Kelola Paket',
   'bus.create': 'Unit',
   'bus.update': 'Unit',
   'bus.delete': 'Unit',
@@ -74,6 +80,16 @@ export const LOG_ACTIONS: { group: LogGroup; actions: { value: string; label: st
       { value: 'event.clearData', label: 'Hapus data bus & peserta' },
       { value: 'event.crewPhoto', label: 'Ganti foto crew on duty' },
       { value: 'event.crewPhotoRemove', label: 'Hapus foto crew on duty' },
+    ],
+  },
+  {
+    group: 'Kelola Paket',
+    actions: [
+      { value: 'paket.create', label: 'Buat paket event' },
+      { value: 'paket.update', label: 'Ubah paket event' },
+      { value: 'paket.delete', label: 'Hapus paket event' },
+      { value: 'paket.image', label: 'Ganti gambar paket event' },
+      { value: 'paket.imageRemove', label: 'Hapus gambar paket event' },
     ],
   },
   {
@@ -286,6 +302,26 @@ export function formatLogDetail(action: string, detail: LogDetail): string {
     case 'busCrew.photoRemove': {
       const u = getValue(detail, 'username') ?? '???'
       return `Foto crew ${u} dihapus`
+    }
+    case 'paket.create': {
+      const t = getValue(detail, 'title')
+      return `Paket event "${t ?? '??? '}" dibuat`
+    }
+    case 'paket.update': {
+      const t = getValue(detail, 'title')
+      return `Paket event "${t ?? '??? '}" diubah`
+    }
+    case 'paket.delete': {
+      const t = getValue(detail, 'title')
+      return `Paket event "${t ?? '??? '}" dihapus`
+    }
+    case 'paket.image': {
+      const t = getValue(detail, 'title')
+      return `Gambar paket event "${t ?? '??? '}" diunggah`
+    }
+    case 'paket.imageRemove': {
+      const t = getValue(detail, 'title')
+      return `Gambar paket event "${t ?? '??? '}" dihapus`
     }
     case 'participant.create': {
       const n = getValue(detail, 'name')
