@@ -42,7 +42,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Data tidak valid' }, { status: 400 })
   }
 
-  const { title, date, location, status, note, panduanItinerary, crewName, crewPhone, crewPhotoUrl } = parsed.data
+  const { title, date, location, status, note, panduanItinerary, crewName, crewPhone, crewRole, crewPhotoUrl, panduanLogoLeft, panduanLogoRight, panduanLogoTopRight, panduanLogoTopRight2 } = parsed.data
 
   const data: Prisma.EventUpdateInput = {}
   if (title !== undefined) data.title = title
@@ -57,7 +57,12 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   if (panduanItinerary !== undefined) data.panduanItinerary = panduanItinerary || null
   if (crewName !== undefined) data.crewName = crewName || null
   if (crewPhone !== undefined) data.crewPhone = crewPhone || null
+  if (crewRole !== undefined) data.crewRole = crewRole || null
   if (crewPhotoUrl !== undefined) data.crewPhotoUrl = crewPhotoUrl || null
+  if (panduanLogoLeft !== undefined) data.panduanLogoLeft = panduanLogoLeft || null
+  if (panduanLogoRight !== undefined) data.panduanLogoRight = panduanLogoRight || null
+  if (panduanLogoTopRight !== undefined) data.panduanLogoTopRight = panduanLogoTopRight || null
+  if (panduanLogoTopRight2 !== undefined) data.panduanLogoTopRight2 = panduanLogoTopRight2 || null
 
   if (Object.keys(data).length === 0) {
     return NextResponse.json({ error: 'Tidak ada data yang diubah.' }, { status: 400 })

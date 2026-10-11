@@ -1,0 +1,239 @@
+/* =========================================================================
+   Panduan Peserta — lembar A4
+   -------------------------------------------------------------------------
+   ATURAN INTI
+   1. Lebar LEMBAR selalu tetap 210mm (jangan pernah diubah).
+   2. Tinggi pakai `min-height: 297mm` — TIDAK pakai `height: 297mm`.
+      -> Konten pendek  : tinggi PAS 1 halaman A4.
+      -> Konten panjang : lembar bertambah tinggi secara alami (auto-expand).
+   3. Tidak ada `transform: scale()` / zoom pada isi lembar, sehingga gambar,
+      flex, grid, dan teks TIDAK gepeng/miring saat konten panjang.
+   4. Pagination: `break-after: page` + `@page { size: A4; margin: 0 }`.
+      Bila isi satu lembar melebihi 297mm, pencetak memecahnya rapi ke halaman
+      berikutnya (bukan mengecilkan paksa seluruh elemen).
+   5. Layar = kertas bershadow; print = tanpa shadow, presisi A4.
+   ========================================================================= */
+
+:root {
+  --page-w: 210mm;   /* lebar kaku A4 */
+  --page-h: 297mm;   /* dipakai HANYA sebagai min-height */
+  --pad-x: 15mm;
+  --pad-y: 14mm;
+
+  --ink: #1b3555;
+  --muted: #657080;
+  --line: #dfe4e8;
+  --accent: #00a3e0;
+  --gold: #f5b915;
+  --navy: #0d2850;
+
+  --shadow: 0 10px 30px rgba(13, 40, 80, 0.18), 0 2px 6px rgba(13, 40, 80, 0.1);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+}
+
+body {
+  background: #e9edf2; /* latar kontras di layar */
+  color: var(--ink);
+  font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 11pt;
+  line-height: 1.55;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* Gambar tidak boleh gepeng / melar. */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ---- Kerangka dokumen (layar) ---------------------------------------- */
+.doc {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 26px;
+  padding: 34px 16px 70px;
+}
+
+/* =========================================================================
+   LEMBAR A4  —  blok biasa (bukan flex) agar pagination print andal
+   ========================================================================= */
+.page {
+  position: relative;
+  width: var(--page-w);        /* LEBAR TETAP 210mm */
+  min-height: var(--page-h);   /* auto-expand; bukan height kaku */
+  padding: var(--pad-y) var(--pad-x);
+  background: #fff;
+  border-radius: 2px;
+  box-shadow: var(--shadow);   /* efek kertas (hanya layar) */
+  overflow: visible;
+
+  /* Setiap lembar = halaman baru saat dicetak / di-export PDF. */
+  break-after: page;
+  page-break-after: always;
+}
+.page:last-child {
+  break-after: auto;
+  page-break-after: auto;
+}
+
+/* Variasi lembar yang butuh pembagian vertikal (mis. sampul). Hanya dipakai
+   untuk konten pendek, jadi aman terhadap pagination. */
+.page--center {
+  display: flex;
+  flex-direction: column;
+}
+.page--center > .spacer {
+  flex: 1;
+}
+
+/* Latar penuh sampai tepi A4 (mis. Tata Tertib navy) tanpa height kaku. */
+.page--flush {
+  padding: 0;
+}
+.page--flush > .bleed {
+  min-height: var(--page-h);   /* penuh 1 halaman, auto-expand bila lebih */
+  padding: var(--pad-y) var(--pad-x);
+}
+
+/* Nomor halaman otomatis (muncul saat print). */
+.page::after {
+  content: "Halaman " counter(page);
+  position: absolute;
+  left: var(--pad-x);
+  right: var(--pad-x);
+  bottom: 6mm;
+  font-size: 8.5pt;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  text-align: right;
+}
+
+/* ---- Tipografi -------------------------------------------------------- */
+h1 { font-size: 22pt; line-height: 1.15; margin: 0 0 4mm; }
+h2 { font-size: 15pt; margin: 0 0 2mm; }
+h3 { font-size: 11pt; text-transform: uppercase; letter-spacing: 0.06em; margin: 6mm 0 1.5mm; }
+p  { margin: 0 0 3mm; }
+.muted { color: var(--muted); }
+.eyebrow {
+  font-size: 9pt; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.2em; color: var(--gold);
+}
+.rule { border: 0; border-top: 1px solid var(--line); margin: 4mm 0; }
+
+/* Blok kecil yang tidak boleh terbelah (heading + baris pertama dsb.).
+   JANGAN pasang pada tabel panjang — biarkan tabel pecah antar halaman. */
+.avoid-break { break-inside: avoid; page-break-inside: avoid; }
+
+/* ---- Kop / logo ------------------------------------------------------- */
+.doc-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6mm;
+  padding-bottom: 3mm;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 6mm;
+}
+.doc-head img { height: 9mm; width: auto; }
+.doc-head .logos { display: flex; align-items: center; gap: 4mm; }
+
+/* ---- Kartu / panel ---------------------------------------------------- */
+.card { border: 1px solid var(--line); border-radius: 3mm; padding: 5mm; }
+.card--gold { border: 1px solid #e0b200; background: var(--gold); color: #000; }
+.card--navy {
+  background: linear-gradient(90deg, #071e3d, var(--navy) 55%, #163d78);
+  color: var(--gold);
+}
+.card--navy h2 {
+  color: var(--gold); text-align: center;
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.card--navy ol { line-height: 1.8; }
+
+/* ---- Tabel agenda ----------------------------------------------------- */
+table.agenda {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid var(--line);
+  margin: 0 0 4mm;
+}
+table.agenda thead th {
+  background: var(--accent);
+  color: #fff;
+  font-size: 9pt; text-transform: uppercase; letter-spacing: 0.06em;
+  text-align: center; padding: 2mm 3mm;
+}
+table.agenda th:first-child,
+table.agenda td:first-child {
+  width: 26mm;
+  text-align: left;
+  border-right: 1px solid var(--line);
+  white-space: nowrap;
+}
+table.agenda td { padding: 2mm 3mm; border-top: 1px solid var(--line); vertical-align: top; }
+table.agenda tbody tr:nth-child(even) { background: #fbfcfe; }
+/* Baris tabel tidak boleh terbelah di tengah. */
+table.agenda tr { break-inside: avoid; page-break-inside: avoid; }
+
+.day-label { font-size: 10pt; font-weight: 700; color: var(--accent); margin: 0 0 1mm; }
+.day-sub   { font-size: 10pt; color: var(--accent); margin: 0 0 2mm; }
+
+/* ---- Toolbar layar ---------------------------------------------------- */
+.toolbar { display: flex; justify-content: center; gap: 10px; padding: 20px 16px 0; }
+.toolbar button {
+  border: 0; border-radius: 999px; background: var(--gold); color: #1d2733;
+  font: inherit; font-weight: 700; padding: 10px 22px; cursor: pointer;
+}
+.toolbar button:hover { background: #e4aa09; }
+
+/* =========================================================================
+   PRINT / EXPORT PDF — presisi A4, tanpa shadow, tanpa margin browser
+   ========================================================================= */
+@page {
+  size: A4 portrait;
+  margin: 0; /* margin diatur lewat padding `.page`, bukan margin browser */
+}
+
+@media print {
+  html, body {
+    background: #fff;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Hilangkan semua efek layar. */
+  .doc {
+    display: block;
+    gap: 0;
+    padding: 0;
+  }
+  .toolbar { display: none !important; }
+
+  .page {
+    width: var(--page-w);
+    min-height: var(--page-h);
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;          /* bayangan hilang saat cetak */
+    break-after: page;
+    page-break-after: always;
+  }
+  .page:last-child { break-after: auto; page-break-after: auto; }
+
+  /* Flat-kan kontainer agar pemecahan halaman berjalan natural. */
+  .page--center { display: block; }
+  .page--center > .spacer { display: none; }
+
+  /* Header tabel diulang di setiap halaman saat tabel panjang. */
+  table.agenda thead { display: table-header-group; }
+}

@@ -278,7 +278,12 @@ export default async function EventDetail({
           initialItinerary={event.panduanItinerary ?? '[]'}
           initialCrewName={event.crewName ?? ''}
           initialCrewPhone={event.crewPhone ?? ''}
+          initialCrewRole={event.crewRole ?? ''}
           initialCrewPhotoUrl={event.crewPhotoUrl ?? null}
+          initialLogoLeft={event.panduanLogoLeft ?? null}
+          initialLogoRight={event.panduanLogoRight ?? null}
+          initialLogoTopRight={event.panduanLogoTopRight ?? null}
+          initialLogoTopRight2={event.panduanLogoTopRight2 ?? null}
         />
       )}
 

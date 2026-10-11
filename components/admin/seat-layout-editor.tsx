@@ -268,7 +268,7 @@ export function SeatLayoutEditor({ eventId, buses }: { eventId: string; buses: S
                     </p>
                   ) : (
                   <div
-                    className="grid w-full max-w-xl gap-1.5 sm:gap-2"
+                    className="grid w-full max-w-xl gap-[2px] sm:gap-[3px]"
                     style={{ gridTemplateColumns: `repeat(${layout.cols}, minmax(0, 1fr))` }}
                   >
                     {numbers.map((row, r) =>
@@ -282,9 +282,9 @@ export function SeatLayoutEditor({ eventId, buses }: { eventId: string; buses: S
                             aria-pressed={isActive}
                             aria-label={`Kursi baris ${r + 1} kolom ${c + 1}${n !== null ? ` (nomor ${n})` : ''}`}
                             title={isActive ? 'Klik untuk mematikan, Shift+klik untuk mematikan sebaris' : 'Klik untuk menyalakan, Shift+klik untuk menyalakan sebaris'}
-                            className={`flex aspect-square min-w-0 items-center justify-center rounded-lg text-sm font-bold tabular-nums leading-none transition-colors duration-150 ${
+                            className={`flex aspect-square min-w-0 items-center justify-center rounded-sm text-sm font-bold tabular-nums leading-none transition-colors duration-150 ${
                               isActive
-                                ? 'bg-[#1b4f9c] text-white shadow-sm hover:bg-[#143d79] active:scale-95'
+                                ? 'bg-[#1b4f9c] text-white hover:bg-[#143d79] active:scale-95'
                                 : 'bg-[#eef1f4] text-[#9aa3af] hover:bg-[#e3e8ee] active:scale-95'
                             }`}
                           >

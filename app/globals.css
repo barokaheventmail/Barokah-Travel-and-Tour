@@ -53,10 +53,21 @@ input[type='number'] { -moz-appearance:textfield; appearance:textfield; }
   /* Panduan peserta: whole page prints, chrome (navbar/buttons) hidden with print:hidden. */
   .print-guide, .print-guide * { visibility:visible; }
   .print-guide { position:static; left:auto; top:auto; width:100%; max-width:none; margin:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  /* Kolom isi panduan membentang penuh ke seluruh lebar A4 (layar tetap
+     max-w-2xl) supaya PDF tidak tampil kecil. */
+  #panduan-isi { max-width:none; margin:0; padding:0; }
   .print-guide table thead { display:table-header-group; }
   .print-guide .print-avoid-break, .print-guide li, .print-guide tr { break-inside:avoid; page-break-inside:avoid; }
   .print-guide .overflow-x-auto { overflow:visible; }
   .print-guide img { max-height:220px; }
+   @page panduan { size: A4 portrait; margin: 12mm 10mm 13mm 10mm; }
+   .print-guide { page: panduan; }
+   /* Logo kini diletakkan in-flow di puncak tiap section (bukan header `fixed`,
+      karena html2canvas tidak ikut memotret elemen fixed). Tiap section
+      dibuat selebar & setinggi satu halaman A4 penuh; `break-after` ditaruh per
+      section lewat kelas `print:break-after-page` di JSX. Jarak antar section
+      dari `space-y-4` (layar) di-nol-kan supaya halaman berikutnya mulai rapi. */
+   #panduan-isi > * + * { margin-top: 0 !important; }
   /* Kredensial crew: modalnya dirender lewat portal ke <body>, jadi akar cetak
      bukan anak dari overlay `fixed`. Kalau masih jadi anak overlay, containing
      block-nya setinggi viewport dan baris lewat halaman pertama ikut terpotong
@@ -121,3 +132,53 @@ input[type='number'] { -moz-appearance:textfield; appearance:textfield; }
 /* Saat lightbox galeri terbuka, sembunyikan iframe (mis. peta Google di footer)
    agar tidak menembus overlay karena iframe punya layer komposit sendiri. */
 body.gallery-lightbox-open iframe { visibility: hidden !important; }
+
+/* Sangat penting untuk `Unduh Panduan (PDF)`: html2canvas memotret isi layar
+   (media screen), jadi `print:min-h-...` tidak berlaku di sana. Saat unduh,
+   downloader menambah class `pdf-page-mode` pada #panduan-isi sementara supaya
+   tiap section dikur selebar dan setinggi area cetak A4 (194x281mm) — rasio
+   sama dengan kertas, sehingga html2canvas + contain menghasilkan satu halaman
+   penuh tanpa margin putih dan tanpa distorsi. */
+#panduan-isi.pdf-page-mode > section,
+#panduan-isi.pdf-page-mode > [data-pdf-only] {
+  width: 194mm;
+  min-height: 281mm;
+}
+
+/* Section yang harus tampil "bersih" tanpa card di PDF (dipakai html2canvas
+   yang bekerja di media layar → kelas `print:border-0` tidak berlaku di sana).
+   Section bertanda `pdf-plain` dihilangkan border/background/padding-nya
+   selama mode unduh aktif, saat tampilan layar normal tidak berpengaruh. */
+#panduan-isi.pdf-page-mode > section.pdf-plain {
+  border: 0 !important;
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+/* Itinerary: background halaman memakai gambar dekoratif Bg-7-bagian-panduan.
+   Border/padding card dibuang saat PDF/print supaya gambar membentang penuh,
+   namun background image tetap dipertahankan (tidak di-strip seperti
+   `pdf-plain`). */
+.itinerary-bg {
+  background-image: url('/Bg-7-bagian-panduan.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.tt-bg {
+  background-image: url('/Bg-11-bagian-panduan.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+#panduan-isi.pdf-page-mode > section.itinerary-bg {
+  border: 0 !important;
+  padding: 0 !important;
+}
+
+#panduan-isi.pdf-page-mode > section.tt-bg {
+  border: 0 !important;
+  padding: 0 !important;
+}

@@ -66,17 +66,9 @@ export function DownloadPagePdf({
       const pageH = pdf.internal.pageSize.getHeight()
       // Sisakan 8mm supaya printer rumah tangga tidak memotong tepi.
       const margin = 8
-      const usableH = pageH - margin * 2
-      const imgW = pageW - margin * 2
+      const printW = pageW - margin * 2
+      const printH = pageH - margin * 2
 
-      // Berapa CSS px yang muat di satu halaman A4 pada lebar konten ini.
-      const sliceH = Math.max(1, Math.floor((usableH * rect.width) / imgW))
-      const pages = Math.max(1, Math.ceil(rect.height / sliceH))
-
-      // Tiap halaman difoto terpisah dengan `{y, height}`, bukan satu canvas untuk
-      // seluruh halaman. Panduan peserta bisa puluhan ribu piksel tinggi, dan
-      // browser punya batas tinggi & luas canvas: begitu lewat, html2canvas
-      // diam-diam hanya mengisi bagian atas sehingga PDF terpotong.
       // `windowWidth`/`windowHeight` dikunci supaya layout tiap potret sama,
       // apa pun posisi scroll pengguna saat menekan tombol.
       const cloneViewport = {
@@ -107,29 +99,58 @@ export function DownloadPagePdf({
       // berkedip.
       const restoreColors = normalizeModernColors(target)
 
+      // Paginasi satu halaman per section: tiap <section> (plus kop sampul
+      // `data-pdf-only`) jadi satu halaman A4 utuh, diskalakan agar pas muat
+      // (contain) di tengah halaman — tidak ada section yang terpotong atau
+      // bertumpuk. Elemen `print:hidden` & tombol sudah disembunyikan di atas,
+      // jadi tidak ikut terhitung.
+      const pageEls = (Array.from(target.children) as HTMLElement[]).filter(
+        (el) => el.tagName === 'SECTION' || el.hasAttribute('data-pdf-only'),
+      )
+
+      // Elegant? No — pemotretan terjadi di media layar, padahal setiap section
+      // seharusnya sebesar satu halaman A4 utuh. Class `pdf-page-mode`
+      // (globals.css) memberi tahu CSS untuk membesarkan tiap section ke rasio
+      // area cetak A4 (194x281mm) SELAMA unduh saja, lalu dikembalikan.
+      const hadPageMode = target.classList.contains('pdf-page-mode')
+      if (!hadPageMode) target.classList.add('pdf-page-mode')
+
       try {
-        for (let page = 0; page < pages; page += 1) {
-          setProgress(Math.round(((page + 1) / pages) * 100))
-          const y = page * sliceH
-          const canvas = await html2canvas(target, {
+        for (let i = 0; i < pageEls.length; i += 1) {
+          setProgress(Math.round(((i + 1) / pageEls.length) * 100))
+          const el = pageEls[i]
+          // Ukur section seutuhnya lebih dulu; html2canvas default memotret
+          // sebatas viewport jika tidak diberi width/height eksplisit, sehingga
+          // section panjang (mis. itinerary dengan banyak day) bisa terpotong /
+          // pecah. Dengan `width`/`height` + `windowHeight` = tinggi penuh
+          // elemen, seluruh isi section selalu masuk SATU canvas → ditempel di
+          // SATU halaman A4, berapa pun panjangnya (mengecil, tidak terbagi).
+          const elW = el.scrollWidth
+          const elH = el.scrollHeight
+          const canvas = await html2canvas(el, {
             scale: 2,
             useCORS: true,
             allowTaint: true,
             backgroundColor: '#ffffff',
             logging: false,
+            width: elW,
+            height: elH,
             ...cloneViewport,
-            y,
-            height: Math.min(sliceH, rect.height - y),
+            windowWidth: Math.max(elW, cloneViewport.windowWidth),
+            windowHeight: Math.max(elH, cloneViewport.windowHeight),
           })
-          if (page > 0) pdf.addPage()
-          pdf.addImage(
-            canvas.toDataURL('image/jpeg', 0.92),
-            'JPEG',
-            margin,
-            margin,
-            imgW,
-            (canvas.height * imgW) / canvas.width,
-          )
+          const imgW = canvas.width
+          const imgH = canvas.height
+          if (imgW === 0 || imgH === 0) continue
+          // Selalu isi PENUH satu halaman A4: lebar dibuat selebar area cetak,
+          // tinggi menyesuaikan. Dengan `pdf-page-mode` tiap section sudah
+          // diukur setinggi/kelebar area cetak, jadi untuk section normal ini
+          // = identik (tidak ada margin putih). Kalau content-nya membengkak
+          // (mis. itinerary ditambah day sehingga lebih tinggi dari satu
+          // halaman), otomatis terkompres mengecil agar tetap satu halaman —
+          // lebarnya tetap sama, tidak menyisakan margin kiri/kanan.
+          if (i > 0) pdf.addPage()
+          pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', margin, margin, printW, printH)
         }
       } finally {
         hidden.forEach((el, i) => {
@@ -138,6 +159,7 @@ export function DownloadPagePdf({
         pdfOnly.forEach((el, i) => {
           el.style.display = prevPdfOnly[i]
         })
+        if (!hadPageMode) target.classList.remove('pdf-page-mode')
         restoreColors()
       }
 

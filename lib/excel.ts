@@ -1041,6 +1041,7 @@ export const eventSchema = z.object({
   panduanItinerary: z.string().trim().nullish(),
   crewName: z.string().trim().nullish(),
   crewPhone: z.string().trim().nullish(),
+  crewRole: z.string().trim().nullish(),
   crewPhotoUrl: z.string().trim().nullish(),
 })
 
@@ -1053,5 +1054,10 @@ export const eventPatchSchema = z.object({
   panduanItinerary: z.string().trim().nullish(),
   crewName: z.string().trim().nullish(),
   crewPhone: z.string().trim().nullish(),
+  crewRole: z.string().trim().nullish(),
   crewPhotoUrl: z.string().trim().nullish(),
+  panduanLogoLeft: z.string().trim().nullish(),
+  panduanLogoRight: z.string().trim().nullish(),
+  panduanLogoTopRight: z.string().trim().nullish(),
+  panduanLogoTopRight2: z.string().trim().nullish(),
 })

@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Data tidak valid' }, { status: 400 })
   }
 
-  const { title, date, location, status, note, panduanItinerary, crewName, crewPhone, crewPhotoUrl } = parsed.data
+  const { title, date, location, status, note, panduanItinerary, crewName, crewPhone, crewRole, crewPhotoUrl } = parsed.data
   const d = new Date(date)
   if (isNaN(d.getTime())) {
     return NextResponse.json({ error: 'Tanggal tidak valid.' }, { status: 400 })
@@ -55,6 +55,7 @@ export async function POST(request: NextRequest) {
         panduanItinerary: panduanItinerary || null,
         crewName: crewName || null,
         crewPhone: crewPhone || null,
+        crewRole: crewRole || null,
         crewPhotoUrl: crewPhotoUrl || null,
       },
     })

@@ -2,35 +2,208 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useRef, useState, type KeyboardEvent } from 'react'
-import { CalendarDays, Check, ExternalLink, Loader2, Pencil, Plus, Trash2 } from 'lucide-react'
-import { parseItinerary, serializeItinerary, groupItineraryByDay, type ItineraryRow } from '@/lib/itinerary'
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type KeyboardEventHandler } from 'react'
+import { CalendarDays, Check, Clock, ExternalLink, Loader2, Pencil, Plus, Trash2 } from 'lucide-react'
+import { parseItineraryDoc, serializeItinerary, groupItineraryByDay, type ItineraryRow } from '@/lib/itinerary'
 
-type DayRows = Pick<ItineraryRow, 'time' | 'agenda' | 'keterangan'>[]
+type DayRows = Pick<ItineraryRow, 'time' | 'agenda' | 'keterangan' | 'bold' | 'italic'>[]
+
+const pad2 = (v: string) => (v.length === 1 ? `0${v}` : v)
+const toDisplay = (value: string) => value.replace(':', '.')
+const toDigits = (value: string) => value.replace(/\D/g, '').slice(0, 4)
+
+const HOUR_OPTS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'))
+const MINUTE_OPTS = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'))
+
+const timeCls =
+  'w-full min-w-0 rounded-lg border border-[#dfe4e8] bg-white py-2 pl-3 pr-7 text-center text-sm font-semibold tabular-nums text-[#1b3555] outline-none transition-colors placeholder:text-[#9aa3af] focus:border-[#1b4f9c] focus:ring-2 focus:ring-[#1b4f9c]/15'
+
+function TimeColumn({
+  label,
+  options,
+  selected,
+  onPick,
+}: {
+  label: string
+  options: string[]
+  selected: string
+  onPick: (value: string) => void
+}) {
+  return (
+    <div className="w-14">
+      <p className="border-b border-[#eef1f4] px-2 py-1 text-center text-[10px] font-bold uppercase tracking-wide text-[#9aa3af]">
+        {label}
+      </p>
+      <div className="max-h-40 overflow-y-auto py-1">
+        {options.map((x) => (
+          <button
+            key={x}
+            type="button"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => onPick(x)}
+            className={`block w-full px-2 py-1 text-center text-sm font-semibold tabular-nums transition-colors ${
+              selected === x ? 'bg-[#1b4f9c] text-white' : 'text-[#1b3555] hover:bg-[#eef4fb]'
+            }`}
+          >
+            {x}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function TimeField({
+  value,
+  onChange,
+  ariaLabel,
+  inputRef,
+  onKeyDown,
+}: {
+  value: string
+  onChange: (value: string) => void
+  ariaLabel: string
+  inputRef?: (el: HTMLInputElement | null) => void
+  onKeyDown?: KeyboardEventHandler<HTMLInputElement>
+}) {
+  const [text, setText] = useState(() => toDisplay(value))
+  const [open, setOpen] = useState(false)
+  const boxRef = useRef<HTMLDivElement | null>(null)
+  const [h = '', m = ''] = value ? value.split(':') : []
+
+  useEffect(() => {
+    setText((prev) => (toDigits(prev) === toDigits(value) ? prev : toDisplay(value)))
+  }, [value])
+
+  useEffect(() => {
+    if (!open) return
+    const onDoc = (e: MouseEvent) => {
+      if (boxRef.current && !boxRef.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', onDoc)
+    return () => document.removeEventListener('mousedown', onDoc)
+  }, [open])
+
+  function commitText(raw: string) {
+    const digits = raw.replace(/\D/g, '').slice(0, 4)
+    setText(digits.length > 2 ? `${digits.slice(0, 2)}.${digits.slice(2)}` : digits)
+    if (!digits) return onChange('')
+    const hh = digits.slice(0, 2)
+    const mm = digits.slice(2)
+    if (digits.length === 4 && Number(hh) <= 23 && Number(mm) <= 59) onChange(`${hh}:${mm}`)
+  }
+
+  function commitBlur() {
+    const digits = text.replace(/\D/g, '')
+    if (!digits) return
+    const hh = pad2(digits.slice(0, 2))
+    const mm = pad2(digits.slice(2, 4) || '0')
+    if (Number(hh) > 23 || Number(mm) > 59) {
+      setText(toDisplay(value))
+      return
+    }
+    setText(`${hh}.${mm}`)
+    onChange(`${hh}:${mm}`)
+  }
+
+  function pick(nh: string, nm: string, close: boolean) {
+    const hh = nh || '00'
+    const mm = nm || '00'
+    setText(`${hh}.${mm}`)
+    onChange(`${hh}:${mm}`)
+    if (close) setOpen(false)
+  }
+
+  return (
+    <div ref={boxRef} className="relative w-full min-w-0">
+      <input
+        ref={inputRef}
+        type="text"
+        inputMode="numeric"
+        aria-label={ariaLabel}
+        value={text}
+        placeholder="00.00"
+        maxLength={5}
+        onChange={(e) => commitText(e.target.value)}
+        onBlur={commitBlur}
+        onFocus={() => setOpen(true)}
+        onClick={() => setOpen(true)}
+        onKeyDown={onKeyDown}
+        className={timeCls}
+      />
+      <button
+        type="button"
+        tabIndex={-1}
+        aria-label={`${ariaLabel} pilih`}
+        onClick={() => setOpen((o) => !o)}
+        className="absolute right-1 top-1/2 -translate-y-1/2 rounded p-0.5 text-[#9aa3af] transition-colors hover:text-[#1b4f9c]"
+      >
+        <Clock size={13} />
+      </button>
+
+      {open && (
+        <div className="absolute left-0 top-full z-30 mt-1 flex overflow-hidden rounded-lg border border-[#dfe4e8] bg-white shadow-lg">
+          <TimeColumn label="Jam" options={HOUR_OPTS} selected={h} onPick={(x) => pick(x, m, false)} />
+          <div className="w-px bg-[#eef1f4]" />
+          <TimeColumn label="Menit" options={MINUTE_OPTS} selected={m} onPick={(x) => pick(h, x, true)} />
+        </div>
+      )}
+    </div>
+  )
+}
 
 export function PanduanEditor({
   eventId,
   initialItinerary,
   initialCrewName,
   initialCrewPhone,
+  initialCrewRole,
   initialCrewPhotoUrl,
+  initialLogoLeft,
+  initialLogoRight,
+  initialLogoTopRight,
+  initialLogoTopRight2,
 }: {
   eventId: string
   initialItinerary: string
   initialCrewName: string
   initialCrewPhone: string
+  initialCrewRole: string
   initialCrewPhotoUrl: string | null
+  initialLogoLeft: string | null
+  initialLogoRight: string | null
+  initialLogoTopRight: string | null
+  initialLogoTopRight2: string | null
 }) {
   const router = useRouter()
+  const initialDayGroups = useMemo(() => {
+    const doc = parseItineraryDoc(initialItinerary)
+    return groupItineraryByDay(doc.rows, doc.notes, doc.sideNotes)
+  }, [initialItinerary])
   const [dayBlocks, setDayBlocks] = useState<DayRows[]>(() =>
-    groupItineraryByDay(parseItinerary(initialItinerary)).map((g) =>
-      g.rows.map((r) => ({ time: r.time, agenda: r.agenda, keterangan: r.keterangan })),
+    initialDayGroups.map((g) =>
+      g.rows.map((r) => ({ time: r.time, agenda: r.agenda, keterangan: r.keterangan, bold: r.bold, italic: r.italic })),
     ),
   )
-  const [crew, setCrew] = useState({ name: initialCrewName, phone: initialCrewPhone, photoUrl: initialCrewPhotoUrl })
+  const [dayNotes, setDayNotes] = useState<string[]>(() => initialDayGroups.map((g) => g.note))
+  const [daySideNotes, setDaySideNotes] = useState<string[]>(() => initialDayGroups.map((g) => g.sideNote))
+  const [footerNote, setFooterNote] = useState<string>(() => parseItineraryDoc(initialItinerary).footerNote)
+  const [crew, setCrew] = useState({ name: initialCrewName, phone: initialCrewPhone, role: initialCrewRole, photoUrl: initialCrewPhotoUrl })
   const [crewEditing, setCrewEditing] = useState(false)
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
   const [crewBusy, setCrewBusy] = useState(false)
+  const [logoLeft, setLogoLeft] = useState<string | null>(initialLogoLeft)
+  const [logoRight, setLogoRight] = useState<string | null>(initialLogoRight)
+  const [logoTopRight, setLogoTopRight] = useState<string | null>(initialLogoTopRight)
+  const [logoTopRight2, setLogoTopRight2] = useState<string | null>(initialLogoTopRight2)
+  const [uploadingLogo, setUploadingLogo] = useState<'left' | 'right' | 'topright' | 'topright2' | null>(null)
+
+  const setLogoBySlot = (slot: 'left' | 'right' | 'topright' | 'topright2') => (url: string | null) => {
+    if (slot === 'left') setLogoLeft(url)
+    else if (slot === 'right') setLogoRight(url)
+    else if (slot === 'topright') setLogoTopRight(url)
+    else setLogoTopRight2(url)
+  }
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState<{ kind: 'ok' | 'err'; msg: string } | null>(null)
 
@@ -43,7 +216,9 @@ export function PanduanEditor({
   }
 
   function addDayRow(b: number) {
-    setDayBlocks((blocks) => blocks.map((rows, i) => (i === b ? [...rows, { time: '', agenda: '', keterangan: '' }] : rows)))
+    setDayBlocks((blocks) =>
+      blocks.map((rows, i) => (i === b ? [...rows, { time: '', agenda: '', keterangan: '', bold: false, italic: false }] : rows)),
+    )
   }
 
   function removeDayRow(b: number, r: number) {
@@ -52,13 +227,25 @@ export function PanduanEditor({
 
   function addDay() {
     setDayBlocks((blocks) => [...blocks, []])
+    setDayNotes((notes) => [...notes, ''])
+    setDaySideNotes((notes) => [...notes, ''])
   }
 
   function removeDay(b: number) {
     setDayBlocks((blocks) => blocks.filter((_, i) => i !== b))
+    setDayNotes((notes) => notes.filter((_, i) => i !== b))
+    setDaySideNotes((notes) => notes.filter((_, i) => i !== b))
   }
 
-  function dayRowEnter(b: number, r: number, col: number, e: KeyboardEvent<HTMLInputElement>) {
+  function setDayNote(b: number, value: string) {
+    setDayNotes((notes) => notes.map((note, i) => (i === b ? value : note)))
+  }
+
+  function setDaySideNote(b: number, value: string) {
+    setDaySideNotes((notes) => notes.map((note, i) => (i === b ? value : note)))
+  }
+
+  function dayRowEnter(b: number, r: number, col: number, e: KeyboardEvent<HTMLElement>) {
     if (e.key !== 'Enter') return
     e.preventDefault()
     const next = rowRefs.current[`${b}:${r}:${col + 1}`]
@@ -100,10 +287,20 @@ export function PanduanEditor({
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          panduanItinerary: serializeItinerary(dayBlocks.flatMap((rows, b) => rows.map((row) => ({ ...row, day: b + 1 })))),
+          panduanItinerary: serializeItinerary(
+            dayBlocks.flatMap((rows, b) => rows.map((row) => ({ ...row, day: b + 1 }))),
+            Object.fromEntries(dayNotes.map((note, b) => [b + 1, note])),
+            Object.fromEntries(daySideNotes.map((note, b) => [b + 1, note])),
+            footerNote,
+          ),
           crewName: crew.name.trim() || null,
           crewPhone: crew.phone.trim() || null,
+          crewRole: crew.role.trim() || null,
           crewPhotoUrl: crew.photoUrl,
+          panduanLogoLeft: logoLeft,
+          panduanLogoRight: logoRight,
+          panduanLogoTopRight: logoTopRight,
+          panduanLogoTopRight2: logoTopRight2,
         }),
       })
       const data = await res.json()
@@ -157,6 +354,47 @@ export function PanduanEditor({
     }
   }
 
+  async function uploadLogo(slot: 'left' | 'right' | 'topright' | 'topright2', file: File) {
+    if (!/^image\/(jpeg|png|webp)$/.test(file.type)) {
+      setStatus({ kind: 'err', msg: 'Hanya mendukung gambar JPG, PNG, atau WebP.' })
+      return
+    }
+    setUploadingLogo(slot)
+    setStatus(null)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      fd.append('slot', slot)
+      const res = await fetch(`/api/admin/events/${eventId}/panduan-logo`, { method: 'POST', body: fd })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Gagal mengunggah logo.')
+      setLogoBySlot(slot)(data.url)
+      setStatus({ kind: 'ok', msg: 'Logo diperbarui.' })
+      router.refresh()
+    } catch (err) {
+      setStatus({ kind: 'err', msg: err instanceof Error ? err.message : 'Gagal mengunggah logo.' })
+    } finally {
+      setUploadingLogo(null)
+    }
+  }
+
+  async function removeLogo(slot: 'left' | 'right' | 'topright' | 'topright2') {
+    setUploadingLogo(slot)
+    setStatus(null)
+    try {
+      const res = await fetch(`/api/admin/events/${eventId}/panduan-logo?slot=${slot}`, { method: 'DELETE' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Gagal menghapus logo.')
+      setLogoBySlot(slot)(null)
+      setStatus({ kind: 'ok', msg: 'Logo dihapus.' })
+      router.refresh()
+    } catch (err) {
+      setStatus({ kind: 'err', msg: err instanceof Error ? err.message : 'Gagal menghapus logo.' })
+    } finally {
+      setUploadingLogo(null)
+    }
+  }
+
   async function saveCrew() {
     setCrewBusy(true)
     setStatus(null)
@@ -167,6 +405,7 @@ export function PanduanEditor({
         body: JSON.stringify({
           crewName: crew.name.trim() || null,
           crewPhone: crew.phone.trim() || null,
+          crewRole: crew.role.trim() || null,
           crewPhotoUrl: crew.photoUrl,
         }),
       })
@@ -194,11 +433,11 @@ export function PanduanEditor({
       const res = await fetch(`/api/admin/events/${eventId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ crewName: null, crewPhone: null, crewPhotoUrl: null }),
+        body: JSON.stringify({ crewName: null, crewPhone: null, crewRole: null, crewPhotoUrl: null }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Gagal menghapus crew.')
-      setCrew({ name: '', phone: '', photoUrl: null })
+      setCrew({ name: '', phone: '', role: '', photoUrl: null })
       setCrewEditing(false)
       setStatus({ kind: 'ok', msg: 'Crew on duty dihapus.' })
       router.refresh()
@@ -241,26 +480,108 @@ export function PanduanEditor({
             {dayBlocks.length} hari · {dayBlocks.reduce((n, rows) => n + rows.length, 0)} agenda
           </p>
         </div>
+
+        <div className="mt-4 rounded-xl border border-[#e8ecf1] bg-[#fbfcfe] p-4">
+          <p className="text-xs font-bold text-[#1b3555]">Logo Kepala Itinerary</p>
+          <p className="mt-0.5 text-[11px] text-[#657080]">
+            Logo Kiri &amp; Kanan tampil berdampingan di kiri atas bagian &quot;Itinerary Perjalanan&quot;. Logo Pojok
+            Kanan tampil di sudut kanan atas. Kosongkan (Reset) untuk memakai bawaan / tidak menampilkan.
+          </p>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            {(
+              [
+                { slot: 'left', label: 'Kiri', fallback: '/logo-barokah.png' },
+                { slot: 'right', label: 'Kanan', fallback: '/logo-barokah-event.png' },
+                { slot: 'topright', label: 'Pojok Kanan 1', fallback: null },
+                { slot: 'topright2', label: 'Pojok Kanan 2', fallback: null },
+              ] as const
+            ).map(({ slot, label, fallback }) => {
+              const url =
+                slot === 'left' ? logoLeft : slot === 'right' ? logoRight : slot === 'topright' ? logoTopRight : logoTopRight2
+              const preview = url ?? fallback
+              const busy = uploadingLogo === slot
+              return (
+                <div key={slot} className="flex items-center gap-3 rounded-lg border border-[#e8ecf1] bg-white p-3">
+                  <div className="flex h-12 w-24 shrink-0 items-center justify-center overflow-hidden rounded-md border border-[#eef1f4]">
+                    {preview ? (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img src={preview} alt={`Logo ${label}`} className="max-h-full max-w-full object-contain" />
+                    ) : (
+                      <span className="text-[10px] text-[#9aa3af]">Kosong</span>
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11px] font-bold text-[#1b3555]">Logo {label}</p>
+                    <p className="text-[10px] text-[#9aa3af]">{url ? 'Kustom' : fallback ? 'Bawaan' : 'Kosong'}</p>
+                    <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                      <label className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-[#dfe4e8] px-3 py-1.5 text-[11px] font-bold text-[#1b4f9c] transition-colors hover:bg-[#eef4fb]">
+                        {busy ? <Loader2 size={11} className="animate-spin" /> : null}
+                        {busy ? 'Mengunggah…' : 'Unggah'}
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          className="hidden"
+                          disabled={busy}
+                          onChange={(e) => {
+                            const file = e.target.files?.[0]
+                            if (file) uploadLogo(slot, file)
+                            e.target.value = ''
+                          }}
+                        />
+                      </label>
+                      {url && (
+                        <button
+                          type="button"
+                          onClick={() => removeLogo(slot)}
+                          disabled={busy}
+                          className="text-[11px] font-bold text-red-600 hover:underline disabled:opacity-60"
+                        >
+                          Reset
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
         {dayBlocks.length === 0 ? (
           <p className="mt-2 text-xs text-[#9aa3af]">Belum ada hari. Tambah hari baru untuk menyusun itinerary.</p>
         ) : (
           <div className="mt-4 space-y-4">
             {dayBlocks.map((rows, b) => (
               <div key={b} className="rounded-xl border border-[#e8ecf1] bg-[#fbfcfe] p-4">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-start gap-2">
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-[#eef4fb] px-3 py-1 text-xs font-bold text-[#1b4f9c]">
                     <CalendarDays size={13} /> Day {b + 1}
                   </span>
                   <span className="text-[11px] text-[#9aa3af]">{rows.length} agenda</span>
+                  <textarea
+                    value={daySideNotes[b] ?? ''}
+                    onChange={(e) => setDaySideNote(b, e.target.value)}
+                    placeholder={`Keterangan di samping Day ${b + 1} (opsional)`}
+                    rows={2}
+                    className={`${rowCls} min-w-0 flex-1 resize-y`}
+                  />
                   <button
                     type="button"
                     onClick={() => removeDay(b)}
                     aria-label={`Hapus hari ${b + 1}`}
-                    className="ml-auto rounded-lg p-2 text-[#657080] transition-colors hover:bg-red-50 hover:text-red-600"
+                    className="shrink-0 rounded-lg p-2 text-[#657080] transition-colors hover:bg-red-50 hover:text-red-600"
                   >
                     <Trash2 size={15} />
                   </button>
                 </div>
+
+                <textarea
+                  value={dayNotes[b] ?? ''}
+                  onChange={(e) => setDayNote(b, e.target.value)}
+                  placeholder={`Keterangan di bawah Day ${b + 1} (opsional)`}
+                  rows={2}
+                  className={`${rowCls} mt-3 w-full resize-y`}
+                />
 
                 {rows.length === 0 ? (
                   <p className="mt-3 rounded-lg border border-dashed border-[#dfe4e8] px-4 py-3 text-xs text-[#9aa3af]">
@@ -269,36 +590,31 @@ export function PanduanEditor({
                 ) : (
                   <>
                     <div className="mt-3 hidden items-center gap-2 text-[11px] font-bold uppercase tracking-wide text-[#657080] sm:flex">
-                      <span className="w-full sm:w-60 sm:shrink-0 sm:pl-1">Waktu</span>
+                      <span className="w-full sm:w-56 sm:shrink-0 sm:pl-1">Waktu</span>
                       <span className="w-full sm:min-w-0 sm:flex-1 sm:pl-1">Agenda</span>
-                      <span className="w-full sm:min-w-0 sm:flex-1 sm:pl-1">Keterangan</span>
                     </div>
                     <div className="mt-2 space-y-2 sm:mt-3">
                       {rows.map((row, r) => (
                         <div key={r} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
-                          <div className="flex items-center gap-1 sm:w-60 sm:shrink-0">
-                            <input
-                              ref={(el) => {
+                          <div className="flex items-center gap-1.5 sm:w-56 sm:shrink-0">
+                            <TimeField
+                              ariaLabel="Jam mulai"
+                              value={parseWaktu(row.time).start}
+                              onChange={(value) => setDayRow(b, r, { time: serializeWaktu(value, parseWaktu(row.time).end) })}
+                              inputRef={(el) => {
                                 rowRefs.current[`${b}:${r}:0`] = el
                               }}
-                              type="time"
-                              value={parseWaktu(row.time).start}
-                              onChange={(e) => setDayRow(b, r, { time: serializeWaktu(e.target.value, parseWaktu(row.time).end) })}
                               onKeyDown={(e) => dayRowEnter(b, r, 0, e)}
-                              aria-label="Jam mulai"
-                              className={`${rowCls} min-w-0 w-full`}
                             />
                             <span className="shrink-0 text-[#9aa3af]">–</span>
-                            <input
-                              ref={(el) => {
+                            <TimeField
+                              ariaLabel="Jam selesai (opsional)"
+                              value={parseWaktu(row.time).end}
+                              onChange={(value) => setDayRow(b, r, { time: serializeWaktu(parseWaktu(row.time).start, value) })}
+                              inputRef={(el) => {
                                 rowRefs.current[`${b}:${r}:1`] = el
                               }}
-                              type="time"
-                              value={parseWaktu(row.time).end}
-                              onChange={(e) => setDayRow(b, r, { time: serializeWaktu(parseWaktu(row.time).start, e.target.value) })}
                               onKeyDown={(e) => dayRowEnter(b, r, 1, e)}
-                              aria-label="Jam selesai (opsional)"
-                              className={`${rowCls} min-w-0 w-full`}
                             />
                           </div>
                           <input
@@ -311,18 +627,28 @@ export function PanduanEditor({
                             placeholder="Agenda kegiatan"
                             className={`${rowCls} w-full sm:min-w-0 sm:flex-1`}
                           />
-                          <div className="flex items-center gap-2 sm:min-w-0 sm:flex-1">
-                            <input
-                              ref={(el) => {
-                                rowRefs.current[`${b}:${r}:3`] = el
-                              }}
-                              value={row.keterangan}
-                              onChange={(e) => setDayRow(b, r, { keterangan: e.target.value })}
-                              onKeyDown={(e) => dayRowEnter(b, r, 3, e)}
-                              placeholder="Keterangan (opsional)"
-                              className={`${rowCls} min-w-0 flex-1`}
-                            />
-                            <button type="button" onClick={() => removeDayRow(b, r)} aria-label="Hapus agenda" className="shrink-0 rounded-lg p-2 text-[#657080] transition-colors hover:bg-red-50 hover:text-red-600">
+                          <div className="flex shrink-0 items-center gap-1 self-end sm:self-auto">
+                            <button
+                              type="button"
+                              onClick={() => setDayRow(b, r, { bold: !row.bold })}
+                              aria-label="Tebal"
+                              aria-pressed={row.bold}
+                              title="Tebal"
+                              className={`rounded-lg p-2 text-sm font-extrabold leading-none transition-colors ${row.bold ? 'bg-[#00A3E0] text-white' : 'text-[#657080] hover:bg-[#eef4fb] hover:text-[#00A3E0]'}`}
+                            >
+                              B
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setDayRow(b, r, { italic: !row.italic })}
+                              aria-label="Miring"
+                              aria-pressed={row.italic}
+                              title="Miring"
+                              className={`rounded-lg p-2 text-sm font-bold italic leading-none transition-colors ${row.italic ? 'bg-[#00A3E0] text-white' : 'text-[#657080] hover:bg-[#eef4fb] hover:text-[#00A3E0]'}`}
+                            >
+                              I
+                            </button>
+                            <button type="button" onClick={() => removeDayRow(b, r)} aria-label="Hapus agenda" className="rounded-lg p-2 text-[#657080] transition-colors hover:bg-red-50 hover:text-red-600">
                               <Trash2 size={15} />
                             </button>
                           </div>
@@ -346,6 +672,17 @@ export function PanduanEditor({
         >
           <Plus size={14} /> Tambah Hari Baru
         </button>
+
+        <div className="mt-4">
+          <label className="mb-1.5 block text-xs font-bold text-[#657080]">Keterangan Tambahan (di bawah itinerary)</label>
+          <textarea
+            value={footerNote}
+            onChange={(e) => setFooterNote(e.target.value)}
+            placeholder="Catatan tambahan yang tampil di bawah tabel itinerary (opsional)"
+            rows={2}
+            className={`${rowCls} w-full resize-y`}
+          />
+        </div>
       </div>
 
       <div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">
@@ -369,7 +706,7 @@ export function PanduanEditor({
             </div>
             <div className="min-w-0">
               <strong className="block text-sm text-[#1b3555]">{crew.name}</strong>
-              {crew.phone && <span className="text-xs text-[#657080]">{crew.phone}</span>}
+              {crew.role && <span className="text-xs text-[#657080]">{crew.role}</span>}
             </div>
             <div className="ml-auto flex items-center gap-1">
               <button type="button" onClick={() => setCrewEditing(true)} className="inline-flex items-center gap-1 rounded-full border border-[#dfe4e8] px-3 py-1.5 text-[11px] font-bold text-[#1b4f9c] transition-colors hover:bg-[#eef4fb]">
@@ -417,9 +754,9 @@ export function PanduanEditor({
               className={`${rowCls} w-full`}
             />
             <input
-              value={crew.phone}
-              onChange={(e) => setCrew((c) => ({ ...c, phone: e.target.value }))}
-              placeholder="No. WhatsApp"
+              value={crew.role}
+              onChange={(e) => setCrew((c) => ({ ...c, role: e.target.value }))}
+              placeholder="Jabatan / Peran (mis. Tour Leader)"
               className={`${rowCls} w-full`}
             />
 
@@ -428,7 +765,7 @@ export function PanduanEditor({
                 type="button"
                 onClick={() => {
                   setCrewEditing(false)
-                  setCrew({ name: initialCrewName, phone: initialCrewPhone, photoUrl: initialCrewPhotoUrl })
+                  setCrew({ name: initialCrewName, phone: initialCrewPhone, role: initialCrewRole, photoUrl: initialCrewPhotoUrl })
                 }}
                 disabled={crewBusy}
                 className="rounded-full border border-[#dfe4e8] px-4 py-2 text-xs font-bold text-[#657080] transition-colors hover:bg-[#eef1f4] disabled:opacity-60"

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Panduan Peserta — Contoh Dokumen A4</title>
+    <link rel="stylesheet" href="panduan.css" />
+  </head>
+  <body>
+    <div class="toolbar">
+      <button type="button" onclick="window.print()">Cetak / Simpan PDF (A4)</button>
+    </div>
+
+    <main class="doc">
+      <!-- ============ LEMBAR 1 — SAMPUL (konten pendek, pas 1 A4) ========= -->
+      <section class="page page--center">
+        <header class="doc-head">
+          <div class="logos">
+            <img src="../logo-barokah.png" alt="Logo Barokah" />
+            <img src="../logo-barokah-event.png" alt="Logo Barokah Event" />
+          </div>
+          <img src="../logo-wonderful.png" alt="Logo Wonderful" />
+        </header>
+
+        <div class="spacer"></div>
+        <p class="eyebrow">Panduan Peserta</p>
+        <h1>Tour Wisata Yogyakarta 3 Hari 2 Malam</h1>
+        <p class="muted">Sabtu, 12 Oktober 2026 &middot; Yogyakarta, Jawa Tengah</p>
+        <hr class="rule" />
+        <p class="muted">
+          Simpan dokumen ini selama perjalanan. Berisi itinerary, doa perjalanan,
+          tata cara salat jamak, tata tertib peserta, hingga peta kursi unit.
+        </p>
+        <div class="spacer"></div>
+
+        <div class="card avoid-break">
+          <strong>Contoh Teknik Auto-Fit</strong>
+          <p class="muted" style="margin: 1mm 0 0">
+            Konten pendek tetap pas setinggi 1 halaman A4. Lembar berikutnya memakai
+            tabel agenda panjang untuk menunjukkan pemecahan halaman (page-break)
+            tanpa crop dan tanpa mengecilkan elemen.
+          </p>
+        </div>
+      </section>
+
+      <!-- ============ LEMBAR 2 — KONTEN PENDEK (pas 1 A4) ================= -->
+      <section class="page">
+        <header class="doc-head">
+          <div class="logos">
+            <img src="../logo-barokah.png" alt="Logo Barokah" />
+            <img src="../logo-barokah-event.png" alt="Logo Barokah Event" />
+          </div>
+        </header>
+
+        <h2>Visi &amp; Misi</h2>
+        <p>
+          Menjadi biro perjalanan terkemuka dengan menciptakan produk-produk
+          berkualitas yang berbasis budaya dan pendidikan dalam rangka pengembangan
+          pariwisata.
+        </p>
+        <hr class="rule" />
+        <h3>Doa Bepergian Jauh</h3>
+        <div class="card card--gold avoid-break">
+          <p lang="ar" dir="rtl" style="font-size: 13pt; margin-bottom: 2mm">
+            سُبْحَانَ الَّذِي سَخَّرَ لَنَا هَذَا وَمَا كُنَّا لَهُ مُقْرِنِينَ
+          </p>
+          <p style="margin: 0">
+            &ldquo;Mahasuci Allah yang telah menundukkan semua ini bagi kami, padahal
+            kami sebelumnya tidak mampu menguasainya.&rdquo;
+          </p>
+        </div>
+      </section>
+
+      <!-- ============ LEMBAR 3 — ITINERARY PANJANG (memecah antar halaman) = -->
+      <section class="page">
+        <header class="doc-head">
+          <div class="logos">
+            <img src="../logo-barokah.png" alt="Logo Barokah" />
+            <img src="../logo-barokah-event.png" alt="Logo Barokah Event" />
+          </div>
+        </header>
+
+        <h2 style="text-align: center; color: var(--accent); text-transform: uppercase">
+          Itinerary Perjalanan
+        </h2>
+        <p class="muted" style="text-align: center">
+          Tabel panjang ini melewati tinggi 1 halaman &mdash; browser memecahnya rapi
+          ke halaman berikutnya, header tabel terulang otomatis. Tidak ada distorsi.
+        </p>
+
+        <div class="day-label">Day 1</div>
+        <p class="day-sub">(): Check In Peserta &ndash; Perjalanan Menuju Yogyakarta</p>
+        <table class="agenda">
+          <thead>
+            <tr><th>Waktu</th><th>Agenda</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>13.00 - 14.00</td><td>Kedatangan, Registrasi Peserta &amp; Check-in</td></tr>
+            <tr><td>14.00 - 14.30</td><td>Pembukaan &amp; Sambutan</td></tr>
+            <tr><td>14.30 - 15.30</td><td>Sesi 1: Orientation &amp; Ice Breaking</td></tr>
+            <tr><td>15.30 - 16.30</td><td>Sesi 2: Team Building</td></tr>
+            <tr><td>16.30 - 17.30</td><td>Sesi 3: Materi Kepemimpinan</td></tr>
+            <tr><td>17.30 - 18.30</td><td>Istirahat &amp; Shalat</td></tr>
+            <tr><td>18.30 - 19.30</td><td>Makan Malam Bersama</td></tr>
+            <tr><td>19.30 - 21.00</td><td>Sesi 4: Diskusi Kelompok</td></tr>
+            <tr><td>21.00 - 22.00</td><td>Refleksi Harian &amp; Istirahat</td></tr>
+          </tbody>
+        </table>
+
+        <div class="day-label">Day 2</div>
+        <p class="day-sub">(B/L/D): VW Magelang &ndash; Umbul Ponggok &ndash; Check In Hotel &ndash; Malioboro</p>
+        <table class="agenda">
+          <thead>
+            <tr><th>Waktu</th><th>Agenda</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>06.00 - 06.30</td><td>Shalat Subuh &amp; Senam Pagi</td></tr>
+            <tr><td>07.00 - 08.00</td><td>Sarapan Pagi</td></tr>
+            <tr><td>08.00 - 08.30</td><td>Briefing Pagi &amp; Energetics</td></tr>
+            <tr><td>08.30 - 10.00</td><td>Perjalanan Menuju VW Magelang</td></tr>
+            <tr><td>10.00 - 12.00</td><td>City Tour dengan VW Kombi</td></tr>
+            <tr><td>12.00 - 13.00</td><td>Makan Siang</td></tr>
+            <tr><td>13.00 - 15.00</td><td>Umbul Ponggok (Snorkeling &amp; Foto Bawah Air)</td></tr>
+            <tr><td>15.00 - 16.30</td><td>Perjalanan ke Hotel &amp; Check-in</td></tr>
+            <tr><td>16.30 - 18.00</td><td>Istirahat di Kamar</td></tr>
+            <tr><td>18.00 - 19.30</td><td>Makan Malam</td></tr>
+            <tr><td>19.30 - 22.00</td><td>Free Program Malioboro</td></tr>
+          </tbody>
+        </table>
+
+        <div class="day-label">Day 3</div>
+        <table class="agenda">
+          <thead>
+            <tr><th>Waktu</th><th>Agenda</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>07.00 - 08.30</td><td>Sarapan Pagi &amp; Proses Check-out</td></tr>
+            <tr><td>08.00 - 10.00</td><td>Sesi 6: Action Plan &amp; Next Steps</td></tr>
+            <tr><td>10.00 - 10.30</td><td>Sesi Evaluasi &amp; Feedback</td></tr>
+            <tr><td>10.30 - 11.30</td><td>Kepulangan Peserta (Departure)</td></tr>
+          </tbody>
+        </table>
+
+        <p class="muted" style="font-size: 9pt">
+          NB: Agenda sewaktu-waktu dapat berubah menyesuaikan kondisi di lapangan.
+          *B: Breakfast, L: Lunch, D: Dinner
+        </p>
+      </section>
+
+      <!-- ============ LEMBAR 4 — TATA TERTIB (latar penuh, min-height) ===== -->
+      <section class="page page--flush">
+        <div class="bleed card--navy">
+          <header class="doc-head" style="border-color: rgba(255, 255, 255, 0.25)">
+            <div class="logos">
+              <img src="../logo-barokah.png" alt="Logo Barokah" />
+              <img src="../logo-barokah-event.png" alt="Logo Barokah Event" />
+            </div>
+          </header>
+          <h2>Tata Tertib Peserta</h2>
+          <ol>
+            <li>Peserta wajib hadir tepat waktu di lokasi keberangkatan.</li>
+            <li>Bawalah selalu catatan ini agar mudah menyesuaikan selama perjalanan.</li>
+            <li>Peserta wajib mematuhi jadwal dan instruksi Tour Leader.</li>
+            <li>Barang bawaan pribadi menjadi tanggung jawab masing-masing peserta.</li>
+            <li>Informasikan riwayat penyakit kepada Tour Leader sebelum keberangkatan.</li>
+          </ol>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

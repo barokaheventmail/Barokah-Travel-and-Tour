@@ -1,13 +1,15 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { BookOpen, CalendarDays, Clock3, Download, MapPin, Phone, QrCode } from 'lucide-react'
+import type { ReactNode } from 'react'
+import { BookOpen, Clock3, Download, MapPin, Phone, QrCode } from 'lucide-react'
 import { prisma } from '@/lib/db'
-import { parseItinerary, groupItineraryByDay } from '@/lib/itinerary'
+import { parseItineraryDoc, groupItineraryByDay } from '@/lib/itinerary'
 import { qrDataUrl, encodeToken } from '@/lib/scan'
-import { BackLink, Logo } from '@/components/site'
+import { Logo } from '@/components/site'
 import { EventNavbar } from '@/components/event-navbar'
 import { PublicSeatMap } from '@/components/public-seat-map'
 import { PrintButton } from '@/components/admin/print-button'
+import { DownloadPagePdf } from '@/components/admin/download-page-pdf'
 
 export const dynamic = 'force-dynamic'
 
@@ -47,10 +49,58 @@ function formatDate(date: Date): string {
   return `${days[date.getDay()]}, ${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`
 }
 
+function PanduanHeading({ children }: { children: ReactNode }) {
+  return (
+    <h2 className="inline-flex text-lg font-bold uppercase tracking-widest text-white">
+      <span className="relative inline-flex items-center py-1.5 pl-4 pr-9 drop-shadow-xl">
+        <span
+          aria-hidden
+          className="absolute inset-0 bg-[#00A3E0]"
+          style={{ clipPath: 'polygon(0 0, calc(100% - 1rem) 0, 100% 100%, 0 100%)' }}
+        />
+        <span className="relative">{children}</span>
+      </span>
+    </h2>
+  )
+}
+
+function SectionLogos({
+  logoLeft,
+  logoRight,
+  topRight,
+  topRight2,
+}: {
+  logoLeft: string
+  logoRight: string
+  topRight: string | null
+  topRight2: string | null
+}) {
+  return (
+    <div className="mb-4 flex items-center justify-between gap-3">
+      <div className="flex items-center gap-3">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={logoLeft} alt="Logo Barokah" className="h-8 w-auto object-contain" />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={logoRight} alt="Logo Barokah Event" className="h-8 w-auto object-contain" />
+      </div>
+      <div className="flex items-center gap-3">
+        {topRight && (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img src={topRight} alt="Logo" className="h-8 w-auto object-contain" />
+        )}
+        {topRight2 && (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img src={topRight2} alt="Logo" className="h-8 w-auto object-contain" />
+        )}
+      </div>
+    </div>
+  )
+}
+
 async function getEvent(id: string) {
   return prisma.event.findUnique({
     where: { id },
-    select: { id: true, title: true, date: true, location: true, panduanItinerary: true, crewName: true, crewPhone: true, crewPhotoUrl: true },
+    select: { id: true, title: true, date: true, location: true, panduanItinerary: true, panduanRules: true, crewName: true, crewPhone: true, crewRole: true, crewPhotoUrl: true, panduanLogoLeft: true, panduanLogoRight: true, panduanLogoTopRight: true, panduanLogoTopRight2: true },
   })
 }
 
@@ -90,10 +140,12 @@ export default async function EventPanduanPage({
   const ownBusName = ownBus ? (buses.find((b) => b.id === ownBus.busId)?.name ?? null) : null
   const ownQr = ownBus ? await qrDataUrl(encodeToken(ownBus.token), 320) : null
 
-  const itinerary = parseItinerary(event.panduanItinerary)
-  const isEmpty = itinerary.length === 0
-  const dayGroups = groupItineraryByDay(itinerary)
+  const { rows: itinerary, notes: itineraryNotes, sideNotes: itinerarySideNotes, footerNote: itineraryFooterNote } = parseItineraryDoc(event.panduanItinerary)
+  const dayGroups = groupItineraryByDay(itinerary, itineraryNotes, itinerarySideNotes)
+  const isEmpty = itinerary.length === 0 && Object.keys(itineraryNotes).length === 0 && Object.keys(itinerarySideNotes).length === 0
   const multiDay = dayGroups.length > 1
+  const logoLeftUrl = event.panduanLogoLeft ?? '/logo-barokah.png'
+  const logoRightUrl = event.panduanLogoRight ?? '/logo-barokah-event.png'
 
   return (
     <main className="print-guide min-h-screen bg-[#f4f7fa] print:bg-white pb-12">
@@ -110,14 +162,11 @@ export default async function EventPanduanPage({
           <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-[#657080]">
             Panduan untuk {event.title} akan segera hadir. Hubungi panitia bila ada pertanyaan.
           </p>
-          <div className="mt-6">
-            <BackLink href={`/event/${event.id}`} label="Kembali ke Event" />
-          </div>
         </div>
       ) : (
         <>
           <div className="border-b border-[#dfe4e8] px-4 py-10 print:hidden">
-            <div className="mx-auto max-w-2xl">
+            <div className="mx-auto max-w-2xl px-4">
               <p className="eyebrow">Perjalanan Anda</p>
               <h1 className="mt-2 text-3xl font-bold text-[#1b3555]">{event.title}</h1>
               <div className="mt-4 flex flex-wrap gap-4 text-sm text-[#657080]">
@@ -137,7 +186,13 @@ export default async function EventPanduanPage({
             {/* Kop dokumen. `hidden print:block` = tak terlihat di layar tapi
                 ikut tercetak lewat Print; `data-pdf-only` = downloader
                 menghidupkannya lagi supaya ikut jadi sampul PDF. */}
-            <div className="hidden print:block" data-pdf-only>
+            <div className="hidden print:block print:break-after-page" data-pdf-only>
+              <SectionLogos
+                logoLeft={logoLeftUrl}
+                logoRight={logoRightUrl}
+                topRight={event.panduanLogoTopRight}
+                topRight2={event.panduanLogoTopRight2}
+              />
               <div className="print-avoid-break overflow-hidden rounded-xl border border-[#dfe4e8] bg-white">
                 <div className="h-1.5 bg-[#f5b915]" />
                 <div className="flex flex-wrap items-start justify-between gap-6 p-5">
@@ -186,240 +241,15 @@ export default async function EventPanduanPage({
               </div>
             </div>
 
-            {itinerary.length > 0 && (
-              <section className="print-avoid-break border border-[#dfe4e8] bg-white p-5">
-                <h2 className="text-xl font-bold text-[#1b3555]">Itinerary Perjalanan</h2>
-                <div className="space-y-6">
-                  {dayGroups.map((group) => (
-                    <div key={group.day}>
-                      {multiDay && (
-                        <div className="mb-3 flex items-center gap-3">
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#1b4f9c] px-3 py-1 text-xs font-bold text-white">
-                            <CalendarDays size={13} /> Day {group.day}
-                          </span>
-                          <div className="h-px flex-1 bg-[#dfe4e8]" />
-                        </div>
-                      )}
-                      <div className="overflow-hidden rounded-xl border border-[#dfe4e8]">
-                        <div className="grid grid-cols-[80px_1fr_1fr] gap-0 bg-[#f8fafc] px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-[#657080]">
-                          <span>Waktu</span>
-                          <span>Agenda</span>
-                          <span>Keterangan</span>
-                        </div>
-                        <div className="divide-y divide-[#edf0f3]">
-                          {group.rows.map((item, i) => (
-                            <div
-                              key={`${group.day}-${item.time}-${i}`}
-                              className="grid grid-cols-[80px_1fr_1fr] gap-0 px-4 py-3 transition-colors hover:bg-[#f8fafc]"
-                            >
-                              <span className="text-sm font-bold tabular-nums text-[#1b4f9c]">{item.time}</span>
-                              <span className="pr-4 text-sm font-semibold text-[#1b3555]">{item.agenda}</span>
-                              <span className="text-sm text-[#657080]">{item.keterangan || '–'}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
 
-            {event.crewName && (
-              <section className="print-avoid-break border border-[#dfe4e8] bg-white p-5">
-                <h2 className="text-xl font-bold text-[#1b3555]">Crew on Duty</h2>
-                <div className="mt-4 flex items-center gap-4">
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#dcebe0] text-xl font-bold text-[#2ca84a]">
-                    {event.crewPhotoUrl ? (
-                      <img src={event.crewPhotoUrl} alt={event.crewName} className="h-full w-full object-cover" />
-                    ) : (
-                      event.crewName.slice(0, 2).toUpperCase()
-                    )}
-                  </div>
-                  <div className="min-w-0">
-                    <strong className="block">{event.crewName}</strong>
-                    {event.crewPhone && (
-                      <a href={`tel:${event.crewPhone.replace(/\D/g, '')}`} className="mt-1 flex items-center gap-1 text-sm font-bold text-[#1b4f9c]">
-                        <Phone size={13} /> {event.crewPhone}
-                      </a>
-                    )}
-                  </div>
-                </div>
-              </section>
-            )}
-
-            <section className="space-y-6 border border-[#dfe4e8] bg-white p-5">
-              <div>
-                <h2 className="text-xl font-bold text-[#1b3555]">Doa Bepergian Jauh</h2>
-                <p className="mt-3 text-right text-lg leading-loose text-[#1b3555]" dir="rtl" lang="ar">
-                  سُبْحَانَ الَّذِي سَخَّرَ لَنَا هَذَا وَمَا كُنَّا لَهُ مُقْرِنِينَ ۝ وَإِنَّا إِلَىٰ رَبِّنَا لَمُنقَلِبُونَ
-                </p>
-                <p className="mt-2 text-sm leading-relaxed text-[#657080]">
-                  “Mahasuci Allah yang telah menundukkan semua ini bagi kami, padahal kami sebelumnya tidak mampu
-                  menguasainya. Dan sesungguhnya kami akan kembali kepada Tuhan kami.”
-                </p>
-                <p className="mt-4 text-right text-lg leading-loose text-[#1b3555]" dir="rtl" lang="ar">
-                  اللَّهُمَّ إِنَّا نَسْأَلُكَ فِي سَفَرِنَا هَذَا الْبِرَّ وَالتَّقْوَى وَمِنَ الْعَمَلِ مَا تَرْضَى،
-                  اللَّهُمَّ هَوِّنْ عَلَيْنَا سَفَرَنَا هَذَا وَاطْوِ عَنَّا بُعْدَهُ، اللَّهُمَّ أَنْتَ الصَّاحِبُ فِي
-                  السَّفَرِ وَالْخَلِيفَةُ فِي الْأَهْلِ
-                </p>
-                <p className="mt-2 text-sm leading-relaxed text-[#657080]">
-                  “Ya Allah, kami memohon kepada-Mu kebaikan dan ketakwaan dalam perjalanan ini, serta amal yang Engkau
-                  ridhai. Ya Allah, mudahkanlah perjalanan kami ini dan dekatkanlah jaraknya. Ya Allah, Engkaulah teman
-                  dalam perjalanan dan penjaga keluarga kami.”
-                </p>
-              </div>
-
-              <div>
-                <h2 className="text-xl font-bold text-[#1b3555]">Tata Cara Salat Jamak</h2>
-                <p className="mt-3 text-sm leading-relaxed text-[#1b3555]">
-                  Salat jamak adalah menggabungkan dua salat fardu dalam satu waktu karena sedang dalam perjalanan
-                  (safar). Salat yang boleh dijamak adalah Zuhur dengan Asar, serta Maghrib dengan Isya.
-                </p>
-                <p className="mt-3 text-sm leading-relaxed text-[#1b3555]">
-                  <strong>Jamak takdim</strong> — menggabungkan dua salat pada waktu salat yang pertama (misalnya Zuhur
-                  dan Asar dikerjakan di waktu Zuhur). <br />
-                  <strong>Jamak takhir</strong> — menggabungkan dua salat pada waktu salat yang kedua (misalnya Zuhur
-                  dan Asar dikerjakan di waktu Asar).
-                </p>
-                <p className="mt-3 text-sm leading-relaxed text-[#657080]">
-                  Dalam safar, salat juga boleh di<strong>qashar</strong>, yaitu meringkas salat yang berjumlah empat
-                  rakaat (Zuhur, Asar, Isya) menjadi dua rakaat.
-                </p>
-              </div>
-
-              <div>
-                <h2 className="text-xl font-bold text-[#1b3555]">Tata Cara Salat Jamak Takdim</h2>
-                <h3 className="mt-3 text-[11px] font-bold uppercase tracking-wide text-[#1b4f9c]">Niat Salat Zuhur</h3>
-                <p className="mt-1 text-right text-lg leading-loose text-[#1b3555]" dir="rtl" lang="ar">
-                  أُصَلِّي فَرْضَ الظُّهْرِ أَرْبَعَ رَكَعَاتٍ مَجْمُوعًا إِلَيْهِ الْعَصْرُ أَدَاءً لِلَّهِ تَعَالَى
-                </p>
-                <p className="mt-0.5 text-sm italic leading-relaxed text-[#57606e]" dir="ltr">
-                  Ushalli fardhas-zuhri arba‘a raka‘atin majmu‘an ilaihil-ashru adaa-an lillahi ta‘aala
-                </p>
-                <p className="mt-0.5 text-sm leading-relaxed text-[#657080]">
-                  “Aku berniat salat fardu Zuhur empat rakaat yang dijamak dengan Asar, karena Allah Ta’ala.”
-                </p>
-                <h3 className="mt-3 text-[11px] font-bold uppercase tracking-wide text-[#1b4f9c]">Niat Salat Asar</h3>
-                <p className="mt-1 text-right text-lg leading-loose text-[#1b3555]" dir="rtl" lang="ar">
-                  أُصَلِّي فَرْضَ الْعَصْرِ أَرْبَعَ رَكَعَاتٍ مَجْمُوعًا إِلَى الظُّهْرِ أَدَاءً لِلَّهِ تَعَالَى
-                </p>
-                <p className="mt-0.5 text-sm italic leading-relaxed text-[#57606e]" dir="ltr">
-                  Ushalli fardhal-ashri arba‘a raka‘atin majmu‘an ilaz-zuhri adaa-an lillahi ta‘aala
-                </p>
-                <p className="mt-0.5 text-sm leading-relaxed text-[#657080]">
-                  “Aku berniat salat fardu Asar empat rakaat yang dijamak dengan Zuhur, karena Allah Ta’ala.”
-                </p>
-                <h3 className="mt-3 text-[11px] font-bold uppercase tracking-wide text-[#1b4f9c]">Urutan Mengerjakan</h3>
-                <ol className="mt-2 list-inside list-decimal space-y-1.5 text-sm leading-relaxed text-[#1b3555]">
-                  <li>Berniat salat Zuhur jamak takdim.</li>
-                  <li>Kerjakan salat Zuhur empat rakaat lalu salam.</li>
-                  <li>Berniat salat Asar jamak takdim.</li>
-                  <li>Kerjakan salat Asar empat rakaat lalu salam.</li>
-                </ol>
-                <p className="mt-2 text-xs italic text-[#657080]">Keduanya dikerjakan berurutan pada waktu Zuhur.</p>
-              </div>
-
-              <div>
-                <h2 className="text-xl font-bold text-[#1b3555]">Tata Cara Salat Jamak Takdim dengan Qashar</h2>
-                <h3 className="mt-3 text-[11px] font-bold uppercase tracking-wide text-[#1b4f9c]">Niat Salat Zuhur</h3>
-                <p className="mt-1 text-right text-lg leading-loose text-[#1b3555]" dir="rtl" lang="ar">
-                  أُصَلِّي فَرْضَ الظُّهْرِ رَكْعَتَيْنِ قَصْرًا مَجْمُوعًا إِلَى الْعَصْرِ أَدَاءً لِلَّهِ تَعَالَى
-                </p>
-                <p className="mt-0.5 text-sm italic leading-relaxed text-[#57606e]" dir="ltr">
-                  Ushalli fardhas-zuhri rak‘ataini qashran majmu‘an ilal-ashri adaa-an lillahi ta‘aala
-                </p>
-                <p className="mt-0.5 text-sm leading-relaxed text-[#657080]">
-                  “Aku berniat salat fardu Zuhur dua rakaat qashar yang dijamak dengan Asar, karena Allah Ta’ala.”
-                </p>
-                <h3 className="mt-3 text-[11px] font-bold uppercase tracking-wide text-[#1b4f9c]">Niat Salat Asar</h3>
-                <p className="mt-1 text-right text-lg leading-loose text-[#1b3555]" dir="rtl" lang="ar">
-                  أُصَلِّي فَرْضَ الْعَصْرِ رَكْعَتَيْنِ قَصْرًا مَجْمُوعًا إِلَى الظُّهْرِ أَدَاءً لِلَّهِ تَعَالَى
-                </p>
-                <p className="mt-0.5 text-sm italic leading-relaxed text-[#57606e]" dir="ltr">
-                  Ushalli fardhal-ashri rak‘ataini qashran majmu‘an ilaz-zuhri adaa-an lillahi ta‘aala
-                </p>
-                <p className="mt-0.5 text-sm leading-relaxed text-[#657080]">
-                  “Aku berniat salat fardu Asar dua rakaat qashar yang dijamak dengan Zuhur, karena Allah Ta’ala.”
-                </p>
-                <h3 className="mt-3 text-[11px] font-bold uppercase tracking-wide text-[#1b4f9c]">Urutan Mengerjakan</h3>
-                <ol className="mt-2 list-inside list-decimal space-y-1.5 text-sm leading-relaxed text-[#1b3555]">
-                  <li>Berniat salat Zuhur qashar jamak takdim.</li>
-                  <li>Kerjakan salat Zuhur dua rakaat lalu salam.</li>
-                  <li>Berniat salat Asar qashar jamak takdim.</li>
-                  <li>Kerjakan salat Asar dua rakaat lalu salam.</li>
-                </ol>
-                <p className="mt-2 text-xs italic text-[#657080]">
-                  Keduanya dikerjakan berurutan pada waktu Zuhur, masing-masing dua rakaat.
-                </p>
-              </div>
-
-              <div>
-                <h2 className="text-xl font-bold text-[#1b3555]">Tata Cara Salat Jamak Takhir dengan Qashar</h2>
-                <h3 className="mt-3 text-[11px] font-bold uppercase tracking-wide text-[#1b4f9c]">Niat Salat Zuhur</h3>
-                <p className="mt-1 text-right text-lg leading-loose text-[#1b3555]" dir="rtl" lang="ar">
-                  أُصَلِّي فَرْضَ الظُّهْرِ رَكْعَتَيْنِ قَصْرًا مَجْمُوعًا مَعَ الْعَصْرِ أَدَاءً لِلَّهِ تَعَالَى
-                </p>
-                <p className="mt-0.5 text-sm italic leading-relaxed text-[#57606e]" dir="ltr">
-                  Ushalli fardhas-zuhri rak‘ataini qashran majmu‘an ma‘al-ashri adaa-an lillahi ta‘aala
-                </p>
-                <p className="mt-0.5 text-sm leading-relaxed text-[#657080]">
-                  “Aku berniat salat fardu Zuhur dua rakaat qashar yang dijamak dengan Asar, karena Allah Ta’ala.”
-                </p>
-                <h3 className="mt-3 text-[11px] font-bold uppercase tracking-wide text-[#1b4f9c]">Niat Salat Asar</h3>
-                <p className="mt-1 text-right text-lg leading-loose text-[#1b3555]" dir="rtl" lang="ar">
-                  أُصَلِّي فَرْضَ الْعَصْرِ رَكْعَتَيْنِ قَصْرًا مَجْمُوعًا إِلَى الظُّهْرِ أَدَاءً لِلَّهِ تَعَالَى
-                </p>
-                <p className="mt-0.5 text-sm italic leading-relaxed text-[#57606e]" dir="ltr">
-                  Ushalli fardhal-ashri rak‘ataini qashran majmu‘an ilaz-zuhri adaa-an lillahi ta‘aala
-                </p>
-                <p className="mt-0.5 text-sm leading-relaxed text-[#657080]">
-                  “Aku berniat salat fardu Asar dua rakaat qashar yang dijamak dengan Zuhur, karena Allah Ta’ala.”
-                </p>
-                <h3 className="mt-3 text-[11px] font-bold uppercase tracking-wide text-[#1b4f9c]">Urutan Mengerjakan</h3>
-                <ol className="mt-2 list-inside list-decimal space-y-1.5 text-sm leading-relaxed text-[#1b3555]">
-                  <li>Berniat salat Zuhur qashar jamak takhir.</li>
-                  <li>Kerjakan salat Zuhur dua rakaat lalu salam.</li>
-                  <li>Berniat salat Asar qashar jamak takhir.</li>
-                  <li>Kerjakan salat Asar dua rakaat lalu salam.</li>
-                </ol>
-                <p className="mt-2 text-xs italic text-[#657080]">
-                  Keduanya dikerjakan berurutan pada waktu Asar, masing-masing dua rakaat.
-                </p>
-              </div>
-            </section>
-
-            <section className="print-avoid-break border border-[#dfe4e8] bg-white p-5">
-              <h2 className="text-xl font-bold text-[#1b3555]">Tata Tertib</h2>
-              <ol className="mt-4 space-y-3">
-                {FIXED_RULES.map((rule, i) => (
-                  <li key={i} className="flex gap-3 text-sm leading-relaxed">
-                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#2ca84a] text-xs font-bold text-white">
-                      {i + 1}
-                    </span>
-                    <div className="min-w-0">
-                      <p className="leading-relaxed">{rule.text}</p>
-                      {rule.items && (
-                        <ul className="mt-2 space-y-1.5">
-                          {rule.items.map((item, j) => (
-                            <li key={item} className="flex gap-2">
-                              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-[#e3e8ee] text-[11px] font-bold text-[#1b3555]">
-                                {'-'}
-                              </span>
-                              {item}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            </section>
-
-
-            <section className="print-avoid-break border border-[#dfe4e8] bg-white p-5">
-              <h2 className="text-xl font-bold text-[#1b3555]">Visi & Misi</h2>
+            <section className="pdf-plain print-avoid-break border border-[#dfe4e8] bg-white p-5 print:break-after-page print:min-h-[272mm] print:border-0 print:bg-transparent print:p-0">
+              <SectionLogos
+                logoLeft={logoLeftUrl}
+                logoRight={logoRightUrl}
+                topRight={event.panduanLogoTopRight}
+                topRight2={event.panduanLogoTopRight2}
+              />
+              <h2 className="text-3xl font-extrabold uppercase tracking-wide text-[#f5b915]">Our Vision and Mission</h2>
 
               <div className="mt-4 space-y-4">
                 <div>
@@ -448,7 +278,7 @@ export default async function EventPanduanPage({
                 </div>
 
                 <div className="border-t border-[#dfe4e8] pt-4">
-                  <h3 className="text-sm font-bold uppercase tracking-wide text-[#1b4f9c]">Ujung Tombak</h3>
+                  <h3 className="text-3xl font-extrabold uppercase tracking-wide text-[#f5b915]">Ujung Tombak</h3>
                   <p className="mt-2 text-sm leading-relaxed text-[#1b3555]">
                     Tantangan terberat yang dihadapi adalah tantangan dalam memberikan pelayanan terbaik kepada setiap customer. Tanggung jawab terberat untuk memberikan pelayanan terbaik itu ada pada ujung tombak yang setiap hari berinteraksi dengan customer. Mereka ini dibekali dengan suatu pemahaman bahwa sebagai ujung tombak bagi perusahaan haruslah memiliki hati yang tulus dan pikiran yang jernih, karena hanya dengan ketulusan dan kejernihan kita dapat melayani dengan baik.
                   </p>
@@ -463,8 +293,287 @@ export default async function EventPanduanPage({
               </div>
             </section>
 
+            <section className="print-avoid-break space-y-6 rounded-[0.8rem] border border-[#e0b200] bg-[#f5b915] p-5 print:break-after-page print:min-h-[272mm]">
+              <SectionLogos
+                logoLeft={logoLeftUrl}
+                logoRight={logoRightUrl}
+                topRight={event.panduanLogoTopRight}
+                topRight2={event.panduanLogoTopRight2}
+              />
+              <h2 className="text-center text-2xl font-extrabold uppercase tracking-wide text-black">Doa Bepergian Jauh</h2>
+              <div>
+                <p className="mt-3 text-right text-lg leading-loose text-black" dir="rtl" lang="ar">
+                  سُبْحَانَ الَّذِي سَخَّرَ لَنَا هَذَا وَمَا كُنَّا لَهُ مُقْرِنِينَ ۝ وَإِنَّا إِلَىٰ رَبِّنَا لَمُنقَلِبُونَ
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-black">
+                  “Mahasuci Allah yang telah menundukkan semua ini bagi kami, padahal kami sebelumnya tidak mampu
+                  menguasainya. Dan sesungguhnya kami akan kembali kepada Tuhan kami.”
+                </p>
+                <p className="mt-4 text-right text-lg leading-loose text-black" dir="rtl" lang="ar">
+                  اللَّهُمَّ إِنَّا نَسْأَلُكَ فِي سَفَرِنَا هَذَا الْبِرَّ وَالتَّقْوَى وَمِنَ الْعَمَلِ مَا تَرْضَى،
+                  اللَّهُمَّ هَوِّنْ عَلَيْنَا سَفَرَنَا هَذَا وَاطْوِ عَنَّا بُعْدَهُ، اللَّهُمَّ أَنْتَ الصَّاحِبُ فِي
+                  السَّفَرِ وَالْخَلِيفَةُ فِي الْأَهْلِ
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-black">
+                  “Ya Allah, kami memohon kepada-Mu kebaikan dan ketakwaan dalam perjalanan ini, serta amal yang Engkau
+                  ridhai. Ya Allah, mudahkanlah perjalanan kami ini dan dekatkanlah jaraknya. Ya Allah, Engkaulah teman
+                  dalam perjalanan dan penjaga keluarga kami.”
+                </p>
+              </div>
+
+              <h2 className="text-center text-2xl font-extrabold uppercase tracking-wide text-black">Tata Cara Salat Jamak</h2>
+              <div>
+                <p className="text-sm leading-relaxed text-black">
+                  Salat jamak adalah menggabungkan dua salat fardu dalam satu waktu karena sedang dalam perjalanan
+                  (safar). Salat yang boleh dijamak adalah Zuhur dengan Asar, serta Maghrib dengan Isya.
+                </p>
+                <p className="mt-3 text-sm leading-relaxed text-black">
+                  <strong>Jamak takdim</strong> — menggabungkan dua salat pada waktu salat yang pertama (misalnya Zuhur
+                  dan Asar dikerjakan di waktu Zuhur). <br />
+                  <strong>Jamak takhir</strong> — menggabungkan dua salat pada waktu salat yang kedua (misalnya Zuhur
+                  dan Asar dikerjakan di waktu Asar).
+                </p>
+                <p className="mt-3 text-sm leading-relaxed text-black">
+                  Dalam safar, salat juga boleh di<strong>qashar</strong>, yaitu meringkas salat yang berjumlah empat
+                  rakaat (Zuhur, Asar, Isya) menjadi dua rakaat.
+                </p>
+              </div>
+
+              <div>
+                <h2 className="text-center text-2xl font-extrabold uppercase tracking-wide text-black">Tata Cara Salat Jamak Takdim</h2>
+                <h3 className="mt-3 text-[11px] font-bold uppercase tracking-wide text-black">Niat Salat Zuhur</h3>
+                <p className="mt-1 text-right text-lg leading-loose text-black" dir="rtl" lang="ar">
+                  أُصَلِّي فَرْضَ الظُّهْرِ أَرْبَعَ رَكَعَاتٍ مَجْمُوعًا إِلَيْهِ الْعَصْرُ أَدَاءً لِلَّهِ تَعَالَى
+                </p>
+                <p className="mt-0.5 text-sm italic leading-relaxed text-black" dir="ltr">
+                  Ushalli fardhas-zuhri arba‘a raka‘atin majmu‘an ilaihil-ashru adaa-an lillahi ta‘aala
+                </p>
+                <p className="mt-0.5 text-sm leading-relaxed text-black">
+                  “Aku berniat salat fardu Zuhur empat rakaat yang dijamak dengan Asar, karena Allah Ta’ala.”
+                </p>
+                <h3 className="mt-3 text-[11px] font-bold uppercase tracking-wide text-black">Niat Salat Asar</h3>
+                <p className="mt-1 text-right text-lg leading-loose text-black" dir="rtl" lang="ar">
+                  أُصَلِّي فَرْضَ الْعَصْرِ أَرْبَعَ رَكَعَاتٍ مَجْمُوعًا إِلَى الظُّهْرِ أَدَاءً لِلَّهِ تَعَالَى
+                </p>
+                <p className="mt-0.5 text-sm italic leading-relaxed text-black" dir="ltr">
+                  Ushalli fardhal-ashri arba‘a raka‘atin majmu‘an ilaz-zuhri adaa-an lillahi ta‘aala
+                </p>
+                <p className="mt-0.5 text-sm leading-relaxed text-black">
+                  “Aku berniat salat fardu Asar empat rakaat yang dijamak dengan Zuhur, karena Allah Ta’ala.”
+                </p>
+                <h3 className="mt-3 text-[11px] font-bold uppercase tracking-wide text-black">Urutan Mengerjakan</h3>
+                <ol className="mt-2 list-inside list-decimal space-y-1.5 text-sm leading-relaxed text-black">
+                  <li>Berniat salat Zuhur jamak takdim.</li>
+                  <li>Kerjakan salat Zuhur empat rakaat lalu salam.</li>
+                  <li>Berniat salat Asar jamak takdim.</li>
+                  <li>Kerjakan salat Asar empat rakaat lalu salam.</li>
+                </ol>
+                <p className="mt-2 text-xs italic text-black">Keduanya dikerjakan berurutan pada waktu Zuhur.</p>
+              </div>
+            </section>
+
+            <section className="print-avoid-break space-y-6 rounded-[0.8rem] border border-[#e0b200] bg-[#f5b915] p-5 print:break-after-page print:min-h-[272mm]">
+              <SectionLogos
+                logoLeft={logoLeftUrl}
+                logoRight={logoRightUrl}
+                topRight={event.panduanLogoTopRight}
+                topRight2={event.panduanLogoTopRight2}
+              />
+              <div>
+                <h2 className="text-center text-2xl font-extrabold uppercase tracking-wide text-black">Tata Cara Salat Jamak Takdim dengan Qashar</h2>
+                <h3 className="mt-3 text-[11px] font-bold uppercase tracking-wide text-black">Niat Salat Zuhur</h3>
+                <p className="mt-1 text-right text-lg leading-loose text-black" dir="rtl" lang="ar">
+                  أُصَلِّي فَرْضَ الظُّهْرِ رَكْعَتَيْنِ قَصْرًا مَجْمُوعًا إِلَى الْعَصْرِ أَدَاءً لِلَّهِ تَعَالَى
+                </p>
+                <p className="mt-0.5 text-sm italic leading-relaxed text-black" dir="ltr">
+                  Ushalli fardhas-zuhri rak‘ataini qashran majmu‘an ilal-ashri adaa-an lillahi ta‘aala
+                </p>
+                <p className="mt-0.5 text-sm leading-relaxed text-black">
+                  “Aku berniat salat fardu Zuhur dua rakaat qashar yang dijamak dengan Asar, karena Allah Ta’ala.”
+                </p>
+                <h3 className="mt-3 text-[11px] font-bold uppercase tracking-wide text-black">Niat Salat Asar</h3>
+                <p className="mt-1 text-right text-lg leading-loose text-black" dir="rtl" lang="ar">
+                  أُصَلِّي فَرْضَ الْعَصْرِ رَكْعَتَيْنِ قَصْرًا مَجْمُوعًا إِلَى الظُّهْرِ أَدَاءً لِلَّهِ تَعَالَى
+                </p>
+                <p className="mt-0.5 text-sm italic leading-relaxed text-black" dir="ltr">
+                  Ushalli fardhal-ashri rak‘ataini qashran majmu‘an ilaz-zuhri adaa-an lillahi ta‘aala
+                </p>
+                <p className="mt-0.5 text-sm leading-relaxed text-black">
+                  “Aku berniat salat fardu Asar dua rakaat qashar yang dijamak dengan Zuhur, karena Allah Ta’ala.”
+                </p>
+                <h3 className="mt-3 text-[11px] font-bold uppercase tracking-wide text-black">Urutan Mengerjakan</h3>
+                <ol className="mt-2 list-inside list-decimal space-y-1.5 text-sm leading-relaxed text-black">
+                  <li>Berniat salat Zuhur qashar jamak takdim.</li>
+                  <li>Kerjakan salat Zuhur dua rakaat lalu salam.</li>
+                  <li>Berniat salat Asar qashar jamak takdim.</li>
+                  <li>Kerjakan salat Asar dua rakaat lalu salam.</li>
+                </ol>
+                <p className="mt-2 text-xs italic text-black">
+                  Keduanya dikerjakan berurutan pada waktu Zuhur, masing-masing dua rakaat.
+                </p>
+              </div>
+
+              <div>
+                <h2 className="text-center text-2xl font-extrabold uppercase tracking-wide text-black">Tata Cara Salat Jamak Takhir dengan Qashar</h2>
+                <h3 className="mt-3 text-[11px] font-bold uppercase tracking-wide text-black">Niat Salat Zuhur</h3>
+                <p className="mt-1 text-right text-lg leading-loose text-black" dir="rtl" lang="ar">
+                  أُصَلِّي فَرْضَ الظُّهْرِ رَكْعَتَيْنِ قَصْرًا مَجْمُوعًا مَعَ الْعَصْرِ أَدَاءً لِلَّهِ تَعَالَى
+                </p>
+                <p className="mt-0.5 text-sm italic leading-relaxed text-black" dir="ltr">
+                  Ushalli fardhas-zuhri rak‘ataini qashran majmu‘an ma‘al-ashri adaa-an lillahi ta‘aala
+                </p>
+                <p className="mt-0.5 text-sm leading-relaxed text-black">
+                  “Aku berniat salat fardu Zuhur dua rakaat qashar yang dijamak dengan Asar, karena Allah Ta’ala.”
+                </p>
+                <h3 className="mt-3 text-[11px] font-bold uppercase tracking-wide text-black">Niat Salat Asar</h3>
+                <p className="mt-1 text-right text-lg leading-loose text-black" dir="rtl" lang="ar">
+                  أُصَلِّي فَرْضَ الْعَصْرِ رَكْعَتَيْنِ قَصْرًا مَجْمُوعًا إِلَى الظُّهْرِ أَدَاءً لِلَّهِ تَعَالَى
+                </p>
+                <p className="mt-0.5 text-sm italic leading-relaxed text-black" dir="ltr">
+                  Ushalli fardhal-ashri rak‘ataini qashran majmu‘an ilaz-zuhri adaa-an lillahi ta‘aala
+                </p>
+                <p className="mt-0.5 text-sm leading-relaxed text-black">
+                  “Aku berniat salat fardu Asar dua rakaat qashar yang dijamak dengan Zuhur, karena Allah Ta’ala.”
+                </p>
+                <h3 className="mt-3 text-[11px] font-bold uppercase tracking-wide text-black">Urutan Mengerjakan</h3>
+                <ol className="mt-2 list-inside list-decimal space-y-1.5 text-sm leading-relaxed text-black">
+                  <li>Berniat salat Zuhur qashar jamak takhir.</li>
+                  <li>Kerjakan salat Zuhur dua rakaat lalu salam.</li>
+                  <li>Berniat salat Asar qashar jamak takhir.</li>
+                  <li>Kerjakan salat Asar dua rakaat lalu salam.</li>
+                </ol>
+                <p className="mt-2 text-xs italic text-black">
+                  Keduanya dikerjakan berurutan pada waktu Asar, masing-masing dua rakaat.
+                </p>
+              </div>
+            </section>
+
+            <section className="tt-bg print-avoid-break bg-gradient-to-r from-[#071e3d] via-[#0d2850] to-[#163d78] p-5 print:break-after-page print:min-h-[272mm]">
+              <SectionLogos
+                logoLeft={logoLeftUrl}
+                logoRight={logoRightUrl}
+                topRight={event.panduanLogoTopRight}
+                topRight2={event.panduanLogoTopRight2}
+              />
+              <h2 className="text-center text-2xl font-extrabold uppercase tracking-wide text-[#f5b915]">Tata Tertib</h2>
+              <ol className="mt-4 space-y-3">
+                {(() => {
+                  const rules = event.panduanRules
+                    ? (() => {
+                        try {
+                          const parsed = JSON.parse(event.panduanRules)
+                          if (Array.isArray(parsed)) return parsed as { text: string; items?: string[] }[]
+                        } catch {}
+                        return null
+                      })()
+                    : null
+                  return (rules || FIXED_RULES).map((rule, i) => (
+                    <li key={i} className="flex gap-3 text-sm leading-relaxed text-[#f5b915]">
+                      <span className="shrink-0 text-sm font-bold text-[#f5b915]">{i + 1}.</span>
+                      <div className="min-w-0">
+                        <p className="leading-relaxed">{rule.text}</p>
+                        {rule.items && (
+                          <ul className="mt-2 space-y-1.5">
+                            {rule.items.map((item, j) => (
+                              <li key={j} className="flex gap-2">
+                                <span className="shrink-0 font-bold text-[#f5b915]">{'-'}</span>
+                                {item}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    </li>
+                  ))
+                })()}
+              </ol>
+
+              {event.crewName && (
+                <div className="mt-8 flex flex-col items-center pt-6 text-center">
+                  <h3 className="text-center text-2xl font-extrabold uppercase tracking-wide text-[#f5b915]">Crew on Duty</h3>
+                  {event.crewPhotoUrl ? (
+                    <div className="relative -mb-2 mt-4 flex h-28 w-28 shrink-0 items-center justify-center">
+                      <span aria-hidden className="absolute -inset-4 rounded-full bg-white/70 blur-xl" />
+                      <div className="relative flex h-28 w-28 items-center justify-center overflow-hidden rounded-full">
+                        <img src={event.crewPhotoUrl} alt={event.crewName} className="h-full w-full object-cover" />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="mt-4 flex h-28 w-28 shrink-0 items-center justify-center text-3xl font-bold text-[#f5b915]">
+                      {event.crewName.slice(0, 2).toUpperCase()}
+                    </div>
+                  )}
+                  <strong
+                    className="relative z-[1] mt-1 inline-block bg-[#f5b915] px-7 py-1.5 text-base font-extrabold uppercase tracking-wide text-white"
+                    style={{ clipPath: 'polygon(0 0, 100% 0, calc(100% - 14px) 50%, 100% 100%, 0 100%, 14px 50%)' }}
+                  >
+                    {event.crewName}
+                  </strong>
+                  <span className="mt-1 text-sm font-bold uppercase tracking-wide text-[#f5b915]">
+                    {event.crewRole || 'TOUR LEADER'}
+                  </span>
+                </div>
+              )}
+            </section>
+
+            {dayGroups.length > 0 && (
+              <section className="itinerary-bg print-avoid-break relative rounded-none border border-[#dfe4e8] bg-white p-5 print:break-after-page print:min-h-[272mm] print:border-0 print:p-0">
+                <SectionLogos
+                  logoLeft={logoLeftUrl}
+                  logoRight={logoRightUrl}
+                  topRight={event.panduanLogoTopRight}
+                  topRight2={event.panduanLogoTopRight2}
+                />
+                <h3 className="mb-6 text-center text-xl font-extrabold uppercase tracking-wide text-[#00A3E0]">{event.title}</h3>
+                <PanduanHeading>Itinerary Perjalanan</PanduanHeading>
+                <div className="mt-6 space-y-6">
+                  {dayGroups.map((group) => (
+                    <div key={group.day}>
+                      {(multiDay || group.sideNote) && (
+                        <div className="mb-1.5 flex items-start gap-3">
+                          <span className="shrink-0 text-xs font-bold uppercase text-[#00A3E0]">Day {group.day}</span>
+                          {group.sideNote && <span className="whitespace-pre-wrap text-xs font-bold text-[#00A3E0]">{group.sideNote}</span>}
+                        </div>
+                      )}
+                      {group.note && (
+                        <p className="mb-2 whitespace-pre-wrap text-sm font-bold leading-relaxed text-[#00A3E0]">{group.note}</p>
+                      )}
+                      {group.rows.length > 0 && (
+                      <div className="overflow-hidden rounded-none border-2 border-[#dfe4e8]">
+                        <div className="grid grid-cols-[7rem_1fr] gap-0 bg-[#00A3E0] px-4 py-2 text-[11px] font-extrabold uppercase tracking-wider text-white">
+                          <span className="border-r-2 border-white/40 pr-4 text-center">Waktu</span>
+                          <span className="pl-4 text-center">Agenda</span>
+                        </div>
+                        <div className="divide-y-2 divide-[#edf0f3]">
+                          {group.rows.map((item, i) => (
+                            <div
+                              key={`${group.day}-${item.time}-${i}`}
+                              className="grid grid-cols-[7rem_1fr] gap-0 px-4 py-3 transition-colors hover:bg-[#f8fafc]"
+                            >
+                              <span className="whitespace-nowrap border-r-2 border-[#dfe4e8] pr-4 text-xs font-medium tabular-nums text-[#1b4f9c]">{item.time}</span>
+                              <span className={`pl-4 text-[#1b3555] ${item.bold ? 'text-[0.85rem] font-bold' : 'text-xs font-normal'} ${item.italic ? 'italic' : ''}`}>{item.agenda}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                {itineraryFooterNote && (
+                  <p className="mt-5 whitespace-pre-wrap text-xs font-bold italic text-black">{itineraryFooterNote}</p>
+                )}
+              </section>
+            )}
+
             {buses.length > 0 && (
-              <section className="border border-[#dfe4e8] bg-white p-5">
+              <section className="border border-[#dfe4e8] bg-white p-5 print:min-h-[272mm]">
+                <SectionLogos
+                  logoLeft={logoLeftUrl}
+                  logoRight={logoRightUrl}
+                  topRight={event.panduanLogoTopRight}
+                  topRight2={event.panduanLogoTopRight2}
+                />
                 <h2 className="text-xl font-bold text-[#1b3555]">Peta Kursi &amp; Daftar Nama</h2>
                 <p className="mt-1 text-xs leading-relaxed text-[#657080]">
                   Cek posisi kursi di unit Anda sebelum keberangkatan. Kursi hijau menandakan sudah terisi penumpang.
@@ -490,13 +599,20 @@ export default async function EventPanduanPage({
                   {ownBusName ? `, peta kursi & daftar nama ${ownBusName}` : ', peta kursi & daftar nama unit'}
                   , serta fasilitas unit — dalam satu file PDF untuk dibaca kapan saja, bahkan tanpa koneksi.
                 </p>
-                <div className="mt-4 flex justify-center">
+                <div className="mt-4 flex flex-col items-center justify-center gap-3">
+                  <DownloadPagePdf
+                    targetId="panduan-isi"
+                    fileName={`${event.title} - Panduan.pdf`}
+                    hint="Hasil PDF persis seperti tampilan panduan — tiap halaman A4 penuh, logo & QR ikut tersimpan."
+                  />
                   <PrintButton />
                 </div>
                 <p className="mx-auto mt-3 max-w-sm text-[11px] leading-relaxed text-[#9aa3af]">
-                  Setelah jendela cetak terbuka, pilih <strong className="text-[#657080]">Save as PDF / Simpan sebagai PDF</strong>{' '}
-                  sebagai tujuan pencetakan, lalu pilih kertas <strong className="text-[#657080]">A4</strong> tanpa margin
-                  tambahan. {ownBus ? 'QR absensi di kop halaman juga ikut tercetak.' : ''}
+                  Tombol <strong className="text-[#657080]">Unduh Panduan (PDF)</strong> langsung menyimpan file A4 penuh
+                  seperti tampilan layar. Alternatifnya bisa lewat tombol cetak: pilih{' '}
+                  <strong className="text-[#657080]">Save as PDF / Simpan sebagai PDF</strong>,
+                  kertas <strong className="text-[#657080]">A4</strong> tanpa margin tambahan.{' '}
+                  {ownBus ? 'QR absensi di kop halaman juga ikut tercetak.' : ''}
                 </p>
                 <p className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[11px] text-[#9aa3af]">
                   <span className="flex items-center gap-1">
