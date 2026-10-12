@@ -573,11 +573,7 @@ export default async function EventPanduanPage({
                   topRight={event.panduanLogoTopRight}
                   topRight2={event.panduanLogoTopRight2}
                 />
-                <h2 className="text-xl font-bold text-[#1b3555]">Peta Kursi &amp; Daftar Nama</h2>
-                <p className="mt-1 text-xs leading-relaxed text-[#657080]">
-                  Cek posisi kursi di unit Anda sebelum keberangkatan. Kursi hijau menandakan sudah terisi penumpang.
-                  Gunakan tombol panah untuk berpindah unit.
-                </p>
+                <h2 className="mb-6 mt-12 text-center text-xl font-extrabold uppercase tracking-wide text-[#00A3E0]">Denah Duduk</h2>
                 <PublicSeatMap
                   eventId={id}
                   buses={buses}

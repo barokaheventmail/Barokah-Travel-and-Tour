@@ -204,30 +204,36 @@ describe('ukuran kotak kursi (rasio lebar:tinggi)', () => {
 })
 
 describe('setelan gambar unit (geser & zoom)', () => {
-  it('zoom default (100) tidak menggeser lewat transform', () => {
-    const s = unitImageStyle(0, 100, 100)
+  it('zoom default (0) tidak menggeser lewat transform', () => {
+    const s = unitImageStyle(0, 100, 0)
     expect(s.transform).toBe('translate(0%, 0%) scale(1)')
     expect(s.objectPosition).toBe('0% 100%')
+  })
+
+  it('zoom negatif memperkecil gambar', () => {
+    expect(unitImageStyle(50, 50, -50).transform).toContain('scale(0.5)')
+    expect(unitImageStyle(50, 50, UNIT_IMAGE_ZOOM_MIN).transform).toContain('scale(0.1)')
   })
 
   it('jangkauan geser membesar saat zoom dinaikkan', () => {
     const kecil = unitImageStyle(UNIT_IMAGE_POS_MAX, 50, 200)
     const besar = unitImageStyle(UNIT_IMAGE_POS_MAX, 50, UNIT_IMAGE_ZOOM_MAX)
-    const ambil = (t: string) => Number(t.slice('translate('.length).split('%')[0])
+    const ambil = (t: string) => Math.abs(Number(t.slice('translate('.length).split('%')[0]))
     expect(ambil(besar.transform)).toBeGreaterThan(ambil(kecil.transform))
   })
 
   it('geseran dibatasi ruang sisa skala supaya tidak ada celah', () => {
-    const s = unitImageStyle(UNIT_IMAGE_POS_MAX, UNIT_IMAGE_POS_MAX, 300)
-    const tx = Number(s.transform.slice('translate('.length).split('%')[0])
+    const s = unitImageStyle(UNIT_IMAGE_POS_MAX, UNIT_IMAGE_POS_MAX, 200)
+    const tx = Math.abs(Number(s.transform.slice('translate('.length).split('%')[0]))
     expect(tx).toBeLessThanOrEqual((3 - 1) * 50 + 1e-9)
     expect(s.transform).toContain('scale(3)')
   })
 
   it('clampUnitImageZoom membatasi ke rentang yang valid', () => {
-    expect(clampUnitImageZoom(10)).toBe(UNIT_IMAGE_ZOOM_MIN)
+    expect(clampUnitImageZoom(-999)).toBe(UNIT_IMAGE_ZOOM_MIN)
     expect(clampUnitImageZoom(9999)).toBe(UNIT_IMAGE_ZOOM_MAX)
-    expect(clampUnitImageZoom('abc')).toBe(UNIT_IMAGE_ZOOM_MIN)
+    expect(clampUnitImageZoom(10)).toBe(10)
+    expect(clampUnitImageZoom('abc')).toBe(0)
   })
 })
 

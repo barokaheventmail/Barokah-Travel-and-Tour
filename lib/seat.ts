@@ -227,8 +227,10 @@ export function validateSeatShape(rows: unknown, cols: unknown, layout: unknown)
  */
 export const UNIT_IMAGE_POS_MIN = -100
 export const UNIT_IMAGE_POS_MAX = 200
-export const UNIT_IMAGE_ZOOM_MIN = 100
-export const UNIT_IMAGE_ZOOM_MAX = 500
+// Persen bertanda: 0 = pas (cover), positif = perbesar, negatif = perkecil.
+export const UNIT_IMAGE_ZOOM_MIN = -100
+export const UNIT_IMAGE_ZOOM_MAX = 400
+export const UNIT_IMAGE_ZOOM_STEP = 10
 
 function clampUnitImagePos(value: unknown): number {
   const n = Math.round(Number(value))
@@ -238,8 +240,12 @@ function clampUnitImagePos(value: unknown): number {
 
 export function clampUnitImageZoom(value: unknown): number {
   const n = Math.round(Number(value))
-  if (!Number.isFinite(n)) return UNIT_IMAGE_ZOOM_MIN
+  if (!Number.isFinite(n)) return 0
   return Math.min(UNIT_IMAGE_ZOOM_MAX, Math.max(UNIT_IMAGE_ZOOM_MIN, n))
+}
+
+export function formatUnitImageZoom(value: number): string {
+  return `${value > 0 ? '+' : ''}${value}%`
 }
 
 export type UnitImageStyle = {
@@ -251,11 +257,11 @@ export type UnitImageStyle = {
 export function unitImageStyle(posX: unknown, posY: unknown, zoom: unknown): UnitImageStyle {
   const px = clampUnitImagePos(posX)
   const py = clampUnitImagePos(posY)
-  const s = clampUnitImageZoom(zoom) / 100
-  const slack = (s - 1) * 50
+  const s = Math.max(0.1, 1 + clampUnitImageZoom(zoom) / 100)
+  const slack = Math.abs(s - 1) * 50
   const clamp = (v: number) => Math.max(-slack, Math.min(slack, v))
-  const tx = clamp(((px - 50) / 50) * slack)
-  const ty = clamp(((py - 50) / 50) * slack)
+  const tx = clamp(-((px - 50) / 50) * slack)
+  const ty = clamp(-((py - 50) / 50) * slack)
   const base = (v: number) => Math.max(0, Math.min(100, v))
   return {
     objectPosition: `${base(px)}% ${base(py)}%`,

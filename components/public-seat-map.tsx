@@ -47,7 +47,6 @@ export function PublicSeatMap({
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState<Selected | null>(null)
   const [rosterOpen, setRosterOpen] = useState(true)
-  const [facilityOpen, setFacilityOpen] = useState(true)
 
   const isMyBus = initialBusId != null && selectedId === initialBusId
   const mySeat = isMyBus ? highlightSeat : null
@@ -119,8 +118,8 @@ export function PublicSeatMap({
         )}
         {!loading && data && (
           <span
-            className={`ml-auto rounded-full px-3 py-1 text-[11px] font-bold ${
-              data.filled === data.total ? 'bg-[#e6f4ea] text-[#2ca84a]' : 'bg-[#eef3fb] text-[#1b4f9c]'
+            className={`ml-auto text-[11px] font-bold ${
+              data.filled === data.total ? 'text-[#2ca84a]' : 'text-[#1b4f9c]'
             }`}
           >
             {data.filled}/{data.total} terisi
@@ -210,17 +209,17 @@ export function PublicSeatMap({
             onClick={() => setRosterOpen((o) => !o)}
             aria-expanded={rosterOpen}
             aria-label={rosterOpen ? 'Tutup daftar nama' : 'Buka daftar nama'}
-            className="flex w-full shrink-0 items-center justify-between gap-3 bg-[linear-gradient(100deg,#071e3d_0%,#0d2850_55%,#163d78_100%)] px-4 py-2.5 text-left transition-[filter] duration-150 hover:brightness-110 active:scale-[0.995]"
+            className="flex w-full shrink-0 items-center justify-between gap-3 bg-[#00A3E0] px-4 py-2.5 text-left transition-[filter] duration-150 hover:brightness-110 active:scale-[0.995]"
           >
             <p className="min-w-0 break-words text-sm font-bold text-white">Daftar Nama — {data.busName}</p>
             <span className="flex shrink-0 items-center gap-2">
-              <span className="rounded-full border border-[#f5b915]/30 bg-[#f5b915]/12 px-2.5 py-0.5 text-[11px] font-bold tabular-nums text-[#f7dda1]">
+              <span className="text-[11px] font-bold tabular-nums text-white">
                 {data.filled}/{data.total} hadir
               </span>
               {rosterOpen ? (
-                <ChevronUp size={14} className="text-[#f7dda1] print:hidden" />
+                <ChevronUp size={14} className="text-white/90 print:hidden" />
               ) : (
-                <ChevronDown size={14} className="text-[#f7dda1] print:hidden" />
+                <ChevronDown size={14} className="text-white/90 print:hidden" />
               )}
             </span>
           </button>
@@ -240,7 +239,7 @@ export function PublicSeatMap({
                   <span className="flex w-10 shrink-0 items-center justify-center px-2 py-2 text-[11px] font-bold tabular-nums text-[#1b3555]">
                     {s.seat ?? s.order}
                   </span>
-                  <p className="flex min-w-0 flex-1 items-center gap-1.5 px-3 py-2 text-[13px] font-bold text-[#1b3555]">
+                  <p className="flex min-w-0 flex-1 items-center gap-1.5 px-3 py-2 text-[13px] font-normal text-[#1b3555]">
                     <span className="min-w-0 break-words">{s.name}</span>
                     {isMine && (
                       <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide text-[#1b4f9c]">
@@ -267,67 +266,63 @@ export function PublicSeatMap({
         </div>
       </div>
 
-      {!loading && data && data.unitImageUrl && (
-        <div className="mt-4 flex flex-col items-end pr-16 text-right print:break-inside-avoid">
-          <div className="inline-flex flex-col items-center">
-            <div className="relative flex h-32 w-32 shrink-0 items-center justify-center">
-              <span aria-hidden className="absolute -inset-6 rounded-full bg-[#1b4f9c]/30 blur-xl" />
-              <div className="relative flex h-32 w-32 items-center justify-center overflow-hidden rounded-full">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={data.unitImageUrl}
-                  alt={`Unit ${data.unitLabel?.trim() || data.busName}`}
-                  className="h-full w-full object-cover"
-                  style={unitImageStyle(data.unitImagePosX, data.unitImagePosY, data.unitImageZoom)}
-                />
+      {!loading &&
+        data &&
+        ((data.facilities && data.facilities.length > 0) || data.unitImageUrl) && (
+          <div className="mt-16 flex flex-row items-center justify-between gap-3 pb-6 sm:gap-6 print:break-inside-avoid">
+            {data.facilities && data.facilities.length > 0 && (
+              <div className="relative -top-6 min-w-0 flex-1">
+                <p className="text-xs font-bold text-[#1b3555]">Fasilitas Unit — {data.busName}</p>
+                <ul className="mt-1 flex flex-col gap-0.5">
+                  {data.facilities.map((f, i) => (
+                    <li key={`${f.name}-${i}`} className="flex items-center gap-2">
+                      <span className="shrink-0 text-[#1b4f9c]">
+                        <FacilityIconBadge icon={f.icon} />
+                      </span>
+                      <p className="min-w-0 text-[11px] font-semibold text-[#1b3555]">
+                        {f.name}
+                        {f.note && <span className="ml-1 font-normal text-[#657080]">— {f.note}</span>}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
               </div>
-            </div>
-            <strong
-              className="relative z-[1] -mt-1 inline-block max-w-full truncate bg-[#f5b915] px-6 py-1 text-sm font-extrabold uppercase tracking-wide text-white"
-              style={{ clipPath: 'polygon(0 0, 100% 0, calc(100% - 12px) 50%, 100% 100%, 0 100%, 12px 50%)' }}
-            >
-              {data.unitLabel?.trim() || data.busName}
-            </strong>
-          </div>
-        </div>
-      )}
+            )}
 
-      {!loading && data && data.facilities && data.facilities.length > 0 && (
-        <div className="mt-4 overflow-hidden rounded-2xl border border-[#edf0f3]">
-          <button
-            type="button"
-            onClick={() => setFacilityOpen((o) => !o)}
-            aria-expanded={facilityOpen}
-            aria-label={facilityOpen ? 'Tutup daftar fasilitas' : 'Buka daftar fasilitas'}
-            className="flex w-full items-center justify-between gap-3 bg-[linear-gradient(100deg,#1b4f9c_0%,#163d78_55%,#0d2850_100%)] px-4 py-2.5 text-left transition-[filter] duration-150 hover:brightness-110 active:scale-[0.995]"
-          >
-            <p className="min-w-0 truncate text-sm font-bold text-white">Fasilitas Unit — {data.busName}</p>
-            <span className="flex shrink-0 items-center gap-2">
-              <span className="rounded-full border border-white/25 bg-white/10 px-2.5 py-0.5 text-[11px] font-bold tabular-nums text-white">
-                {data.facilities.length} fasilitas
-              </span>
-              {facilityOpen ? (
-                <ChevronUp size={14} className="text-white/80 print:hidden" />
-              ) : (
-                <ChevronDown size={14} className="text-white/80 print:hidden" />
-              )}
-            </span>
-          </button>
-          <ul className={facilityOpen ? 'grid gap-2 p-3 sm:grid-cols-2' : 'hidden gap-2 p-3 print:grid sm:grid-cols-2'}>
-            {data.facilities.map((f, i) => (
-              <li key={`${f.name}-${i}`} className="flex items-start gap-2.5 rounded-xl bg-[#f8fafc] px-3 py-2.5">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#eef4fb] text-[#1b4f9c]">
-                  <FacilityIconBadge icon={f.icon} />
-                </span>
-                <div className="min-w-0">
-                  <p className="text-[13px] font-bold text-[#1b3555]">{f.name}</p>
-                  {f.note && <p className="text-[11px] leading-relaxed text-[#657080]">{f.note}</p>}
+            {data.unitImageUrl && (
+              <div className="flex shrink-0 flex-col items-center pr-0 sm:pr-16">
+                <div className="relative flex h-32 w-32 shrink-0 items-center justify-center">
+                  <span
+                    aria-hidden
+                    className="absolute -inset-6 rounded-full blur-lg"
+                    style={{
+                      background:
+                        'radial-gradient(circle, rgba(59,130,246,1) 0%, rgba(59,130,246,0.85) 50%, rgba(59,130,246,0) 78%)',
+                    }}
+                  />
+                  <div
+                    className="relative flex h-32 w-32 items-center justify-center overflow-hidden rounded-full"
+                    style={{ clipPath: 'circle(50% at 50% 50%)' }}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={data.unitImageUrl}
+                      alt={`Unit ${data.unitLabel?.trim() || data.busName}`}
+                      className="h-full w-full object-cover"
+                      style={unitImageStyle(data.unitImagePosX, data.unitImagePosY, data.unitImageZoom)}
+                    />
+                  </div>
                 </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+                <strong
+                  className="relative z-[1] -mt-1 inline-block max-w-full truncate bg-[#f5b915] px-6 py-1 text-sm font-extrabold uppercase tracking-wide text-white"
+                  style={{ clipPath: 'polygon(0 0, 100% 0, calc(100% - 12px) 50%, 100% 100%, 0 100%, 12px 50%)' }}
+                >
+                  {data.unitLabel?.trim() || data.busName}
+                </strong>
+              </div>
+            )}
+          </div>
+        )}
 
       {selected && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-5 backdrop-blur-sm print:hidden">

@@ -135,7 +135,7 @@ model Bus {
   unitLabel    String?
   unitImagePosX Int    @default(50)
   unitImagePosY Int    @default(50)
-  unitImageZoom Int    @default(100)
+  unitImageZoom Int    @default(0)
   createdAt DateTime @default(now())
 
   event        Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)

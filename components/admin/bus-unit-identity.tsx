@@ -1,14 +1,15 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useRef, useState } from 'react'
-import { Bus, Check, ImagePlus, Loader2, RotateCcw, Trash2 } from 'lucide-react'
+import { useRef, useState, type PointerEvent } from 'react'
+import { Bus, Check, ImagePlus, Loader2, Minus, Plus, RotateCcw, Trash2 } from 'lucide-react'
 import {
+  clampUnitImageZoom,
+  formatUnitImageZoom,
   unitImageStyle,
-  UNIT_IMAGE_POS_MAX,
-  UNIT_IMAGE_POS_MIN,
   UNIT_IMAGE_ZOOM_MAX,
   UNIT_IMAGE_ZOOM_MIN,
+  UNIT_IMAGE_ZOOM_STEP,
 } from '@/lib/seat'
 
 const FIELD =
@@ -17,36 +18,7 @@ const FIELD =
 const BTN_PRIMARY =
   'inline-flex items-center gap-1.5 rounded-full bg-[#1b4f9c] px-4 py-2 text-xs font-bold text-white transition-colors duration-200 hover:bg-[#143d79] active:scale-95 disabled:opacity-60'
 
-function Slider({
-  label,
-  value,
-  min,
-  max,
-  onChange,
-}: {
-  label: string
-  value: number
-  min: number
-  max: number
-  onChange: (v: number) => void
-}) {
-  return (
-    <label className="block">
-      <span className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wide text-[#657080]">
-        {label}
-        <span className="tabular-nums text-[#1b4f9c]">{value}</span>
-      </span>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className="mt-1 w-full accent-[#1b4f9c]"
-      />
-    </label>
-  )
-}
+const clampPos = (v: number) => Math.max(0, Math.min(100, v))
 
 export function BusUnitIdentity({
   eventId,
@@ -69,18 +41,42 @@ export function BusUnitIdentity({
 }) {
   const router = useRouter()
   const inputRef = useRef<HTMLInputElement>(null)
+  const boxRef = useRef<HTMLDivElement>(null)
+  const dragRef = useRef<{ id: number; x: number; y: number; px: number; py: number } | null>(null)
   const [imageUrl, setImageUrl] = useState<string | null>(initialImageUrl)
   const [label, setLabel] = useState(initialLabel ?? '')
-  const [posX, setPosX] = useState(initialPosX)
-  const [posY, setPosY] = useState(initialPosY)
-  const [zoom, setZoom] = useState(initialZoom)
+  const [posX, setPosX] = useState(clampPos(initialPosX))
+  const [posY, setPosY] = useState(clampPos(initialPosY))
+  const [zoom, setZoom] = useState(clampUnitImageZoom(initialZoom))
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [savingCrop, setSavingCrop] = useState(false)
+  const [dragging, setDragging] = useState(false)
   const [status, setStatus] = useState<{ kind: 'ok' | 'err'; msg: string } | null>(null)
 
   const shownName = label.trim() || busName
   const imageStyle = unitImageStyle(posX, posY, zoom)
+
+  function onPointerDown(e: PointerEvent<HTMLDivElement>) {
+    if (!imageUrl) return
+    e.currentTarget.setPointerCapture(e.pointerId)
+    dragRef.current = { id: e.pointerId, x: e.clientX, y: e.clientY, px: posX, py: posY }
+    setDragging(true)
+  }
+
+  function onPointerMove(e: PointerEvent<HTMLDivElement>) {
+    const d = dragRef.current
+    if (!d || d.id !== e.pointerId) return
+    const size = boxRef.current?.clientWidth || 160
+    setPosX(clampPos(d.px - ((e.clientX - d.x) / size) * 100))
+    setPosY(clampPos(d.py - ((e.clientY - d.y) / size) * 100))
+  }
+
+  function onPointerUp(e: PointerEvent<HTMLDivElement>) {
+    if (dragRef.current?.id !== e.pointerId) return
+    dragRef.current = null
+    setDragging(false)
+  }
 
   async function upload(file: File) {
     setUploading(true)
@@ -150,7 +146,7 @@ export function BusUnitIdentity({
       })
       const data = await res.json().catch(() => null)
       if (!res.ok) throw new Error(data?.error ?? 'Gagal menyimpan posisi gambar.')
-      setStatus({ kind: 'ok', msg: 'Posisi gambar tersimpan.' })
+      setStatus({ kind: 'ok', msg: 'Posisi & zoom gambar tersimpan.' })
       router.refresh()
     } catch (err) {
       setStatus({ kind: 'err', msg: err instanceof Error ? err.message : 'Gagal menyimpan posisi gambar.' })
@@ -158,6 +154,8 @@ export function BusUnitIdentity({
       setSavingCrop(false)
     }
   }
+
+  const busy = uploading || saving || savingCrop
 
   return (
     <div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">
@@ -168,7 +166,8 @@ export function BusUnitIdentity({
       </div>
       <p className="mt-1 text-xs leading-relaxed text-[#657080]">
         Muncul di panduan peserta, tepat di bawah Peta Kursi &amp; Daftar Nama. Gambar unit ditampilkan bulat, lalu nama unit
-        di bawahnya dengan pita kuning. Atur posisi &amp; zoom agar bagian gambar yang tampil pas. JPG / PNG / WebP, maks 5 MB.
+        di bawahnya dengan pita kuning. <strong className="text-[#657080]">Geser gambar langsung</strong> untuk atur bagian
+        yang tampil, atur <strong className="text-[#657080]">zoom</strong> bila perlu. JPG / PNG / WebP, maks 5 MB.
       </p>
 
       <div className="mt-4 grid gap-5 sm:grid-cols-2">
@@ -185,12 +184,7 @@ export function BusUnitIdentity({
             )}
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-1.5">
-            <button
-              type="button"
-              onClick={() => inputRef.current?.click()}
-              disabled={uploading || saving || savingCrop}
-              className={BTN_PRIMARY}
-            >
+            <button type="button" onClick={() => inputRef.current?.click()} disabled={busy} className={BTN_PRIMARY}>
               {uploading ? <Loader2 size={13} className="animate-spin" /> : <ImagePlus size={13} />}
               {imageUrl ? 'Ganti Gambar' : 'Unggah Gambar'}
             </button>
@@ -198,7 +192,7 @@ export function BusUnitIdentity({
               <button
                 type="button"
                 onClick={removeImage}
-                disabled={uploading || saving || savingCrop}
+                disabled={busy}
                 className="inline-flex items-center gap-1.5 rounded-full border border-[#dfe4e8] px-3 py-2 text-xs font-bold text-[#c0392b] transition-colors hover:bg-[#fdf1f0] active:scale-95 disabled:opacity-60"
               >
                 <Trash2 size={13} /> Hapus Gambar
@@ -215,33 +209,6 @@ export function BusUnitIdentity({
               }}
             />
           </div>
-
-          {imageUrl && (
-            <div className="mt-4 space-y-3 rounded-xl border border-[#edf0f3] bg-[#f8fafc] p-4">
-              <p className="text-[11px] font-bold uppercase tracking-wide text-[#657080]">Atur Gambar</p>
-              <Slider label="Geser horizontal" value={posX} min={UNIT_IMAGE_POS_MIN} max={UNIT_IMAGE_POS_MAX} onChange={setPosX} />
-              <Slider label="Geser vertikal" value={posY} min={UNIT_IMAGE_POS_MIN} max={UNIT_IMAGE_POS_MAX} onChange={setPosY} />
-              <Slider label="Zoom" value={zoom} min={UNIT_IMAGE_ZOOM_MIN} max={UNIT_IMAGE_ZOOM_MAX} onChange={setZoom} />
-              <div className="flex flex-wrap items-center gap-1.5">
-                <button type="button" onClick={saveCrop} disabled={savingCrop || uploading} className={BTN_PRIMARY}>
-                  {savingCrop ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
-                  Simpan Posisi
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setPosX(50)
-                    setPosY(50)
-                    setZoom(100)
-                  }}
-                  disabled={savingCrop || uploading}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-[#dfe4e8] px-3 py-2 text-xs font-bold text-[#657080] transition-colors hover:bg-[#eef4fb] active:scale-95 disabled:opacity-60"
-                >
-                  <RotateCcw size={13} /> Reset
-                </button>
-              </div>
-            </div>
-          )}
         </div>
 
         <div className="flex flex-col">
@@ -260,32 +227,104 @@ export function BusUnitIdentity({
             Diketik manual. Kalau dikosongkan, dipakai nama unit bawaan: <strong className="text-[#657080]">{busName}</strong>.
           </p>
           <div className="mt-3">
-            <button type="button" onClick={saveLabel} disabled={saving || uploading || savingCrop} className={BTN_PRIMARY}>
+            <button type="button" onClick={saveLabel} disabled={busy} className={BTN_PRIMARY}>
               {saving ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
               Simpan Nama
             </button>
           </div>
 
           <div className="mt-4 rounded-xl bg-[#f8fafc] p-3">
-            <p className="text-[10px] font-bold uppercase tracking-wide text-[#9aa3af]">Pratinjau (seperti panduan peserta)</p>
+            <p className="text-[10px] font-bold uppercase tracking-wide text-[#9aa3af]">
+              Pratinjau — geser gambar untuk atur posisi
+            </p>
             <div className="mt-2 flex flex-col items-center">
-              <div className="relative flex h-28 w-28 shrink-0 items-center justify-center">
+              <div
+                ref={boxRef}
+                onPointerDown={onPointerDown}
+                onPointerMove={onPointerMove}
+                onPointerUp={onPointerUp}
+                onPointerCancel={onPointerUp}
+                className={`relative flex h-40 w-40 shrink-0 touch-none select-none items-center justify-center ${
+                  imageUrl ? (dragging ? 'cursor-grabbing' : 'cursor-grab') : ''
+                }`}
+              >
                 <span aria-hidden className="absolute -inset-5 rounded-full bg-[#1b4f9c]/30 blur-xl" />
-                <div className="relative flex h-28 w-28 items-center justify-center overflow-hidden rounded-full">
+                <div
+                  className="relative flex h-40 w-40 items-center justify-center overflow-hidden rounded-full"
+                  style={{ clipPath: 'circle(50% at 50% 50%)' }}
+                >
                   {imageUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={imageUrl} alt="" className="h-full w-full object-cover" style={imageStyle} />
+                    <img
+                      src={imageUrl}
+                      alt=""
+                      draggable={false}
+                      className="pointer-events-none h-full w-full object-cover"
+                      style={imageStyle}
+                    />
                   ) : (
                     <span className="text-[10px] font-semibold text-[#9aa3af]">Belum ada gambar</span>
                   )}
                 </div>
               </div>
               <div
-                className="mt-1 inline-block max-w-full truncate bg-[#f5b915] px-5 py-1 text-xs font-extrabold uppercase tracking-wide text-white"
+                className="relative z-[1] mt-1 inline-block max-w-full truncate bg-[#f5b915] px-5 py-1 text-xs font-extrabold uppercase tracking-wide text-white"
                 style={{ clipPath: 'polygon(0 0, 100% 0, calc(100% - 10px) 50%, 100% 100%, 0 100%, 10px 50%)' }}
               >
                 {shownName}
               </div>
+            </div>
+
+            <div className="mt-3 flex items-center gap-2">
+              <button
+                type="button"
+                aria-label="Zoom keluar"
+                onClick={() => setZoom((z) => clampUnitImageZoom(z - UNIT_IMAGE_ZOOM_STEP))}
+                disabled={busy || !imageUrl}
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#dfe4e8] text-[#1b4f9c] transition-colors hover:bg-[#eef4fb] disabled:opacity-40"
+              >
+                <Minus size={14} />
+              </button>
+              <input
+                type="range"
+                min={UNIT_IMAGE_ZOOM_MIN}
+                max={UNIT_IMAGE_ZOOM_MAX}
+                value={zoom}
+                onChange={(e) => setZoom(clampUnitImageZoom(Number(e.target.value)))}
+                disabled={busy || !imageUrl}
+                className="w-full accent-[#1b4f9c]"
+              />
+              <button
+                type="button"
+                aria-label="Zoom masuk"
+                onClick={() => setZoom((z) => clampUnitImageZoom(z + UNIT_IMAGE_ZOOM_STEP))}
+                disabled={busy || !imageUrl}
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#dfe4e8] text-[#1b4f9c] transition-colors hover:bg-[#eef4fb] disabled:opacity-40"
+              >
+                <Plus size={14} />
+              </button>
+              <span className="w-12 shrink-0 text-right text-[11px] font-bold tabular-nums text-[#657080]">
+                {formatUnitImageZoom(zoom)}
+              </span>
+            </div>
+
+            <div className="mt-3 flex flex-wrap items-center gap-1.5">
+              <button type="button" onClick={saveCrop} disabled={busy || !imageUrl} className={BTN_PRIMARY}>
+                {savingCrop ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
+                Simpan Posisi
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setPosX(50)
+                  setPosY(50)
+                  setZoom(0)
+                }}
+                disabled={busy || !imageUrl}
+                className="inline-flex items-center gap-1.5 rounded-full border border-[#dfe4e8] px-3 py-2 text-xs font-bold text-[#657080] transition-colors hover:bg-[#eef4fb] active:scale-95 disabled:opacity-60"
+              >
+                <RotateCcw size={13} /> Reset
+              </button>
             </div>
           </div>
         </div>

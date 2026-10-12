@@ -74,7 +74,7 @@ export function SeatGrid({
                 title={s?.present ? s.name : isMine ? 'Kursi Anda' : undefined}
                 aria-label={isMine ? `Kursi ${n} — kursi Anda` : `Kursi ${n}`}
                 style={{ aspectRatio: `${cell.w} / ${cell.h}` }}
-                className={`flex w-full min-w-0 items-center justify-center overflow-hidden text-sm font-bold tabular-nums leading-none transition-colors duration-150 ${
+                className={`flex w-full min-w-0 items-center justify-center overflow-hidden text-xs font-normal tabular-nums leading-none transition-colors duration-150 ${
                   isMine
                     ? 'bg-[#1b4f9c] text-white ring-1 ring-[#e8c54a] ring-offset-1'
                     : s?.present
