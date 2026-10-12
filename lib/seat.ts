@@ -214,3 +214,52 @@ export function validateSeatShape(rows: unknown, cols: unknown, layout: unknown)
   }
   return { rows: r, cols: c, cells }
 }
+
+/**
+ * Setelan gambar unit di panduan peserta (bulat, di bawah Daftar Nama).
+ *
+ * `object-position` hanya bisa menggeser sejauh selisih antara gambar (yang
+ * sudah di-*cover*) dan kotaknya, jadi pada gambar dengan rasio hampir sama
+ * jangkauan gesernya nyaris nol. Supaya jangkauan ikut membesar saat `zoom`
+ * dinaikkan, geseran tambahan dipasang lewat `transform: translate` yang
+ * dibatasi (clamp) ke ruang sisa skala — sehingga gambar tetap menutup penuh
+ * lingkaran tanpa celah.
+ */
+export const UNIT_IMAGE_POS_MIN = -100
+export const UNIT_IMAGE_POS_MAX = 200
+export const UNIT_IMAGE_ZOOM_MIN = 100
+export const UNIT_IMAGE_ZOOM_MAX = 500
+
+function clampUnitImagePos(value: unknown): number {
+  const n = Math.round(Number(value))
+  if (!Number.isFinite(n)) return 50
+  return Math.min(UNIT_IMAGE_POS_MAX, Math.max(UNIT_IMAGE_POS_MIN, n))
+}
+
+export function clampUnitImageZoom(value: unknown): number {
+  const n = Math.round(Number(value))
+  if (!Number.isFinite(n)) return UNIT_IMAGE_ZOOM_MIN
+  return Math.min(UNIT_IMAGE_ZOOM_MAX, Math.max(UNIT_IMAGE_ZOOM_MIN, n))
+}
+
+export type UnitImageStyle = {
+  objectPosition: string
+  transform: string
+  transformOrigin: string
+}
+
+export function unitImageStyle(posX: unknown, posY: unknown, zoom: unknown): UnitImageStyle {
+  const px = clampUnitImagePos(posX)
+  const py = clampUnitImagePos(posY)
+  const s = clampUnitImageZoom(zoom) / 100
+  const slack = (s - 1) * 50
+  const clamp = (v: number) => Math.max(-slack, Math.min(slack, v))
+  const tx = clamp(((px - 50) / 50) * slack)
+  const ty = clamp(((py - 50) / 50) * slack)
+  const base = (v: number) => Math.max(0, Math.min(100, v))
+  return {
+    objectPosition: `${base(px)}% ${base(py)}%`,
+    transform: `translate(${tx}%, ${ty}%) scale(${s})`,
+    transformOrigin: 'center',
+  }
+}

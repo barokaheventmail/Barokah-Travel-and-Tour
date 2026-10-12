@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { Fragment, useState } from 'react'
 import { Armchair, Check, ChevronDown, Eraser, Loader2, Minus, Plus, RotateCcw, ShipWheel, Trash2, Users, UsersRound } from 'lucide-react'
 import { BusFacilitiesEditor } from '@/components/admin/bus-facilities-editor'
+import { BusUnitIdentity } from '@/components/admin/bus-unit-identity'
 import { BusFront } from '@/components/bus-front'
 import { ConfirmBulkDialog } from '@/components/admin/confirm-bulk-dialog'
 import {
@@ -39,6 +40,11 @@ export type SeatBus = {
   seatLayout: string | null
   frontLayout: string | null
   facilities: string | null
+  unitImageUrl: string | null
+  unitLabel: string | null
+  unitImagePosX: number
+  unitImagePosY: number
+  unitImageZoom: number
 }
 
 const MIN = 1
@@ -519,6 +525,20 @@ export function SeatLayoutEditor({ eventId, buses }: { eventId: string; buses: S
               initialFacilities={selected.facilities}
               totalBuses={buses.length}
               busesWithFacilities={busesWithFacilities}
+            />
+          )}
+
+          {selected && (
+            <BusUnitIdentity
+              key={`${selected.id}-identity`}
+              eventId={eventId}
+              busId={selected.id}
+              busName={selected.name}
+              initialImageUrl={selected.unitImageUrl}
+              initialLabel={selected.unitLabel}
+              initialPosX={selected.unitImagePosX}
+              initialPosY={selected.unitImagePosY}
+              initialZoom={selected.unitImageZoom}
             />
           )}
 

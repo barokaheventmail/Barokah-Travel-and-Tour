@@ -131,6 +131,11 @@ model Bus {
   seatLayout String?  @db.Text
   frontLayout String? @db.Text
   facilities String?  @db.Text
+  unitImageUrl String?
+  unitLabel    String?
+  unitImagePosX Int    @default(50)
+  unitImagePosY Int    @default(50)
+  unitImageZoom Int    @default(100)
   createdAt DateTime @default(now())
 
   event        Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)

@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE `Bus` ADD COLUMN `unitImageUrl` VARCHAR(191) NULL;
+ALTER TABLE `Bus` ADD COLUMN `unitLabel` VARCHAR(191) NULL;

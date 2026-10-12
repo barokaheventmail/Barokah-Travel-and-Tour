@@ -18,6 +18,11 @@ export async function GET(request: NextRequest) {
         select: {
           id: true,
           name: true,
+          unitImageUrl: true,
+          unitLabel: true,
+          unitImagePosX: true,
+          unitImagePosY: true,
+          unitImageZoom: true,
           eventId: true,
           seatRows: true,
           seatCols: true,
@@ -45,6 +50,11 @@ export async function GET(request: NextRequest) {
     buses.push({
       busId: a.busId,
       busName: a.bus.name,
+      unitImageUrl: a.bus.unitImageUrl,
+      unitLabel: a.bus.unitLabel,
+      unitImagePosX: a.bus.unitImagePosX,
+      unitImagePosY: a.bus.unitImagePosY,
+      unitImageZoom: a.bus.unitImageZoom,
       eventTitle: a.bus.event.title,
       eventStatus: a.bus.event.status,
       seatRows: a.bus.seatRows,

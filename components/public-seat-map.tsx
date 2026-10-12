@@ -4,11 +4,17 @@ import { useEffect, useState } from 'react'
 import { Armchair, BadgeCheck, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Loader2, SearchX } from 'lucide-react'
 import { SeatGrid, type SeatCell } from '@/components/seat-grid'
 import { FacilityIconBadge } from '@/components/facility-icon'
+import { unitImageStyle } from '@/lib/seat'
 import type { Facility } from '@/lib/facilities'
 
 type PublicBus = {
   busId: string
   busName: string
+  unitImageUrl: string | null
+  unitLabel: string | null
+  unitImagePosX: number
+  unitImagePosY: number
+  unitImageZoom: number
   seatRows: number
   seatCols: number
   seatCellW: number
@@ -149,7 +155,9 @@ export function PublicSeatMap({
         </div>
       )}
 
-      <div className="mt-3 print-avoid-break">
+      <div className="mt-3 overflow-x-auto print:overflow-visible">
+        <div className="flex min-w-[34rem] items-stretch gap-4 sm:gap-5 print:min-w-0">
+        <div className="print-avoid-break min-w-0 flex-1">
         {loading ? (
           <div className="flex items-center justify-center gap-2 rounded-xl bg-[#f8fafc] py-8 text-xs font-semibold text-[#657080]">
             <Loader2 size={15} className="animate-spin" /> Memuat peta kursi…
@@ -192,18 +200,19 @@ export function PublicSeatMap({
             <p className="text-[11px] text-[#9aa3af]">Peta kursi unit ini diatur oleh admin.</p>
           </div>
         )}
-      </div>
+        </div>
 
       {!loading && data && data.seats.length > 0 && (
-        <div className="mt-4 overflow-hidden border border-[#edf0f3] rounded-none">
+        <div className="relative w-72 shrink-0 self-stretch overflow-hidden border border-[#edf0f3] rounded-none print:static print:h-auto">
+          <div className="absolute inset-0 flex flex-col print:static print:h-auto">
           <button
             type="button"
             onClick={() => setRosterOpen((o) => !o)}
             aria-expanded={rosterOpen}
             aria-label={rosterOpen ? 'Tutup daftar nama' : 'Buka daftar nama'}
-            className="flex w-full items-center justify-between gap-3 bg-[linear-gradient(100deg,#071e3d_0%,#0d2850_55%,#163d78_100%)] px-4 py-2.5 text-left transition-[filter] duration-150 hover:brightness-110 active:scale-[0.995]"
+            className="flex w-full shrink-0 items-center justify-between gap-3 bg-[linear-gradient(100deg,#071e3d_0%,#0d2850_55%,#163d78_100%)] px-4 py-2.5 text-left transition-[filter] duration-150 hover:brightness-110 active:scale-[0.995]"
           >
-            <p className="min-w-0 truncate text-sm font-bold text-white">Daftar Nama — {data.busName}</p>
+            <p className="min-w-0 break-words text-sm font-bold text-white">Daftar Nama — {data.busName}</p>
             <span className="flex shrink-0 items-center gap-2">
               <span className="rounded-full border border-[#f5b915]/30 bg-[#f5b915]/12 px-2.5 py-0.5 text-[11px] font-bold tabular-nums text-[#f7dda1]">
                 {data.filled}/{data.total} hadir
@@ -215,7 +224,7 @@ export function PublicSeatMap({
               )}
             </span>
           </button>
-          <div className={rosterOpen ? 'divide-y divide-[#f0f3f6]' : 'hidden divide-y divide-[#f0f3f6] print:block'}>
+          <div className={`min-h-0 flex-1 overflow-y-auto print:max-h-none print:overflow-visible ${rosterOpen ? 'divide-y divide-[#f0f3f6]' : 'hidden divide-y divide-[#f0f3f6] print:block'}`}>
             <div className="flex items-stretch divide-x divide-[#f0f3f6] bg-[#f8fafc] text-[10px] font-bold uppercase tracking-wide text-[#9aa3af]">
               <span className="flex w-10 shrink-0 items-center justify-center px-2 py-2">No</span>
               <span className="min-w-0 flex-1 px-3 py-2">Nama</span>
@@ -232,7 +241,7 @@ export function PublicSeatMap({
                     {s.seat ?? s.order}
                   </span>
                   <p className="flex min-w-0 flex-1 items-center gap-1.5 px-3 py-2 text-[13px] font-bold text-[#1b3555]">
-                    <span className="min-w-0 truncate">{s.name}</span>
+                    <span className="min-w-0 break-words">{s.name}</span>
                     {isMine && (
                       <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide text-[#1b4f9c]">
                         Kursi Anda
@@ -251,6 +260,34 @@ export function PublicSeatMap({
                 </div>
               )
             })}
+          </div>
+          </div>
+        </div>
+      )}
+        </div>
+      </div>
+
+      {!loading && data && data.unitImageUrl && (
+        <div className="mt-4 flex flex-col items-end pr-16 text-right print:break-inside-avoid">
+          <div className="inline-flex flex-col items-center">
+            <div className="relative flex h-32 w-32 shrink-0 items-center justify-center">
+              <span aria-hidden className="absolute -inset-6 rounded-full bg-[#1b4f9c]/30 blur-xl" />
+              <div className="relative flex h-32 w-32 items-center justify-center overflow-hidden rounded-full">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={data.unitImageUrl}
+                  alt={`Unit ${data.unitLabel?.trim() || data.busName}`}
+                  className="h-full w-full object-cover"
+                  style={unitImageStyle(data.unitImagePosX, data.unitImagePosY, data.unitImageZoom)}
+                />
+              </div>
+            </div>
+            <strong
+              className="relative z-[1] -mt-1 inline-block max-w-full truncate bg-[#f5b915] px-6 py-1 text-sm font-extrabold uppercase tracking-wide text-white"
+              style={{ clipPath: 'polygon(0 0, 100% 0, calc(100% - 12px) 50%, 100% 100%, 0 100%, 12px 50%)' }}
+            >
+              {data.unitLabel?.trim() || data.busName}
+            </strong>
           </div>
         </div>
       )}

@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
       eventId,
       ...(busIds.length ? { id: { in: busIds } } : {}),
     },
-    select: { id: true, name: true, seatRows: true, seatCols: true, seatCellW: true, seatCellH: true, seatLayout: true, frontLayout: true, facilities: true },
+    select: { id: true, name: true, unitImageUrl: true, unitLabel: true, unitImagePosX: true, unitImagePosY: true, unitImageZoom: true, seatRows: true, seatCols: true, seatCellW: true, seatCellH: true, seatLayout: true, frontLayout: true, facilities: true },
     orderBy: { order: 'asc' },
   })
 
@@ -51,6 +51,11 @@ export async function GET(request: NextRequest) {
     return {
       busId: bus.id,
       busName: bus.name,
+      unitImageUrl: bus.unitImageUrl,
+      unitLabel: bus.unitLabel,
+      unitImagePosX: bus.unitImagePosX,
+      unitImagePosY: bus.unitImagePosY,
+      unitImageZoom: bus.unitImageZoom,
       seatRows: bus.seatRows,
       seatCols: bus.seatCols,
       seatCellW: bus.seatCellW,

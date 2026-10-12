@@ -3,7 +3,16 @@ import { Prisma } from '@prisma/client'
 import { canManage, requireAdminSession } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { logger } from '@/lib/logger'
-import { clampCellSize, seatCount, serializeSeatLayout, validateSeatShape } from '@/lib/seat'
+import {
+  clampCellSize,
+  seatCount,
+  serializeSeatLayout,
+  validateSeatShape,
+  UNIT_IMAGE_POS_MAX,
+  UNIT_IMAGE_POS_MIN,
+  UNIT_IMAGE_ZOOM_MAX,
+  UNIT_IMAGE_ZOOM_MIN,
+} from '@/lib/seat'
 import { serializeFrontLayout, validateFrontLayout } from '@/lib/front'
 import { serializeFacilities, validateFacilities } from '@/lib/facilities'
 
@@ -152,6 +161,63 @@ export async function PATCH(request: NextRequest, { params }: Params) {
       return NextResponse.json({ bus })
     } catch (err) {
       return NextResponse.json({ error: 'Gagal menyimpan fasilitas unit.' }, { status: 500 })
+    }
+  }
+
+  if (body.unitLabel !== undefined) {
+    const raw = typeof body.unitLabel === 'string' ? body.unitLabel.trim() : ''
+    const value = raw ? raw.slice(0, 60) : null
+    if (value === existing.unitLabel) return NextResponse.json({ bus: existing })
+    try {
+      const bus = await prisma.$transaction(async (tx) => {
+        const updated = await tx.bus.update({ where: { id: busId }, data: { unitLabel: value } })
+        await tx.activityLog.create({
+          data: { eventId: id, userId: session.sub, action: 'bus.unitLabel', detail: { name: existing.name, label: value } },
+        })
+        return updated
+      })
+      logger.info('bus unit label updated', { eventId: id, by: session.username, busId, hasLabel: value !== null })
+      return NextResponse.json({ bus })
+    } catch (err) {
+      return NextResponse.json({ error: 'Gagal menyimpan nama unit.' }, { status: 500 })
+    }
+  }
+
+  const hasCropFields =
+    body.unitImagePosX !== undefined || body.unitImagePosY !== undefined || body.unitImageZoom !== undefined
+
+  if (hasCropFields) {
+    const read = (key: string, fallback: number, min: number, max: number): number | null => {
+      const raw = body[key]
+      if (raw === undefined) return fallback
+      const n = typeof raw === 'number' ? raw : Number(raw)
+      if (!Number.isFinite(n)) return null
+      return Math.min(max, Math.max(min, Math.round(n)))
+    }
+    const posX = read('unitImagePosX', existing.unitImagePosX, UNIT_IMAGE_POS_MIN, UNIT_IMAGE_POS_MAX)
+    const posY = read('unitImagePosY', existing.unitImagePosY, UNIT_IMAGE_POS_MIN, UNIT_IMAGE_POS_MAX)
+    const zoom = read('unitImageZoom', existing.unitImageZoom, UNIT_IMAGE_ZOOM_MIN, UNIT_IMAGE_ZOOM_MAX)
+    if (posX === null || posY === null || zoom === null) {
+      return NextResponse.json({ error: 'Nilai posisi/zoom tidak valid.' }, { status: 400 })
+    }
+    if (posX === existing.unitImagePosX && posY === existing.unitImagePosY && zoom === existing.unitImageZoom) {
+      return NextResponse.json({ bus: existing })
+    }
+    try {
+      const bus = await prisma.$transaction(async (tx) => {
+        const updated = await tx.bus.update({
+          where: { id: busId },
+          data: { unitImagePosX: posX, unitImagePosY: posY, unitImageZoom: zoom },
+        })
+        await tx.activityLog.create({
+          data: { eventId: id, userId: session.sub, action: 'bus.unitImageCrop', detail: { name: existing.name, posX, posY, zoom } },
+        })
+        return updated
+      })
+      logger.info('bus unit image crop updated', { eventId: id, by: session.username, busId, posX, posY, zoom })
+      return NextResponse.json({ bus })
+    } catch (err) {
+      return NextResponse.json({ error: 'Gagal menyimpan posisi gambar.' }, { status: 500 })
     }
   }
 
