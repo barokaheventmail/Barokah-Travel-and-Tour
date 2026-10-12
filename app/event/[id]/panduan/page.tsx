@@ -9,7 +9,6 @@ import { Logo } from '@/components/site'
 import { EventNavbar } from '@/components/event-navbar'
 import { PublicSeatMap } from '@/components/public-seat-map'
 import { PrintButton } from '@/components/admin/print-button'
-import { DownloadPagePdf } from '@/components/admin/download-page-pdf'
 
 export const dynamic = 'force-dynamic'
 
@@ -600,16 +599,10 @@ export default async function EventPanduanPage({
                   , serta fasilitas unit — dalam satu file PDF untuk dibaca kapan saja, bahkan tanpa koneksi.
                 </p>
                 <div className="mt-4 flex flex-col items-center justify-center gap-3">
-                  <DownloadPagePdf
-                    targetId="panduan-isi"
-                    fileName={`${event.title} - Panduan.pdf`}
-                    hint="Hasil PDF persis seperti tampilan panduan — tiap halaman A4 penuh, logo & QR ikut tersimpan."
-                  />
                   <PrintButton />
                 </div>
                 <p className="mx-auto mt-3 max-w-sm text-[11px] leading-relaxed text-[#9aa3af]">
-                  Tombol <strong className="text-[#657080]">Unduh Panduan (PDF)</strong> langsung menyimpan file A4 penuh
-                  seperti tampilan layar. Alternatifnya bisa lewat tombol cetak: pilih{' '}
+                  Lewat tombol cetak: pilih{' '}
                   <strong className="text-[#657080]">Save as PDF / Simpan sebagai PDF</strong>,
                   kertas <strong className="text-[#657080]">A4</strong> tanpa margin tambahan.{' '}
                   {ownBus ? 'QR absensi di kop halaman juga ikut tercetak.' : ''}
