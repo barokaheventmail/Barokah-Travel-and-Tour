@@ -19,6 +19,12 @@ enum EventStatus {
   CLOSED
 }
 
+// Jenis preset: konten panduan (itinerary + logo) atau kursi & fasilitas.
+enum PresetKind {
+  PANDUAN
+  KURSI
+}
+
 model User {
   id           String   @id @default(cuid())
   username     String   @unique
@@ -203,6 +209,20 @@ model ScanLog {
 
   @@index([participantId])
   @@index([createdAt])
+}
+
+// Preset = template global yang bisa dipakai ulang lintas event. `data`
+// menyimpan payload JSON sesuai `kind` (lihat `lib/preset.ts`).
+model Preset {
+  id        String     @id @default(cuid())
+  name      String     @db.VarChar(200)
+  kind      PresetKind
+  data      String     @db.LongText
+  order     Int        @default(0)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@index([kind, order])
 }
 
 model ActivityLog {

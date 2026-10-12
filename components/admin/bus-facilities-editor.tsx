@@ -24,6 +24,7 @@ export function BusFacilitiesEditor({
   initialFacilities,
   totalBuses,
   busesWithFacilities,
+  onChange,
 }: {
   eventId: string
   busId: string
@@ -31,6 +32,7 @@ export function BusFacilitiesEditor({
   initialFacilities: string | null
   totalBuses: number
   busesWithFacilities: number
+  onChange?: (items: Facility[]) => void
 }) {
   const router = useRouter()
   const [items, setItems] = useState<Facility[]>(() => parseFacilities({ facilities: initialFacilities }))
@@ -53,6 +55,10 @@ export function BusFacilitiesEditor({
     document.addEventListener('pointerdown', onPointerDown)
     return () => document.removeEventListener('pointerdown', onPointerDown)
   }, [openPicker])
+
+  useEffect(() => {
+    onChange?.(items)
+  }, [items, onChange])
 
   const filledCount = items.filter((item) => item.name.trim() !== '').length
   const blankCount = items.length - filledCount

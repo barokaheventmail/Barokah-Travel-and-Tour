@@ -21,6 +21,7 @@ import { ResetAttendance } from '@/components/admin/reset-attendance'
 import { LogEntry } from '@/components/admin/log-entry'
 import { HIDDEN_LOG_ACTIONS } from '@/lib/log-labels'
 import { armadasTanpaCrew, totalPesertaTanpaCrew } from '@/lib/crew-coverage'
+import { parsePanduanPreset, parseKursiPreset, type PanduanPresetOption, type KursiPresetOption } from '@/lib/preset'
 import { TabBar, isEventTab, type EventTabId } from '@/components/admin/tab-bar'
 
 const MANAGEMENT_ACTIONS: string[] = ['scan.attended', 'scan.duplicate', ...HIDDEN_LOG_ACTIONS]
@@ -40,7 +41,7 @@ export default async function EventDetail({
   const { tab } = await searchParams
   const active: EventTabId = isEventTab(tab) ? tab : 'ringkasan'
 
-  const [event, totalByBus, attendedByBus, eventLogs, eventLogCount] = await Promise.all([
+  const [event, totalByBus, attendedByBus, eventLogs, eventLogCount, allPresets] = await Promise.all([
     prisma.event.findUnique({
       where: { id },
       include: {
@@ -63,9 +64,35 @@ export default async function EventDetail({
       include: { user: { select: { username: true } } },
     }),
     prisma.activityLog.count({ where: { eventId: id, action: { notIn: MANAGEMENT_ACTIONS } } }),
+    prisma.preset.findMany({ orderBy: [{ order: 'asc' }, { createdAt: 'asc' }] }),
   ])
 
   if (!event) notFound()
+
+  const panduanPresets: PanduanPresetOption[] = allPresets
+    .filter((p) => p.kind === 'PANDUAN')
+    .flatMap((p) => {
+      const data = parsePanduanPreset(p.data)
+      if (!data) return []
+      return [
+        {
+          id: p.id,
+          name: p.name,
+          panduanItinerary: data.panduanItinerary,
+          panduanLogoLeft: data.panduanLogoLeft,
+          panduanLogoRight: data.panduanLogoRight,
+          panduanLogoTopRight: data.panduanLogoTopRight,
+          panduanLogoTopRight2: data.panduanLogoTopRight2,
+        },
+      ]
+    })
+  const kursiPresets: KursiPresetOption[] = allPresets
+    .filter((p) => p.kind === 'KURSI')
+    .flatMap((p) => {
+      const data = parseKursiPreset(p.data)
+      if (!data) return []
+      return [{ id: p.id, name: p.name, ...data }]
+    })
 
   const totalMap = new Map(totalByBus.map((r) => [r.busId, r._count._all]))
   const attendedMap = new Map(attendedByBus.map((r) => [r.busId, r._count._all]))
@@ -283,6 +310,8 @@ export default async function EventDetail({
       {active === 'panduan' && (
         <PanduanEditor
           eventId={event.id}
+          eventTitle={event.title}
+          presets={panduanPresets}
           initialItinerary={event.panduanItinerary ?? '[]'}
           initialCrewName={event.crewName ?? ''}
           initialCrewPhone={event.crewPhone ?? ''}
@@ -363,7 +392,7 @@ export default async function EventDetail({
         </div>
       )}
 
-      {active === 'kursi' && <SeatLayoutEditor eventId={event.id} buses={seatBuses} />}
+      {active === 'kursi' && <SeatLayoutEditor eventId={event.id} buses={seatBuses} presets={kursiPresets} />}
 
       {active === 'riwayat' && (
         <div className="relative mt-5 overflow-hidden rounded-2xl border border-[#ece3cd] bg-white shadow-[0_18px_44px_-28px_rgba(27,53,85,0.5)]">

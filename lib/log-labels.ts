@@ -1,6 +1,6 @@
 export type LogDetail = Record<string, unknown> | null
 
-export type LogGroup = 'Import' | 'Kelola Event' | 'Kelola Paket' | 'Unit' | 'Peserta' | 'Kehadiran' | 'Scan' | 'Keamanan' | 'Lainnya'
+export type LogGroup = 'Import' | 'Kelola Event' | 'Kelola Paket' | 'Unit' | 'Peserta' | 'Kehadiran' | 'Scan' | 'Preset' | 'Keamanan' | 'Lainnya'
 
 const GROUP_STYLE: Record<LogGroup, string> = {
   Import: 'bg-[#e6f4ea] text-[#2ca84a]',
@@ -10,6 +10,7 @@ const GROUP_STYLE: Record<LogGroup, string> = {
   Peserta: 'bg-[#e8f4fb] text-[#0d7bb5]',
   Kehadiran: 'bg-[#fff7e0] text-[#b98a12]',
   Scan: 'bg-[#eff1f4] text-[#657080]',
+  Preset: 'bg-[#eafaf1] text-[#1f8a5a]',
   Keamanan: 'bg-[#fdeaea] text-[#c0392b]',
   Lainnya: 'bg-[#eff1f4] text-[#657080]',
 }
@@ -27,6 +28,9 @@ const ACTION_GROUP: Record<string, LogGroup> = {
   'paket.delete': 'Kelola Paket',
   'paket.image': 'Kelola Paket',
   'paket.imageRemove': 'Kelola Paket',
+  'preset.create': 'Preset',
+  'preset.update': 'Preset',
+  'preset.delete': 'Preset',
   'bus.create': 'Unit',
   'bus.update': 'Unit',
   'bus.delete': 'Unit',
@@ -119,6 +123,14 @@ export const LOG_ACTIONS: { group: LogGroup; actions: { value: string; label: st
       { value: 'participant.create', label: 'Tambah peserta' },
       { value: 'participant.update', label: 'Ubah peserta' },
       { value: 'participant.delete', label: 'Hapus peserta' },
+    ],
+  },
+  {
+    group: 'Preset',
+    actions: [
+      { value: 'preset.create', label: 'Buat preset' },
+      { value: 'preset.update', label: 'Ubah preset' },
+      { value: 'preset.delete', label: 'Hapus preset' },
     ],
   },
   {
@@ -322,6 +334,19 @@ export function formatLogDetail(action: string, detail: LogDetail): string {
     case 'paket.imageRemove': {
       const t = getValue(detail, 'title')
       return `Gambar paket event "${t ?? '??? '}" dihapus`
+    }
+    case 'preset.create': {
+      const n = getValue(detail, 'name')
+      const k = getValue(detail, 'kind')
+      return `Preset "${n ?? '???'}" dibuat (${k === 'PANDUAN' ? 'Panduan' : 'Kursi & Fasilitas'})`
+    }
+    case 'preset.update': {
+      const n = getValue(detail, 'name')
+      return `Preset "${n ?? '???'}" diubah`
+    }
+    case 'preset.delete': {
+      const n = getValue(detail, 'name')
+      return `Preset "${n ?? '???'}" dihapus`
     }
     case 'participant.create': {
       const n = getValue(detail, 'name')

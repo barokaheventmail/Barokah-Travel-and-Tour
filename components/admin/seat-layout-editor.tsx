@@ -1,12 +1,14 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { Fragment, useState } from 'react'
-import { Armchair, Check, ChevronDown, Eraser, Loader2, Minus, Plus, RotateCcw, ShipWheel, Trash2, Users, UsersRound } from 'lucide-react'
+import { Fragment, useCallback, useState } from 'react'
+import { Armchair, Check, ChevronDown, Eraser, Loader2, Minus, Plus, RotateCcw, Save, ShipWheel, Trash2, Users, UsersRound, X } from 'lucide-react'
 import { BusFacilitiesEditor } from '@/components/admin/bus-facilities-editor'
 import { BusUnitIdentity } from '@/components/admin/bus-unit-identity'
 import { BusFront } from '@/components/bus-front'
 import { ConfirmBulkDialog } from '@/components/admin/confirm-bulk-dialog'
+import type { KursiPresetOption } from '@/lib/preset'
+import { parseFacilities, type Facility } from '@/lib/facilities'
 import {
   parseCellSize,
   parseSeatLayout,
@@ -99,7 +101,7 @@ function Stepper({
   )
 }
 
-export function SeatLayoutEditor({ eventId, buses }: { eventId: string; buses: SeatBus[] }) {
+export function SeatLayoutEditor({ eventId, buses, presets }: { eventId: string; buses: SeatBus[]; presets: KursiPresetOption[] }) {
   const router = useRouter()
   const [selectedId, setSelectedId] = useState(buses[0]?.id ?? null)
   const selected = buses.find((b) => b.id === selectedId) ?? null
@@ -119,6 +121,19 @@ export function SeatLayoutEditor({ eventId, buses }: { eventId: string; buses: S
   const [bulkError, setBulkError] = useState<string | null>(null)
   const [status, setStatus] = useState<{ kind: 'ok' | 'err'; msg: string } | null>(null)
 
+  const [presetId, setPresetId] = useState('')
+  const [facilityOverride, setFacilityOverride] = useState<string | null>(null)
+  const [facilityVersion, setFacilityVersion] = useState(0)
+  const [liveFacilities, setLiveFacilities] = useState<Facility[] | null>(null)
+  const [presetOpen, setPresetOpen] = useState(false)
+  const [presetName, setPresetName] = useState('')
+  const [presetBusy, setPresetBusy] = useState(false)
+  const [presetStatus, setPresetStatus] = useState<{ kind: 'ok' | 'err'; msg: string } | null>(null)
+
+  const handleFacilitiesChange = useCallback((items: Facility[]) => {
+    setLiveFacilities(items)
+  }, [])
+
   const numbers = seatNumberMatrix(layout.rows, layout.cols, layout.cells)
   const active = seatCount(layout.cells)
   const busesWithLayout = buses.filter((b) => b.seatRows > 0 || b.seatCols > 0 || b.seatLayout).length
@@ -135,6 +150,7 @@ export function SeatLayoutEditor({ eventId, buses }: { eventId: string; buses: S
     setConfirmClear(false)
     setBulkClearOpen(false)
     setBulkError(null)
+    setFacilityOverride(null)
   }
 
   function setDims(rows: number, cols: number) {
@@ -276,6 +292,67 @@ export function SeatLayoutEditor({ eventId, buses }: { eventId: string; buses: S
     }
   }
 
+  async function saveAsPreset() {
+    if (!selected) return
+    const name = presetName.trim()
+    if (!name) {
+      setPresetStatus({ kind: 'err', msg: 'Nama preset wajib diisi.' })
+      return
+    }
+    setPresetBusy(true)
+    setPresetStatus(null)
+    try {
+      const facilities = liveFacilities ?? parseFacilities({ facilities: selected.facilities })
+      const res = await fetch('/api/admin/presets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          kind: 'KURSI',
+          data: {
+            seatRows: layout.rows,
+            seatCols: layout.cols,
+            seatCellW: cell.w,
+            seatCellH: cell.h,
+            seatLayout: layout.cells,
+            frontLayout: front,
+            facilities,
+          },
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Gagal menyimpan preset.')
+      setPresetStatus({ kind: 'ok', msg: `Preset kursi "${name}" tersimpan.` })
+      setPresetOpen(false)
+      setPresetName('')
+      router.refresh()
+    } catch (err) {
+      setPresetStatus({ kind: 'err', msg: err instanceof Error ? err.message : 'Gagal menyimpan preset.' })
+    } finally {
+      setPresetBusy(false)
+    }
+  }
+
+  function applyPreset(id: string) {
+    const preset = presets.find((p) => p.id === id)
+    if (!preset) return
+    setLayout(
+      parseSeatLayout({
+        seatRows: preset.seatRows,
+        seatCols: preset.seatCols,
+        seatLayout: JSON.stringify(preset.seatLayout),
+      }),
+    )
+    setFront(preset.frontLayout)
+    setCell({ w: preset.seatCellW, h: preset.seatCellH })
+    setFacilityOverride(JSON.stringify(preset.facilities))
+    setFacilityVersion((v) => v + 1)
+    setStatus({
+      kind: 'ok',
+      msg: `Preset "${preset.name}" dimuat. Tinjau lalu klik Simpan Layout & Simpan Fasilitas.`,
+    })
+  }
+
   return (
     <div className="mt-5 space-y-4">
       <div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">
@@ -301,6 +378,99 @@ export function SeatLayoutEditor({ eventId, buses }: { eventId: string; buses: S
         </p>
       ) : (
         <>
+          <div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="text-sm font-bold text-[#1b3555]">Preset Kursi &amp; Fasilitas</h2>
+                <p className="mt-0.5 text-xs text-[#657080]">
+                  Simpan layout kursi, strip depan &amp; fasilitas{' '}
+                  {selected ? <span className="font-bold text-[#1b4f9c]">{selected.name}</span> : 'unit terpilih'} sebagai preset,
+                  atau muat preset yang sudah ada.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setPresetName((n) => n || selected?.name || '')
+                  setPresetStatus(null)
+                  setPresetOpen((o) => !o)
+                }}
+                disabled={!selected || layout.rows === 0 || layout.cols === 0}
+                className="inline-flex items-center gap-1.5 rounded-full bg-[#1b4f9c] px-4 py-2 text-[11px] font-bold text-white transition-colors duration-200 hover:bg-[#143d79] active:scale-95 disabled:opacity-60"
+              >
+                <Save size={12} /> Simpan sebagai Preset
+              </button>
+            </div>
+
+            <div className="mt-3 flex flex-wrap items-center gap-3">
+              <label className="text-[11px] font-bold uppercase tracking-wide text-[#657080]">Terapkan</label>
+              <select
+                value={presetId}
+                disabled={presets.length === 0}
+                onChange={(e) => {
+                  if (e.target.value) applyPreset(e.target.value)
+                  setPresetId('')
+                }}
+                className="min-w-[200px] rounded-full border border-[#dfe4e8] bg-white py-2 pl-4 pr-8 text-xs font-bold text-[#1b3555] outline-none transition-colors hover:bg-[#eef4fb] disabled:opacity-50"
+              >
+                <option value="">{presets.length === 0 ? 'Belum ada preset kursi' : 'Pilih preset kursi…'}</option>
+                {presets.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+              {presets.length > 0 && (
+                <span className="text-[11px] text-[#9aa3af]">
+                  Preset mengisi layout &amp; fasilitas di editor — belum tersimpan sampai klik Simpan Layout &amp; Simpan Fasilitas.
+                </span>
+              )}
+            </div>
+
+            {presetOpen && (
+              <div className="mt-3 rounded-xl border border-[#e8ecf1] bg-[#fbfcfe] p-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <input
+                    value={presetName}
+                    onChange={(e) => setPresetName(e.target.value.slice(0, 200))}
+                    placeholder="Nama preset (mis. Bis 59 Seat Executive)"
+                    maxLength={200}
+                    autoFocus
+                    className="min-w-[220px] flex-1 rounded-xl border border-[#dfe4e8] bg-white px-3 py-2 text-xs font-semibold text-[#1b3555] outline-none transition-colors placeholder:font-normal placeholder:text-[#9aa3af] focus:border-[#1b4f9c] focus:ring-2 focus:ring-[#eef4fb]"
+                  />
+                  <button
+                    type="button"
+                    onClick={saveAsPreset}
+                    disabled={presetBusy}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-[#1b4f9c] px-4 py-2 text-[11px] font-bold text-white transition-colors duration-200 hover:bg-[#143d79] active:scale-95 disabled:opacity-60"
+                  >
+                    {presetBusy ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />} Simpan Preset
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPresetOpen(false)}
+                    className="inline-flex items-center gap-1 rounded-full border border-[#dfe4e8] px-3 py-2 text-[11px] font-bold text-[#657080] hover:bg-[#f1f3f5]"
+                  >
+                    <X size={12} /> Batal
+                  </button>
+                </div>
+                <p className="mt-2 text-[11px] text-[#9aa3af]">
+                  Layout kursi, strip depan, dan daftar fasilitas {selected ? selected.name : 'unit terpilih'} yang sedang tampil akan disimpan.
+                </p>
+                {presetStatus && (
+                  <p className={`mt-1 text-[11px] font-semibold ${presetStatus.kind === 'ok' ? 'text-green-700' : 'text-red-600'}`}>
+                    {presetStatus.msg}
+                  </p>
+                )}
+              </div>
+            )}
+            {presetStatus && !presetOpen && (
+              <p className={`mt-2 text-[11px] font-semibold ${presetStatus.kind === 'ok' ? 'text-green-700' : 'text-red-600'}`}>
+                {presetStatus.msg}
+              </p>
+            )}
+          </div>
+
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-[11px] font-bold uppercase tracking-wide text-[#657080]">Pilih Unit</span>
             <div className="relative w-full max-w-xs">
@@ -518,13 +688,14 @@ export function SeatLayoutEditor({ eventId, buses }: { eventId: string; buses: S
 
           {selected && (
             <BusFacilitiesEditor
-              key={selected.id}
+              key={`${selected.id}-${facilityVersion}`}
               eventId={eventId}
               busId={selected.id}
               busName={selected.name}
-              initialFacilities={selected.facilities}
+              initialFacilities={facilityOverride ?? selected.facilities}
               totalBuses={buses.length}
               busesWithFacilities={busesWithFacilities}
+              onChange={handleFacilitiesChange}
             />
           )}
 

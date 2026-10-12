@@ -3,8 +3,9 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type KeyboardEventHandler } from 'react'
-import { CalendarDays, Check, Clock, ExternalLink, Loader2, Pencil, Plus, Trash2 } from 'lucide-react'
+import { CalendarDays, Check, Clock, ExternalLink, Loader2, Pencil, Plus, Save, Trash2, X } from 'lucide-react'
 import { parseItineraryDoc, serializeItinerary, groupItineraryByDay, type ItineraryRow } from '@/lib/itinerary'
+import type { PanduanPresetOption } from '@/lib/preset'
 
 type DayRows = Pick<ItineraryRow, 'time' | 'agenda' | 'keterangan' | 'bold' | 'italic'>[]
 
@@ -154,6 +155,8 @@ function TimeField({
 
 export function PanduanEditor({
   eventId,
+  eventTitle,
+  presets,
   initialItinerary,
   initialCrewName,
   initialCrewPhone,
@@ -165,6 +168,8 @@ export function PanduanEditor({
   initialLogoTopRight2,
 }: {
   eventId: string
+  eventTitle: string
+  presets: PanduanPresetOption[]
   initialItinerary: string
   initialCrewName: string
   initialCrewPhone: string
@@ -206,6 +211,11 @@ export function PanduanEditor({
   }
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState<{ kind: 'ok' | 'err'; msg: string } | null>(null)
+
+  const [presetOpen, setPresetOpen] = useState(false)
+  const [presetName, setPresetName] = useState('')
+  const [presetBusy, setPresetBusy] = useState(false)
+  const [presetStatus, setPresetStatus] = useState<{ kind: 'ok' | 'err'; msg: string } | null>(null)
 
   const rowRefs = useRef<Record<string, HTMLInputElement | null>>({})
 
@@ -311,6 +321,72 @@ export function PanduanEditor({
       setStatus({ kind: 'err', msg: err instanceof Error ? err.message : 'Gagal menyimpan.' })
     } finally {
       setLoading(false)
+    }
+  }
+
+  function buildItinerary(): string {
+    return serializeItinerary(
+      dayBlocks.flatMap((rows, b) => rows.map((row) => ({ ...row, day: b + 1 }))),
+      Object.fromEntries(dayNotes.map((note, b) => [b + 1, note])),
+      Object.fromEntries(daySideNotes.map((note, b) => [b + 1, note])),
+      footerNote,
+    )
+  }
+
+  function applyPreset(id: string) {
+    const preset = presets.find((p) => p.id === id)
+    if (!preset) return
+    const doc = parseItineraryDoc(preset.panduanItinerary)
+    const groups = groupItineraryByDay(doc.rows, doc.notes, doc.sideNotes)
+    setDayBlocks(
+      groups.map((g) =>
+        g.rows.map((r) => ({ time: r.time, agenda: r.agenda, keterangan: r.keterangan, bold: r.bold, italic: r.italic })),
+      ),
+    )
+    setDayNotes(groups.map((g) => g.note))
+    setDaySideNotes(groups.map((g) => g.sideNote))
+    setFooterNote(doc.footerNote)
+    setLogoLeft(preset.panduanLogoLeft)
+    setLogoRight(preset.panduanLogoRight)
+    setLogoTopRight(preset.panduanLogoTopRight)
+    setLogoTopRight2(preset.panduanLogoTopRight2)
+    setStatus({ kind: 'ok', msg: `Preset "${preset.name}" dimuat. Tinjau lalu klik Simpan Panduan.` })
+  }
+
+  async function savePreset() {
+    const name = presetName.trim()
+    if (!name) {
+      setPresetStatus({ kind: 'err', msg: 'Nama preset wajib diisi.' })
+      return
+    }
+    setPresetBusy(true)
+    setPresetStatus(null)
+    try {
+      const res = await fetch('/api/admin/presets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          kind: 'PANDUAN',
+          data: {
+            panduanItinerary: buildItinerary(),
+            panduanLogoLeft: logoLeft,
+            panduanLogoRight: logoRight,
+            panduanLogoTopRight: logoTopRight,
+            panduanLogoTopRight2: logoTopRight2,
+          },
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Gagal menyimpan preset.')
+      setPresetStatus({ kind: 'ok', msg: 'Preset panduan tersimpan.' })
+      setPresetOpen(false)
+      setPresetName('')
+      router.refresh()
+    } catch (err) {
+      setPresetStatus({ kind: 'err', msg: err instanceof Error ? err.message : 'Gagal menyimpan preset.' })
+    } finally {
+      setPresetBusy(false)
     }
   }
 
@@ -471,6 +547,93 @@ export function PanduanEditor({
             <ExternalLink size={12} /> Lihat Halaman Publik
           </Link>
         </div>
+      </div>
+
+      <div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-sm font-bold text-[#1b3555]">Preset Panduan</h2>
+            <p className="mt-0.5 text-xs text-[#657080]">
+              Simpan itinerary &amp; logo saat ini sebagai preset, atau muat preset yang sudah ada.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setPresetName((n) => n || eventTitle)
+              setPresetStatus(null)
+              setPresetOpen((o) => !o)
+            }}
+            className="inline-flex items-center gap-1.5 rounded-full bg-[#1b4f9c] px-4 py-2 text-[11px] font-bold text-white transition-colors duration-200 hover:bg-[#143d79] active:scale-95"
+          >
+            <Save size={12} /> Simpan sebagai Preset
+          </button>
+        </div>
+
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <label className="text-[11px] font-bold uppercase tracking-wide text-[#657080]">Terapkan</label>
+          <select
+            defaultValue=""
+            disabled={presets.length === 0}
+            onChange={(e) => {
+              if (e.target.value) applyPreset(e.target.value)
+              e.target.value = ''
+            }}
+            className="min-w-[200px] rounded-full border border-[#dfe4e8] bg-white py-2 pl-4 pr-8 text-xs font-bold text-[#1b3555] outline-none transition-colors hover:bg-[#eef4fb] disabled:opacity-50"
+          >
+            <option value="">{presets.length === 0 ? 'Belum ada preset panduan' : 'Pilih preset panduan…'}</option>
+            {presets.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+          {presets.length > 0 && (
+            <span className="text-[11px] text-[#9aa3af]">
+              Preset mengisi itinerary &amp; logo di form — belum tersimpan sampai klik Simpan Panduan.
+            </span>
+          )}
+        </div>
+
+        {presetOpen && (
+          <div className="mt-3 rounded-xl border border-[#e8ecf1] bg-[#fbfcfe] p-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                value={presetName}
+                onChange={(e) => setPresetName(e.target.value.slice(0, 200))}
+                placeholder="Nama preset (mis. Open Trip Dufan)"
+                maxLength={200}
+                autoFocus
+                className={`${rowCls} min-w-[220px] flex-1`}
+              />
+              <button
+                type="button"
+                onClick={savePreset}
+                disabled={presetBusy}
+                className="inline-flex items-center gap-1.5 rounded-full bg-[#1b4f9c] px-4 py-2 text-[11px] font-bold text-white transition-colors duration-200 hover:bg-[#143d79] active:scale-95 disabled:opacity-60"
+              >
+                {presetBusy ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />} Simpan Preset
+              </button>
+              <button
+                type="button"
+                onClick={() => setPresetOpen(false)}
+                className="inline-flex items-center gap-1 rounded-full border border-[#dfe4e8] px-3 py-2 text-[11px] font-bold text-[#657080] hover:bg-[#f1f3f5]"
+              >
+                <X size={12} /> Batal
+              </button>
+            </div>
+            {presetStatus && (
+              <p className={`mt-2 text-[11px] font-semibold ${presetStatus.kind === 'ok' ? 'text-green-700' : 'text-red-600'}`}>
+                {presetStatus.msg}
+              </p>
+            )}
+          </div>
+        )}
+        {presetStatus && !presetOpen && (
+          <p className={`mt-2 text-[11px] font-semibold ${presetStatus.kind === 'ok' ? 'text-green-700' : 'text-red-600'}`}>
+            {presetStatus.msg}
+          </p>
+        )}
       </div>
 
       <div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">
