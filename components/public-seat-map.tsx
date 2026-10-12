@@ -11,7 +11,10 @@ type PublicBus = {
   busName: string
   seatRows: number
   seatCols: number
+  seatCellW: number
+  seatCellH: number
   seatLayout: string | null
+  frontLayout: string | null
   total: number
   filled: number
   seats: SeatCell[]
@@ -166,16 +169,16 @@ export function PublicSeatMap({
             />
             <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] font-semibold text-[#657080]">
               <span className="flex items-center gap-1.5">
-                <span className="inline-block h-3 w-3 rounded bg-[#2ca84a]" /> Terisi{' '}
+                <span className="inline-block h-3 w-3 bg-[#2ca84a]" /> Terisi{' '}
                 <span className="font-black text-[#2ca84a]">{data.filled}</span>
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="inline-block h-3 w-3 rounded bg-[#eef1f4]" /> Kosong{' '}
+                <span className="inline-block h-3 w-3 bg-[#eef1f4]" /> Kosong{' '}
                 <span className="font-black text-[#657080]">{data.total - data.filled}</span>
               </span>
               {mySeat && (
                 <span className="flex items-center gap-1.5">
-                  <span className="inline-block h-3 w-3 rounded bg-[#1b4f9c] ring-2 ring-[#e8c54a] ring-offset-1" />{' '}
+                  <span className="inline-block h-3 w-3 bg-[#1b4f9c] ring-2 ring-[#e8c54a] ring-offset-1" />{' '}
                   Kursi Anda
                 </span>
               )}
@@ -192,7 +195,7 @@ export function PublicSeatMap({
       </div>
 
       {!loading && data && data.seats.length > 0 && (
-        <div className="mt-4 overflow-hidden rounded-2xl border border-[#edf0f3]">
+        <div className="mt-4 overflow-hidden border border-[#edf0f3] rounded-none">
           <button
             type="button"
             onClick={() => setRosterOpen((o) => !o)}
@@ -213,34 +216,38 @@ export function PublicSeatMap({
             </span>
           </button>
           <div className={rosterOpen ? 'divide-y divide-[#f0f3f6]' : 'hidden divide-y divide-[#f0f3f6] print:block'}>
+            <div className="flex items-stretch divide-x divide-[#f0f3f6] bg-[#f8fafc] text-[10px] font-bold uppercase tracking-wide text-[#9aa3af]">
+              <span className="flex w-10 shrink-0 items-center justify-center px-2 py-2">No</span>
+              <span className="min-w-0 flex-1 px-3 py-2">Nama</span>
+              <span className="flex w-24 shrink-0 items-center justify-center px-2 py-2">Kehadiran</span>
+            </div>
             {data.seats.map((s) => {
               const isMine = mySeat != null && s.seat != null && s.seat === mySeat
               return (
-                <div key={s.order} className={`flex items-center gap-x-2.5 px-3 py-2 ${isMine ? 'bg-[#eef4fb]' : ''}`}>
-                  <span
-                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold tabular-nums ${
-                      s.present ? 'bg-[#d1fae5] text-[#059669]' : 'bg-[#eef3fb] text-[#163d78]'
-                    }`}
-                  >
+                <div
+                  key={s.order}
+                  className={`flex items-stretch divide-x divide-[#f0f3f6] ${isMine ? 'bg-[#eef4fb]' : ''}`}
+                >
+                  <span className="flex w-10 shrink-0 items-center justify-center px-2 py-2 text-[11px] font-bold tabular-nums text-[#1b3555]">
                     {s.seat ?? s.order}
                   </span>
-                  <p className="min-w-0 flex-1 truncate text-[13px] font-bold text-[#1b3555]">
-                    {s.name}
+                  <p className="flex min-w-0 flex-1 items-center gap-1.5 px-3 py-2 text-[13px] font-bold text-[#1b3555]">
+                    <span className="min-w-0 truncate">{s.name}</span>
                     {isMine && (
-                      <span className="ml-1.5 text-[10px] font-bold uppercase tracking-wide text-[#1b4f9c]">
+                      <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide text-[#1b4f9c]">
                         Kursi Anda
                       </span>
                     )}
                   </p>
-                  {s.present ? (
-                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#ecfdf5] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#059669]">
-                      <BadgeCheck size={11} /> Hadir
-                    </span>
-                  ) : (
-                    <span className="inline-flex shrink-0 items-center rounded-full bg-[#f1f3f5] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#9aa3af]">
-                      Belum
-                    </span>
-                  )}
+                  <span className="flex w-24 shrink-0 items-center justify-center px-2 py-2 text-[10px] font-bold uppercase tracking-wide">
+                    {s.present ? (
+                      <span className="inline-flex items-center gap-1 text-[#059669]">
+                        <BadgeCheck size={11} /> Hadir
+                      </span>
+                    ) : (
+                      <span className="text-[#9aa3af]">Belum</span>
+                    )}
+                  </span>
                 </div>
               )
             })}

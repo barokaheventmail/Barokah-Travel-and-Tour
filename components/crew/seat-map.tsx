@@ -12,7 +12,10 @@ type BusSeats = {
   eventStatus?: string
   seatRows: number
   seatCols: number
+  seatCellW: number
+  seatCellH: number
   seatLayout: string | null
+  frontLayout: string | null
   total: number
   filled: number
   seats: SeatCell[]
@@ -139,11 +142,11 @@ export function CrewSeatMap() {
                           />
                           <div className="flex items-center gap-4 text-[11px] font-semibold text-[#657080]">
                             <span className="flex items-center gap-1.5">
-                              <span className="inline-block h-3 w-3 rounded bg-[#2ca84a]" /> Terisi{' '}
+                              <span className="inline-block h-3 w-3 bg-[#2ca84a]" /> Terisi{' '}
                               <span className="font-black text-[#2ca84a]">{bus.filled}</span>
                             </span>
                             <span className="flex items-center gap-1.5">
-                              <span className="inline-block h-3 w-3 rounded bg-[#eef1f4]" /> Kosong{' '}
+                              <span className="inline-block h-3 w-3 bg-[#eef1f4]" /> Kosong{' '}
                               <span className="font-black text-[#657080]">{bus.total - bus.filled}</span>
                             </span>
                             <span className="ml-auto text-[11px] text-[#9aa3af]">Ketuk kursi hijau untuk lihat nama</span>

@@ -115,7 +115,10 @@ export default async function EventDetail({
     count: totalMap.get(b.id) ?? 0,
     seatRows: b.seatRows,
     seatCols: b.seatCols,
+    seatCellW: b.seatCellW,
+    seatCellH: b.seatCellH,
     seatLayout: b.seatLayout,
+    frontLayout: b.frontLayout,
     facilities: b.facilities,
   }))
 

@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
+  clampCellSize,
   nextSeq,
+  parseCellSize,
   parseSeatLayout,
   rowFirstSeat,
   seatCount,
@@ -9,6 +11,7 @@ import {
   toggleCol,
   toggleRow,
   validateSeatShape,
+  SEAT_CELL_MAX,
 } from './seat'
 
 /** Grid 3x3 kosong, semua nonaktif. */
@@ -173,6 +176,25 @@ describe('layout lama tetap dibaca tanpa migrasi', () => {
   it('layout null tetap kosong', () => {
     expect(parseSeatLayout({ seatRows: 0, seatCols: 0, seatLayout: null }).cells).toEqual([])
     expect(parseSeatLayout({ seatRows: 2, seatCols: 2, seatLayout: 'bukan json' }).cells).toEqual([])
+  })
+})
+
+describe('ukuran kotak kursi (rasio lebar:tinggi)', () => {
+  it('default persegi 1:1', () => {
+    expect(parseCellSize({})).toEqual({ w: 1, h: 1 })
+  })
+
+  it('membaca rasio tersimpan', () => {
+    expect(parseCellSize({ seatCellW: 2, seatCellH: 1 })).toEqual({ w: 2, h: 1 })
+  })
+
+  it('membatasi nilai ke rentang yang wajar', () => {
+    expect(clampCellSize(0)).toBe(1)
+    expect(clampCellSize(99)).toBe(SEAT_CELL_MAX)
+    expect(clampCellSize(-3)).toBe(1)
+    expect(clampCellSize('abc')).toBe(1)
+    expect(clampCellSize(undefined)).toBe(1)
+    expect(clampCellSize(3.8)).toBe(3)
   })
 })
 

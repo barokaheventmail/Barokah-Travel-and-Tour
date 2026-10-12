@@ -126,7 +126,10 @@ model Bus {
   order     Int      @default(0)
   seatRows  Int      @default(0)
   seatCols  Int      @default(0)
+  seatCellW Int      @default(1)
+  seatCellH Int      @default(1)
   seatLayout String?  @db.Text
+  frontLayout String? @db.Text
   facilities String?  @db.Text
   createdAt DateTime @default(now())
 

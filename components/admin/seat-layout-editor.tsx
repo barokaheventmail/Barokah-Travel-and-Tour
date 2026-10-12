@@ -2,10 +2,12 @@
 
 import { useRouter } from 'next/navigation'
 import { Fragment, useState } from 'react'
-import { Armchair, Check, ChevronDown, Loader2, Minus, Plus, Trash2, Users } from 'lucide-react'
+import { Armchair, Check, ChevronDown, Eraser, Loader2, Minus, Plus, RotateCcw, ShipWheel, Trash2, Users, UsersRound } from 'lucide-react'
 import { BusFacilitiesEditor } from '@/components/admin/bus-facilities-editor'
+import { BusFront } from '@/components/bus-front'
 import { ConfirmBulkDialog } from '@/components/admin/confirm-bulk-dialog'
 import {
+  parseCellSize,
   parseSeatLayout,
   rowFirstSeat,
   seatCount,
@@ -13,8 +15,18 @@ import {
   toggleCell,
   toggleCol,
   toggleRow,
+  SEAT_CELL_MAX,
+  SEAT_CELL_MIN,
+  type SeatCellSize,
   type SeatLayout,
 } from '@/lib/seat'
+import {
+  defaultFrontLayout,
+  emptyFrontLayout,
+  parseFrontLayout,
+  type FrontLayout,
+  type FrontSlot,
+} from '@/lib/front'
 
 export type SeatBus = {
   id: string
@@ -22,7 +34,10 @@ export type SeatBus = {
   count: number
   seatRows: number
   seatCols: number
+  seatCellW: number
+  seatCellH: number
   seatLayout: string | null
+  frontLayout: string | null
   facilities: string | null
 }
 
@@ -43,18 +58,22 @@ function Stepper({
   label,
   value,
   onChange,
+  min = MIN,
+  max = MAX,
 }: {
   label: string
   value: number
   onChange: (v: number) => void
+  min?: number
+  max?: number
 }) {
   return (
     <div className="flex items-center gap-1.5">
       <span className="text-[11px] font-bold uppercase tracking-wide text-[#657080]">{label}</span>
       <button
         type="button"
-        onClick={() => onChange(Math.max(MIN, value - 1))}
-        disabled={value <= MIN}
+        onClick={() => onChange(Math.max(min, value - 1))}
+        disabled={value <= min}
         aria-label={`Kurangi ${label}`}
         className="flex h-7 w-7 items-center justify-center rounded-full border border-[#dfe4e8] text-[#1b4f9c] transition-colors hover:bg-[#eef4fb] disabled:opacity-40"
       >
@@ -63,8 +82,8 @@ function Stepper({
       <span className="w-6 text-center text-sm font-bold tabular-nums text-[#1b3555]">{value}</span>
       <button
         type="button"
-        onClick={() => onChange(Math.min(MAX, value + 1))}
-        disabled={value >= MAX}
+        onClick={() => onChange(Math.min(max, value + 1))}
+        disabled={value >= max}
         aria-label={`Tambah ${label}`}
         className="flex h-7 w-7 items-center justify-center rounded-full border border-[#dfe4e8] text-[#1b4f9c] transition-colors hover:bg-[#eef4fb] disabled:opacity-40"
       >
@@ -81,6 +100,13 @@ export function SeatLayoutEditor({ eventId, buses }: { eventId: string; buses: S
   const [layout, setLayout] = useState<SeatLayout>(() =>
     selected ? parseSeatLayout(selected) : { rows: 0, cols: 0, cells: [] },
   )
+  const [front, setFront] = useState<FrontLayout>(() =>
+    selected ? parseFrontLayout(selected.frontLayout, parseSeatLayout(selected).cols) : emptyFrontLayout(),
+  )
+  const [cell, setCell] = useState<SeatCellSize>(() =>
+    selected ? parseCellSize(selected) : { w: 1, h: 1 },
+  )
+  const [placing, setPlacing] = useState<FrontSlot>('driver')
   const [loading, setLoading] = useState(false)
   const [confirmClear, setConfirmClear] = useState(false)
   const [bulkClearOpen, setBulkClearOpen] = useState(false)
@@ -93,8 +119,12 @@ export function SeatLayoutEditor({ eventId, buses }: { eventId: string; buses: S
   const busesWithFacilities = buses.filter((b) => b.facilities).length
 
   function selectBus(bus: SeatBus) {
+    const parsed = parseSeatLayout(bus)
     setSelectedId(bus.id)
-    setLayout(parseSeatLayout(bus))
+    setLayout(parsed)
+    setFront(parseFrontLayout(bus.frontLayout, parsed.cols))
+    setCell(parseCellSize(bus))
+    setPlacing('driver')
     setStatus(null)
     setConfirmClear(false)
     setBulkClearOpen(false)
@@ -105,6 +135,34 @@ export function SeatLayoutEditor({ eventId, buses }: { eventId: string; buses: S
     const r = Math.min(MAX, Math.max(MIN, rows))
     const c = Math.min(MAX, Math.max(MIN, cols))
     setLayout((prev) => ({ rows: r, cols: c, cells: resizeCells(prev.cells, r, c) }))
+    setFront((prev) => ({
+      driver: prev.driver !== null && prev.driver < c ? prev.driver : null,
+      crew: prev.crew !== null && prev.crew < c ? prev.crew : null,
+    }))
+  }
+
+  /** Klik sel strip: hapus kalau sudah terisi, atau taruh slot yang dipilih. */
+  function placeFront(col: number) {
+    setFront((prev) => {
+      const occupant: FrontSlot | null =
+        prev.driver === col ? 'driver' : prev.crew === col ? 'crew' : null
+      if (occupant) return { ...prev, [occupant]: null }
+      const next: FrontLayout = { ...prev, [placing]: col }
+      const other: FrontSlot = placing === 'driver' ? 'crew' : 'driver'
+      if (next[other] === col) next[other] = null
+      return next
+    })
+  }
+
+  /** Geser marker ke kolom lain (drag & drop). */
+  function moveFront(slot: FrontSlot, col: number) {
+    setFront((prev) => {
+      const next: FrontLayout = { ...prev, [slot]: col }
+      const other: FrontSlot = slot === 'driver' ? 'crew' : 'driver'
+      if (next[other] === col) next[other] = null
+      return next
+    })
+    setPlacing(slot)
   }
 
   function setRows(v: number) {
@@ -139,7 +197,10 @@ export function SeatLayoutEditor({ eventId, buses }: { eventId: string; buses: S
         body: JSON.stringify({
           seatRows: layout.rows,
           seatCols: layout.cols,
+          seatCellW: cell.w,
+          seatCellH: cell.h,
           seatLayout: layout.cells,
+          frontLayout: front,
           applyToAll,
         }),
       })
@@ -168,6 +229,8 @@ export function SeatLayoutEditor({ eventId, buses }: { eventId: string; buses: S
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Gagal menghapus layout kursi.')
       setLayout({ rows: 0, cols: 0, cells: [] })
+      setFront(emptyFrontLayout())
+      setCell({ w: 1, h: 1 })
       setConfirmClear(false)
       setStatus({ kind: 'ok', msg: 'Layout kursi unit ini dihapus.' })
       router.refresh()
@@ -192,6 +255,8 @@ export function SeatLayoutEditor({ eventId, buses }: { eventId: string; buses: S
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Gagal menghapus layout kursi semua unit.')
       setLayout({ rows: 0, cols: 0, cells: [] })
+      setFront(emptyFrontLayout())
+      setCell({ w: 1, h: 1 })
       setBulkClearOpen(false)
       setStatus({
         kind: 'ok',
@@ -216,7 +281,11 @@ export function SeatLayoutEditor({ eventId, buses }: { eventId: string; buses: S
           Atur grid kursi per unit seperti membuat tabel: tentukan Baris × Kolom, lalu klik kursi untuk mengaktifkan.
           Nomor kursi mengikuti urutan klik &mdash; baris 3 lalu 1 lalu 2 menghasilkan [3, 1, 2], bukan [1, 2, 3].
           Klik kotak biru di tepi atas atau tepi kiri untuk menyalakan/mematikan seluruh kolom atau baris sekaligus.
+          Lebar &amp; Tinggi mengatur rasio bentuk tiap kotak (mis. Lebar 2 × Tinggi 1 = persegi panjang).
           Posisi kotak yang diklik akan konsisten & dipakai di peta kursi crew.
+          Di strip depan (di bawah dashboard) tempat <strong className="font-semibold text-[#1b4f9c]">Driver</strong> dan{' '}
+          <strong className="font-semibold text-[#2ca84a]">Crew</strong> bisa diatur manual &mdash; default Driver di
+          pojok kanan atas &amp; Crew di kolom kiri.
         </p>
       </div>
 
@@ -255,6 +324,21 @@ export function SeatLayoutEditor({ eventId, buses }: { eventId: string; buses: S
                   <div className="flex flex-wrap items-center gap-4">
                     <Stepper label="Baris" value={layout.rows || MIN} onChange={setRows} />
                     <Stepper label="Kolom" value={layout.cols || MIN} onChange={setCols} />
+                    <span className="hidden h-6 w-px bg-[#dfe4e8] sm:block" />
+                    <Stepper
+                      label="Lebar"
+                      value={cell.w}
+                      min={SEAT_CELL_MIN}
+                      max={SEAT_CELL_MAX}
+                      onChange={(v) => setCell((p) => ({ ...p, w: v }))}
+                    />
+                    <Stepper
+                      label="Tinggi"
+                      value={cell.h}
+                      min={SEAT_CELL_MIN}
+                      max={SEAT_CELL_MAX}
+                      onChange={(v) => setCell((p) => ({ ...p, h: v }))}
+                    />
                   </div>
                   <div className="flex items-center gap-1.5 rounded-full bg-[#eef3fb] px-3 py-1 text-[11px] font-bold text-[#1b4f9c]">
                     <Users size={12} /> {active} kursi aktif · {selected.count} peserta
@@ -267,10 +351,66 @@ export function SeatLayoutEditor({ eventId, buses }: { eventId: string; buses: S
                       Belum ada layout — atur Baris & Kolom untuk mulai menyusun kursi.
                     </p>
                   ) : (
-                  <div
-                    className="grid w-full max-w-xl gap-[2px] sm:gap-[3px]"
-                    style={{ gridTemplateColumns: `repeat(${layout.cols}, minmax(0, 1fr))` }}
-                  >
+                  <div className="w-full max-w-xl">
+                    <div className="mb-2 flex flex-wrap items-center gap-2 rounded-xl border border-[#dfe4e8] bg-[#f8fafc] p-2">
+                      <span className="text-[11px] font-bold uppercase tracking-wide text-[#657080]">Strip depan</span>
+                      <div className="flex items-center gap-1 rounded-full bg-white p-0.5 ring-1 ring-[#dfe4e8]">
+                        <button
+                          type="button"
+                          onClick={() => setPlacing('driver')}
+                          aria-pressed={placing === 'driver'}
+                          className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold transition-colors ${
+                            placing === 'driver' ? 'bg-[#1b4f9c] text-white' : 'text-[#1b4f9c] hover:bg-[#eef4fb]'
+                          }`}
+                        >
+                          <ShipWheel size={12} /> Driver
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPlacing('crew')}
+                          aria-pressed={placing === 'crew'}
+                          className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold transition-colors ${
+                            placing === 'crew' ? 'bg-[#2ca84a] text-white' : 'text-[#1b4f9c] hover:bg-[#eef4fb]'
+                          }`}
+                        >
+                          <UsersRound size={12} /> Crew
+                        </button>
+                      </div>
+                      <div className="ml-auto flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setFront(defaultFrontLayout(layout.cols))}
+                          title="Driver di pojok kanan, Crew di kolom kiri"
+                          className="inline-flex items-center gap-1 rounded-full border border-[#dfe4e8] bg-white px-2.5 py-1 text-[11px] font-bold text-[#1b4f9c] transition-colors hover:bg-[#eef4fb] active:scale-95"
+                        >
+                          <RotateCcw size={12} /> Default
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setFront(emptyFrontLayout())}
+                          className="inline-flex items-center gap-1 rounded-full border border-[#dfe4e8] bg-white px-2.5 py-1 text-[11px] font-bold text-[#657080] transition-colors hover:bg-[#f1f3f5] active:scale-95"
+                        >
+                          <Eraser size={12} /> Kosongkan
+                        </button>
+                      </div>
+                    </div>
+                    <p className="mb-1.5 text-[11px] leading-relaxed text-[#9aa3af]">
+                      Pilih <strong className="font-bold text-[#1b4f9c]">Driver</strong> atau{' '}
+                      <strong className="font-bold text-[#2ca84a]">Crew</strong>, lalu klik sel strip untuk menempatkan.
+                      Klik marker untuk melepas, atau geser (drag) marker ke kolom lain. Posisi ini muncul di peta kursi peserta &amp; crew.
+                    </p>
+                    <BusFront
+                      cols={layout.cols}
+                      front={front}
+                      interactive
+                      placing={placing}
+                      onPlace={placeFront}
+                      onMove={moveFront}
+                    />
+                    <div
+                      className="mt-1.5 grid w-full gap-[2px] sm:gap-[3px]"
+                      style={{ gridTemplateColumns: `repeat(${layout.cols}, minmax(0, 1fr))` }}
+                    >
                     {numbers.map((row, r) =>
                       row.map((n, c) => {
                         const isActive = (layout.cells[r]?.[c] ?? 0) > 0
@@ -282,7 +422,8 @@ export function SeatLayoutEditor({ eventId, buses }: { eventId: string; buses: S
                             aria-pressed={isActive}
                             aria-label={`Kursi baris ${r + 1} kolom ${c + 1}${n !== null ? ` (nomor ${n})` : ''}`}
                             title={isActive ? 'Klik untuk mematikan, Shift+klik untuk mematikan sebaris' : 'Klik untuk menyalakan, Shift+klik untuk menyalakan sebaris'}
-                            className={`flex aspect-square min-w-0 items-center justify-center rounded-sm text-sm font-bold tabular-nums leading-none transition-colors duration-150 ${
+                            style={{ aspectRatio: `${cell.w} / ${cell.h}` }}
+                            className={`flex min-w-0 items-center justify-center text-sm font-bold tabular-nums leading-none transition-colors duration-150 ${
                               isActive
                                 ? 'bg-[#1b4f9c] text-white hover:bg-[#143d79] active:scale-95'
                                 : 'bg-[#eef1f4] text-[#9aa3af] hover:bg-[#e3e8ee] active:scale-95'
@@ -290,23 +431,24 @@ export function SeatLayoutEditor({ eventId, buses }: { eventId: string; buses: S
                           >
                             {n}
                           </button>
-                        )
-                      }),
-                    )}
-                  </div>
-                  )}
-                </div>
+                         )
+                       }),
+                     )}
+                     </div>
+                   </div>
+                   )}
+                 </div>
 
                 <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-4 text-[11px] font-semibold text-[#657080]">
                     <span className="flex items-center gap-1.5">
-                      <span className="inline-block h-3 w-3 rounded bg-[#1b4f9c]" /> Aktif (nomor {active > 0 ? `1–${active}` : '—'})
+                      <span className="inline-block h-3 w-3 bg-[#1b4f9c]" /> Aktif (nomor {active > 0 ? `1–${active}` : '—'})
                     </span>
                     <span className="flex items-center gap-1.5">
-                      <span className="inline-block h-3 w-3 rounded bg-[#eef1f4]" /> Nonaktif
+                      <span className="inline-block h-3 w-3 bg-[#eef1f4]" /> Nonaktif
                     </span>
                     <span className="flex items-center gap-1.5">
-                      <span className="inline-block h-3 w-3 rounded bg-[#eef3fb]" /> Tepi birat = tombol baris/kolom
+                      <span className="inline-block h-3 w-3 bg-[#eef3fb]" /> Tepi birat = tombol baris/kolom
                     </span>
                   </div>
                   <div className="flex flex-wrap gap-2">

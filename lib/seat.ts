@@ -12,6 +12,28 @@ export type SeatLayout = { rows: number; cols: number; cells: number[][] }
 export const SEAT_MIN = 1
 export const SEAT_MAX = 24
 
+/**
+ * Rasio lebar:tinggi tiap kotak kursi. Default 1:1 (persegi); admin bisa
+ * mengubahnya jadi persegi panjang, mis. 2:1 supaya kursi lebih lebar.
+ */
+export const SEAT_CELL_MIN = 1
+export const SEAT_CELL_MAX = 6
+
+export type SeatCellSize = { w: number; h: number }
+
+export function clampCellSize(value: unknown): number {
+  const n = Math.floor(Number(value))
+  if (!Number.isFinite(n)) return SEAT_CELL_MIN
+  return Math.min(SEAT_CELL_MAX, Math.max(SEAT_CELL_MIN, n))
+}
+
+export function parseCellSize(bus: {
+  seatCellW?: number | null
+  seatCellH?: number | null
+}): SeatCellSize {
+  return { w: clampCellSize(bus.seatCellW), h: clampCellSize(bus.seatCellH) }
+}
+
 type SeatLayoutSource = {
   seatRows?: number | null
   seatCols?: number | null

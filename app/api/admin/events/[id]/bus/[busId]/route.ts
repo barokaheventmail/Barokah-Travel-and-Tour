@@ -3,7 +3,8 @@ import { Prisma } from '@prisma/client'
 import { canManage, requireAdminSession } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { logger } from '@/lib/logger'
-import { seatCount, serializeSeatLayout, validateSeatShape } from '@/lib/seat'
+import { clampCellSize, seatCount, serializeSeatLayout, validateSeatShape } from '@/lib/seat'
+import { serializeFrontLayout, validateFrontLayout } from '@/lib/front'
 import { serializeFacilities, validateFacilities } from '@/lib/facilities'
 
 type Params = { params: Promise<{ id: string; busId: string }> }
@@ -40,7 +41,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
         const cleared = await prisma.$transaction(async (tx) => {
           const result = await tx.bus.updateMany({
             where: { eventId: id },
-            data: { seatRows: 0, seatCols: 0, seatLayout: null },
+            data: { seatRows: 0, seatCols: 0, seatCellW: 1, seatCellH: 1, seatLayout: null, frontLayout: null },
           })
           await tx.activityLog.create({
             data: { eventId: id, userId: session.sub, action: 'bus.seatLayoutClear', detail: { scope: 'all', buses: result.count } },
@@ -53,14 +54,14 @@ export async function PATCH(request: NextRequest, { params }: Params) {
         return NextResponse.json({ error: 'Gagal menghapus layout kursi semua unit.' }, { status: 500 })
       }
     }
-    if (!existing.seatRows && !existing.seatCols && !existing.seatLayout) {
+    if (!existing.seatRows && !existing.seatCols && !existing.seatLayout && !existing.frontLayout) {
       return NextResponse.json({ bus: existing })
     }
     try {
       const bus = await prisma.$transaction(async (tx) => {
         const updated = await tx.bus.update({
           where: { id: busId },
-          data: { seatRows: 0, seatCols: 0, seatLayout: null },
+          data: { seatRows: 0, seatCols: 0, seatCellW: 1, seatCellH: 1, seatLayout: null, frontLayout: null },
         })
         await tx.activityLog.create({
           data: { eventId: id, userId: session.sub, action: 'bus.seatLayoutClear', detail: { name: existing.name } },
@@ -183,19 +184,26 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   const shape = validateSeatShape(body.seatRows, body.seatCols, body.seatLayout)
   if (shape.error) return NextResponse.json({ error: shape.error }, { status: 400 })
 
+  const frontProvided = body.frontLayout !== undefined
+  const front = validateFrontLayout(body.frontLayout, shape.cols)
+  if (front.error) return NextResponse.json({ error: front.error }, { status: 400 })
+  const frontData = frontProvided ? { frontLayout: serializeFrontLayout(front.front) } : {}
+
+  const cellData = { seatCellW: clampCellSize(body.seatCellW), seatCellH: clampCellSize(body.seatCellH) }
+
   try {
     const layout = serializeSeatLayout(shape.rows, shape.cols, shape.cells)
     const applyToAll = body.applyToAll === true
     const bus = await prisma.$transaction(async (tx) => {
       const updated = await tx.bus.update({
         where: { id: busId },
-        data: { seatRows: shape.rows, seatCols: shape.cols, seatLayout: layout },
+        data: { seatRows: shape.rows, seatCols: shape.cols, ...cellData, seatLayout: layout, ...frontData },
       })
       let appliedToAll = 0
       if (applyToAll) {
         const result = await tx.bus.updateMany({
           where: { eventId: id, id: { not: busId } },
-          data: { seatRows: shape.rows, seatCols: shape.cols, seatLayout: layout },
+          data: { seatRows: shape.rows, seatCols: shape.cols, ...cellData, seatLayout: layout, ...frontData },
         })
         appliedToAll = result.count
       }
@@ -226,6 +234,12 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     })
     return NextResponse.json({ bus })
   } catch (err) {
+    logger.error('bus seat layout save failed', {
+      eventId: id,
+      busId,
+      by: session.username,
+      error: err instanceof Error ? err.message : String(err),
+    })
     return NextResponse.json({ error: 'Gagal menyimpan layout kursi.' }, { status: 500 })
   }
 }

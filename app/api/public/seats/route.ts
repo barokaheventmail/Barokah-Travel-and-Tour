@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
       eventId,
       ...(busIds.length ? { id: { in: busIds } } : {}),
     },
-    select: { id: true, name: true, seatRows: true, seatCols: true, seatLayout: true, facilities: true },
+    select: { id: true, name: true, seatRows: true, seatCols: true, seatCellW: true, seatCellH: true, seatLayout: true, frontLayout: true, facilities: true },
     orderBy: { order: 'asc' },
   })
 
@@ -53,7 +53,10 @@ export async function GET(request: NextRequest) {
       busName: bus.name,
       seatRows: bus.seatRows,
       seatCols: bus.seatCols,
+      seatCellW: bus.seatCellW,
+      seatCellH: bus.seatCellH,
       seatLayout: bus.seatLayout,
+      frontLayout: bus.frontLayout,
       total: seats.length,
       filled: seats.filter((p) => p.scannedAt !== null).length,
       facilities: parseFacilities(bus.facilities),
