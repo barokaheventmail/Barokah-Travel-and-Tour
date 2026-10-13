@@ -22,9 +22,7 @@ export function PublicVwMap({
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(0)
 
-  const ownRowRef = useRef<HTMLTableRowElement | null>(null)
   const jumpedRef = useRef<string | null>(null)
-  const scrolledRef = useRef(false)
 
   useEffect(() => {
     let cancelled = false
@@ -65,7 +63,6 @@ export function PublicVwMap({
 
   useEffect(() => {
     jumpedRef.current = null
-    scrolledRef.current = false
   }, [highlightVehicle, highlightName])
 
   useEffect(() => {
@@ -77,13 +74,6 @@ export function PublicVwMap({
       jumpedRef.current = highlightVehicle
     }
   }, [data, highlightVehicle])
-
-  useEffect(() => {
-    if (scrolledRef.current) return
-    if (!highlightVehicle || !ownRowRef.current) return
-    ownRowRef.current.scrollIntoView({ block: 'center' })
-    scrolledRef.current = true
-  }, [page, data, highlightVehicle, highlightName])
 
   const groups = data ?? []
   const hasVw = groups.some((group) => group.rank === 0)
@@ -128,7 +118,6 @@ export function PublicVwMap({
                       return (
                         <tr
                           key={`${group.vehicle}-${j}`}
-                          ref={isMyName ? ownRowRef : undefined}
                           className={groupBase}
                         >
                           {j === 0 && (

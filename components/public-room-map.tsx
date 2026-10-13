@@ -22,9 +22,7 @@ export function PublicRoomMap({
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(0)
 
-  const ownRowRef = useRef<HTMLTableRowElement | null>(null)
   const jumpedRef = useRef<string | null>(null)
-  const scrolledRef = useRef(false)
 
   useEffect(() => {
     let cancelled = false
@@ -66,7 +64,6 @@ export function PublicRoomMap({
   // Peserta (dari QR): reset penanda saat target highlight berubah.
   useEffect(() => {
     jumpedRef.current = null
-    scrolledRef.current = false
   }, [highlightRoom, highlightName])
 
   // Peserta (dari QR): lompat ke halaman yang memuat kamarnya.
@@ -79,14 +76,6 @@ export function PublicRoomMap({
       jumpedRef.current = highlightRoom
     }
   }, [data, highlightRoom])
-
-  // Peserta (dari QR): gulir ke baris namanya sekali setelah tampil.
-  useEffect(() => {
-    if (scrolledRef.current) return
-    if (!highlightRoom || !ownRowRef.current) return
-    ownRowRef.current.scrollIntoView({ block: 'center' })
-    scrolledRef.current = true
-  }, [page, data, highlightRoom, highlightName])
 
   const rooms = data ?? []
   const pageCount = Math.max(1, Math.ceil(rooms.length / PAGE_SIZE))
@@ -133,7 +122,6 @@ export function PublicRoomMap({
                       return (
                         <tr
                           key={`${group.room}-${j}`}
-                          ref={isMyName ? ownRowRef : undefined}
                           className={groupBase}
                         >
                           {j === 0 && (
