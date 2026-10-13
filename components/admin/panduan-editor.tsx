@@ -777,6 +777,8 @@ export function PanduanEditor({
     'rounded-lg border border-[#dfe4e8] bg-white px-3 py-2 text-sm font-semibold text-[#1b3555] outline-none transition-colors placeholder:text-[#9aa3af] focus:border-[#1b4f9c] focus:ring-2 focus:ring-[#1b4f9c]/15'
   const descRowCls =
     'rounded-lg border border-[#dfe4e8] bg-white px-3 py-2 text-xs font-medium text-[#1b3555] outline-none transition-colors placeholder:text-[#9aa3af] focus:border-[#1b4f9c] focus:ring-2 focus:ring-[#1b4f9c]/15'
+  const ruleRowCls =
+    'rounded-lg border border-[#dfe4e8] bg-white px-3 py-2 text-xs font-semibold text-[#1b3555] outline-none transition-colors placeholder:text-[#9aa3af] focus:border-[#1b4f9c] focus:ring-2 focus:ring-[#1b4f9c]/15'
   const addBtnCls =
     'flex items-center gap-1 rounded-full bg-[#eef4fb] px-3 py-1.5 text-[11px] font-bold text-[#1b4f9c] transition-colors hover:bg-[#e2ecf8]'
 
@@ -1128,7 +1130,7 @@ export function PanduanEditor({
                       onChange={(e) => setRuleText(r, e.target.value)}
                       placeholder="Tulis isi aturan…"
                       rows={2}
-                      className={`${rowCls} min-w-0 flex-1 resize-y`}
+                      className={`${ruleRowCls} min-w-0 flex-1 resize-y`}
                     />
                     <div className="flex shrink-0 flex-col gap-1">
                       <button type="button" onClick={() => moveRule(r, -1)} disabled={r === 0} aria-label="Naikkan aturan" className="rounded-lg p-1.5 text-[#657080] transition-colors hover:bg-[#eef4fb] hover:text-[#1b4f9c] disabled:opacity-30">
@@ -1152,7 +1154,7 @@ export function PanduanEditor({
                             value={item}
                             onChange={(e) => setRuleItem(r, j, e.target.value)}
                             placeholder="Poin rincian (opsional)"
-                            className={`${rowCls} min-w-0 flex-1`}
+                            className={`${ruleRowCls} min-w-0 flex-1`}
                           />
                           <button type="button" onClick={() => removeRuleItem(r, j)} aria-label="Hapus poin" className="shrink-0 rounded-lg p-1.5 text-[#657080] transition-colors hover:bg-red-50 hover:text-red-600">
                             <Trash2 size={14} />

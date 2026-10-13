@@ -108,6 +108,59 @@ export function groupByRoom(participants: ParticipantRow[], buses: BusRow[]): Ro
     })
 }
 
+export type VehicleInput = {
+  vw?: string | null
+  jeepParis?: string | null
+  jeepMerapi?: string | null
+  jeepBromo?: string | null
+}
+
+export type VehicleInfo = { label: string; rank: number }
+
+export const UNASSIGNED_VEHICLE = 'Tanpa Kendaraan'
+
+export function vehicleInfo(p: VehicleInput): VehicleInfo {
+  const vw = (p.vw ?? '').trim()
+  if (vw) return { label: vw, rank: 0 }
+  const jeepParis = (p.jeepParis ?? '').trim()
+  if (jeepParis) return { label: jeepParis, rank: 1 }
+  const jeepMerapi = (p.jeepMerapi ?? '').trim()
+  if (jeepMerapi) return { label: jeepMerapi, rank: 2 }
+  const jeepBromo = (p.jeepBromo ?? '').trim()
+  if (jeepBromo) return { label: jeepBromo, rank: 3 }
+  return { label: UNASSIGNED_VEHICLE, rank: 4 }
+}
+
+export function vehicleLabel(p: VehicleInput): string {
+  return vehicleInfo(p).label
+}
+
+export const JEEP_DISPLAY: Record<number, string> = {
+  1: 'JEEP PARIS',
+  2: 'JEEP MERAPI',
+  3: 'JEEP BROMO',
+}
+
+export function vehicleSectionTitle(
+  counts: { vw: number; jeepParis: number; jeepMerapi: number; jeepBromo: number },
+  vwName?: string | null,
+  vwTitle?: string | null,
+): string {
+  const override = (vwTitle ?? '').trim()
+  if (override) return override
+  if (counts.vw > 0) return (vwName ?? '').trim() || 'VW MAGELANG'
+  if (counts.jeepParis > 0) return JEEP_DISPLAY[1]
+  if (counts.jeepMerapi > 0) return JEEP_DISPLAY[2]
+  if (counts.jeepBromo > 0) return JEEP_DISPLAY[3]
+  return 'Denah VW'
+}
+
+export function compareVehicleLabel(a: VehicleInfo, b: VehicleInfo): number {
+  if (a.rank !== b.rank) return a.rank - b.rank
+  if (a.label === UNASSIGNED_VEHICLE) return 0
+  return a.label.localeCompare(b.label, undefined, { numeric: true })
+}
+
 export function groupByVw(participants: ParticipantRow[], buses: BusRow[]): VwGroup[] {
   const { order: busOrder, name: busName } = busMaps(buses)
   const groups = new Map<string, { vw: string; members: RawMember[] }>()

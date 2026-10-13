@@ -8,7 +8,7 @@ import { notifyParticipantAdded } from '@/lib/events'
 export function AddParticipant({ eventId, buses }: { eventId: string; buses: { id: string; name: string }[] }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
-  const [form, setForm] = useState({ name: '', busName: buses[0]?.name ?? 'Bus 1', phone: '', seat: '', room: '', roomType: '', vw: '', birthDate: '' })
+  const [form, setForm] = useState({ name: '', busName: buses[0]?.name ?? 'Bus 1', phone: '', seat: '', room: '', roomType: '', vw: '', jeepParis: '', jeepMerapi: '', jeepBromo: '', birthDate: '' })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -28,7 +28,7 @@ export function AddParticipant({ eventId, buses }: { eventId: string; buses: { i
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Gagal menambah peserta.')
-      setForm({ name: '', busName: form.busName, phone: '', seat: '', room: '', roomType: '', vw: '', birthDate: '' })
+      setForm({ name: '', busName: form.busName, phone: '', seat: '', room: '', roomType: '', vw: '', jeepParis: '', jeepMerapi: '', jeepBromo: '', birthDate: '' })
       notifyParticipantAdded()
       router.refresh()
     } catch (err) {
@@ -98,6 +98,18 @@ export function AddParticipant({ eventId, buses }: { eventId: string; buses: { i
         <div>
           <label className={labelCls}>No VW</label>
           <input value={form.vw} onChange={(e) => set('vw', e.target.value)} placeholder="No VW" className={inputCls} />
+        </div>
+        <div>
+          <label className={labelCls}>Jeep Paris</label>
+          <input value={form.jeepParis} onChange={(e) => set('jeepParis', e.target.value)} placeholder="No Jeep Paris" className={inputCls} />
+        </div>
+        <div>
+          <label className={labelCls}>Jeep Merapi</label>
+          <input value={form.jeepMerapi} onChange={(e) => set('jeepMerapi', e.target.value)} placeholder="No Jeep Merapi" className={inputCls} />
+        </div>
+        <div>
+          <label className={labelCls}>Jeep Bromo</label>
+          <input value={form.jeepBromo} onChange={(e) => set('jeepBromo', e.target.value)} placeholder="No Jeep Bromo" className={inputCls} />
         </div>
         <div>
           <label className={labelCls}>Tanggal Lahir</label>

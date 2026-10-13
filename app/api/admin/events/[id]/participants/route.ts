@@ -14,6 +14,9 @@ const participantSchema = z.object({
   room: z.string().trim().nullish(),
   roomType: z.string().trim().nullish(),
   vw: z.string().trim().nullish(),
+  jeepParis: z.string().trim().nullish(),
+  jeepMerapi: z.string().trim().nullish(),
+  jeepBromo: z.string().trim().nullish(),
   busName: z.string().trim().nullish(),
   birthDate: z.string().trim().nullish(),
 })
@@ -57,6 +60,9 @@ export async function GET(request: NextRequest, { params }: Params) {
       { room: { contains: q } },
       { roomType: { contains: q } },
       { vw: { contains: q } },
+      { jeepParis: { contains: q } },
+      { jeepMerapi: { contains: q } },
+      { jeepBromo: { contains: q } },
       { seat: { contains: q } },
       { birthPlace: { contains: q } },
     ]
@@ -87,6 +93,9 @@ export async function GET(request: NextRequest, { params }: Params) {
       room: p.room,
       roomType: p.roomType,
       vw: p.vw,
+      jeepParis: p.jeepParis,
+      jeepMerapi: p.jeepMerapi,
+      jeepBromo: p.jeepBromo,
       scannedAt: p.scannedAt ? p.scannedAt.toISOString() : null,
       scannedBy: p.scannedBy,
     })),
@@ -118,7 +127,7 @@ export async function POST(request: NextRequest, { params }: Params) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Data tidak valid' }, { status: 400 })
   }
 
-  const { name, phone, seat, room, roomType, vw, busName, birthDate } = parsed.data
+  const { name, phone, seat, room, roomType, vw, jeepParis, jeepMerapi, jeepBromo, busName, birthDate } = parsed.data
   const wantedBus = busName || 'Bus 1'
 
   const participant = await prisma.$transaction(async (tx) => {
@@ -145,6 +154,9 @@ export async function POST(request: NextRequest, { params }: Params) {
         room: room || null,
         roomType: roomType || null,
         vw: vw || null,
+        jeepParis: jeepParis || null,
+        jeepMerapi: jeepMerapi || null,
+        jeepBromo: jeepBromo || null,
         birthDate: birthDate ? new Date(birthDate) : null,
         token,
         ticketCode: ticketCodeFromToken(event.date, token),

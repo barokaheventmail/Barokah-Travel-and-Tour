@@ -20,6 +20,9 @@ export type RowParticipant = {
   room: string | null
   roomType: string | null
   vw: string | null
+  jeepParis: string | null
+  jeepMerapi: string | null
+  jeepBromo: string | null
   scannedAt: string | null
   scannedBy: { username: string; name: string | null } | null
 }

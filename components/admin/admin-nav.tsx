@@ -59,12 +59,12 @@ export function AdminNav({ role, className = '' }: { role: string; className?: s
           <Link
             key={item.href}
             href={item.href}
-            className={`flex shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold transition-colors duration-200 lg:w-full lg:rounded-none lg:px-5 ${
+            className={`flex shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold transition-colors duration-200 lg:w-full lg:rounded-none lg:px-7 ${
               item.pushBottom ? 'lg:mt-auto' : ''
             } ${active ? 'bg-[#1b4f9c] text-white' : 'text-[#657080] hover:bg-[#f1f3f5]'}`}
           >
             <Icon size={14} />
-            <span className="whitespace-nowrap">{item.label}</span>
+            <span className="whitespace-nowrap lg:ml-1.5">{item.label}</span>
           </Link>
         )
       })}

@@ -19,6 +19,9 @@ export type RowParticipant = {
   room: string | null
   roomType: string | null
   vw: string | null
+  jeepParis: string | null
+  jeepMerapi: string | null
+  jeepBromo: string | null
   scannedAt: string | null
   scannedBy: { username: string } | null
 }
@@ -35,6 +38,9 @@ export function EditParticipant({ eventId, participant, buses }: { eventId: stri
     room: '',
     roomType: '',
     vw: '',
+    jeepParis: '',
+    jeepMerapi: '',
+    jeepBromo: '',
     busId: '',
     order: '',
   })
@@ -51,6 +57,9 @@ export function EditParticipant({ eventId, participant, buses }: { eventId: stri
       room: participant.room ?? '',
       roomType: participant.roomType ?? '',
       vw: participant.vw ?? '',
+      jeepParis: participant.jeepParis ?? '',
+      jeepMerapi: participant.jeepMerapi ?? '',
+      jeepBromo: participant.jeepBromo ?? '',
       busId: participant.busId,
       order: String(participant.order),
     })
@@ -76,6 +85,9 @@ export function EditParticipant({ eventId, participant, buses }: { eventId: stri
         room: form.room.trim(),
         roomType: form.roomType.trim(),
         vw: form.vw.trim(),
+        jeepParis: form.jeepParis.trim(),
+        jeepMerapi: form.jeepMerapi.trim(),
+        jeepBromo: form.jeepBromo.trim(),
         busId: form.busId,
         order: Number(form.order),
       }
@@ -159,6 +171,18 @@ export function EditParticipant({ eventId, participant, buses }: { eventId: stri
               <div>
                 <label className={labelCls}>No VW</label>
                 <input value={form.vw} onChange={(e) => set('vw', e.target.value)} placeholder="No VW" className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Jeep Paris</label>
+                <input value={form.jeepParis} onChange={(e) => set('jeepParis', e.target.value)} placeholder="No Jeep Paris" className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Jeep Merapi</label>
+                <input value={form.jeepMerapi} onChange={(e) => set('jeepMerapi', e.target.value)} placeholder="No Jeep Merapi" className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Jeep Bromo</label>
+                <input value={form.jeepBromo} onChange={(e) => set('jeepBromo', e.target.value)} placeholder="No Jeep Bromo" className={inputCls} />
               </div>
               <div>
                 <label className={labelCls}>Unit / Bus</label>

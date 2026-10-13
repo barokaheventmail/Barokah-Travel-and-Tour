@@ -14,6 +14,9 @@ const updateSchema = z
     room: z.string().trim().nullish(),
     roomType: z.string().trim().nullish(),
     vw: z.string().trim().nullish(),
+    jeepParis: z.string().trim().nullish(),
+    jeepMerapi: z.string().trim().nullish(),
+    jeepBromo: z.string().trim().nullish(),
     busId: z.string().min(1, 'Pilih bus.').optional(),
     order: z.coerce.number().int('Nomor urut harus angka bulat.').positive('Nomor urut harus lebih dari 0.').optional(),
   })
@@ -55,6 +58,9 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   if (data.room !== undefined) patch.room = data.room || null
   if (data.roomType !== undefined) patch.roomType = data.roomType || null
   if (data.vw !== undefined) patch.vw = data.vw || null
+  if (data.jeepParis !== undefined) patch.jeepParis = data.jeepParis || null
+  if (data.jeepMerapi !== undefined) patch.jeepMerapi = data.jeepMerapi || null
+  if (data.jeepBromo !== undefined) patch.jeepBromo = data.jeepBromo || null
 
   let busId = existing.busId
   if (data.busId) {

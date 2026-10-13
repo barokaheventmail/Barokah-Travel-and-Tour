@@ -4,18 +4,18 @@ import { Fragment, useEffect, useRef, useState } from 'react'
 import { Car, ChevronLeft, ChevronRight, Loader2, SearchX } from 'lucide-react'
 
 type Member = { name: string; busName: string }
-type Group = { vw: string; members: Member[] }
+type Group = { vehicle: string; rank: number; members: Member[] }
 
 const REFRESH_MS = 10000
 const PAGE_SIZE = 25
 
 export function PublicVwMap({
   eventId,
-  highlightVw,
+  highlightVehicle,
   highlightName,
 }: {
   eventId: string
-  highlightVw?: string | null
+  highlightVehicle?: string | null
   highlightName?: string | null
 }) {
   const [data, setData] = useState<Group[] | null>(null)
@@ -66,26 +66,28 @@ export function PublicVwMap({
   useEffect(() => {
     jumpedRef.current = null
     scrolledRef.current = false
-  }, [highlightVw, highlightName])
+  }, [highlightVehicle, highlightName])
 
   useEffect(() => {
-    if (!highlightVw || !data) return
-    if (jumpedRef.current === highlightVw) return
-    const idx = data.findIndex((group) => group.vw === highlightVw)
+    if (!highlightVehicle || !data) return
+    if (jumpedRef.current === highlightVehicle) return
+    const idx = data.findIndex((group) => group.vehicle === highlightVehicle)
     if (idx >= 0) {
       setPage(Math.floor(idx / PAGE_SIZE))
-      jumpedRef.current = highlightVw
+      jumpedRef.current = highlightVehicle
     }
-  }, [data, highlightVw])
+  }, [data, highlightVehicle])
 
   useEffect(() => {
     if (scrolledRef.current) return
-    if (!highlightVw || !ownRowRef.current) return
+    if (!highlightVehicle || !ownRowRef.current) return
     ownRowRef.current.scrollIntoView({ block: 'center' })
     scrolledRef.current = true
-  }, [page, data, highlightVw, highlightName])
+  }, [page, data, highlightVehicle, highlightName])
 
   const groups = data ?? []
+  const hasVw = groups.some((group) => group.rank === 0)
+  const vehicleHeader = hasVw ? 'No VW' : 'No'
   const pageCount = Math.max(1, Math.ceil(groups.length / PAGE_SIZE))
   const safePage = Math.min(page, pageCount - 1)
   const start = safePage * PAGE_SIZE
@@ -105,27 +107,27 @@ export function PublicVwMap({
       ) : (
         <>
           <p className="mb-2 flex items-center gap-1.5 text-xs font-bold text-[#1b3555]">
-            <Car size={14} className="text-[#00A3E0]" /> Denah VW — Semua Bus
+            <Car size={14} className="text-[#00A3E0]" /> Denah Kendaraan — Semua Bus
           </p>
           <table className="w-full table-fixed border-collapse border border-[#b9c6d2] text-[13px]">
             <thead>
               <tr className="bg-[#00A3E0] text-[10px] font-bold uppercase tracking-wide text-white">
-                <th className="w-24 border border-[#7fc7e8] px-2 py-2">No VW</th>
+                <th className="w-24 border border-[#7fc7e8] px-2 py-2">{vehicleHeader}</th>
                 <th className="border border-[#7fc7e8] px-3 py-2 text-center">Nama</th>
               </tr>
             </thead>
             <tbody>
               {pageGroups.map((group, i) => {
-                const isMine = highlightVw != null && group.vw === highlightVw
+                const isMine = highlightVehicle != null && group.vehicle === highlightVehicle
                 const groupBase = isMine ? 'bg-[#eef4fb]' : i % 2 === 1 ? 'bg-[#f8fafc]' : 'bg-white'
                 return (
-                  <Fragment key={group.vw}>
+                  <Fragment key={group.vehicle}>
                     {group.members.map((member, j) => {
                       const isMyName = isMine && highlightName != null && member.name === highlightName
                       const top = j === 0 ? ' border-t-2 border-t-[#8a99a8]' : ''
                       return (
                         <tr
-                          key={`${group.vw}-${j}`}
+                          key={`${group.vehicle}-${j}`}
                           ref={isMyName ? ownRowRef : undefined}
                           className={groupBase}
                         >
@@ -134,7 +136,7 @@ export function PublicVwMap({
                               rowSpan={group.members.length}
                               className="border border-[#cdd8e2] border-t-2 border-t-[#8a99a8] px-2 py-2 text-center align-middle text-[11px] font-bold tabular-nums text-[#1b3555]"
                             >
-                              {group.vw}
+                              {group.vehicle}
                             </td>
                           )}
                           <td

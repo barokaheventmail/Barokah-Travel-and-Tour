@@ -8,11 +8,12 @@ export type EventFormData = {
   title: string
   date: string
   location: string
+  vwName: string
   status: 'DRAFT' | 'ACTIVE' | 'CLOSED'
   note: string
 }
 
-const emptyForm: EventFormData = { title: '', date: '', location: '', status: 'ACTIVE', note: '' }
+const emptyForm: EventFormData = { title: '', date: '', location: '', vwName: 'VW MAGELANG', status: 'ACTIVE', note: '' }
 
 function toLocalInput(dateStr: string | null): string {
   const d = dateStr ? new Date(dateStr) : null
@@ -37,6 +38,7 @@ export function EventForm({
           title: initial.title,
           date: initial.date,
           location: initial.location,
+          vwName: initial.vwName ?? 'VW MAGELANG',
           status: initial.status,
           note: initial.note ?? '',
         }
@@ -99,9 +101,13 @@ export function EventForm({
           </select>
         </div>
         <div>
-          <label className="text-xs font-semibold uppercase tracking-wide text-[#657080]">Catatan (opsional)</label>
-          <input value={form.note} onChange={(e) => set('note', e.target.value)} placeholder="Contoh: kuota penuh" className={inputCls} />
+          <label className="text-xs font-semibold uppercase tracking-wide text-[#657080]">Nama VW (Denah VW)</label>
+          <input value={form.vwName} onChange={(e) => set('vwName', e.target.value)} placeholder="VW MAGELANG" className={inputCls} />
         </div>
+      </div>
+      <div>
+        <label className="text-xs font-semibold uppercase tracking-wide text-[#657080]">Catatan (opsional)</label>
+        <input value={form.note} onChange={(e) => set('note', e.target.value)} placeholder="Contoh: kuota penuh" className={inputCls} />
       </div>
 
       {error && <p className="rounded-xl bg-red-50 px-4 py-2.5 text-xs font-semibold text-red-600">{error}</p>}

@@ -69,6 +69,10 @@ model Event {
   denahVwCrewName      String?    @db.VarChar(500)
   denahVwCrewRole      String?    @db.VarChar(500)
   denahVwCrewPhotoUrl  String?    @db.VarChar(500)
+  // Nama tampil unit VW di Denah VW pada panduan peserta. Bisa diedit admin.
+  vwName               String     @default("VW MAGELANG") @db.VarChar(191)
+  // Judul bagian Denah VW (menimpa judul otomatis). Null/kosong = otomatis.
+  vwTitle              String?    @db.VarChar(191)
   // Logo di kepala bagian "Itinerary Perjalanan" pada panduan. Null =
   // memakai gambar bawaan (kiri: logo-barokah.png, kanan: logo-barokah-event.png).
   panduanLogoLeft  String? @db.VarChar(500)
@@ -185,6 +189,9 @@ model Participant {
   room           String?
   roomType       String?
   vw             String?
+  jeepParis      String?
+  jeepMerapi     String?
+  jeepBromo      String?
   token          String    @unique @default(cuid())
   ticketCode     String
   scannedAt      DateTime?

@@ -11,6 +11,9 @@ export type ExcelParticipant = {
   room?: string | null
   roomType?: string | null
   vw?: string | null
+  jeepParis?: string | null
+  jeepMerapi?: string | null
+  jeepBromo?: string | null
 }
 
 export type ExcelBus = {
@@ -82,6 +85,9 @@ export const TEMPLATE_HEADERS = [
   'No Kamar',
   'Tipe Kamar',
   'No VW',
+  'Jeep Paris',
+  'Jeep Merapi',
+  'Jeep Bromo',
 ] as const
 
 const FIELD_LABEL: Record<AssignableField, string> = {
@@ -94,6 +100,9 @@ const FIELD_LABEL: Record<AssignableField, string> = {
   room: 'No Kamar',
   roomType: 'Tipe Kamar',
   vw: 'No VW',
+  jeepParis: 'Jeep Paris',
+  jeepMerapi: 'Jeep Merapi',
+  jeepBromo: 'Jeep Bromo',
   bus: 'Unit',
 }
 
@@ -107,6 +116,9 @@ const FIELD_ORDER: AssignableField[] = [
   'room',
   'roomType',
   'vw',
+  'jeepParis',
+  'jeepMerapi',
+  'jeepBromo',
   'bus',
 ]
 
@@ -173,6 +185,9 @@ const FIELD_ALIASES: Record<AssignableField, string[]> = {
     'kelas kamar',
   ],
   vw: ['no vw', 'vw', 'vehicle', 'no kendaraan', 'kendaraan', 'mobil', 'no mobil', 'nomor vw'],
+  jeepParis: ['jeep paris', 'jeepparis', 'paris'],
+  jeepMerapi: ['jeep merapi', 'jeepmerapi', 'merapi'],
+  jeepBromo: ['jeep bromo', 'jeepbromo', 'bromo'],
   bus: ['bus', 'unit', 'armada', 'no bus', 'nama bus', 'kendaraan bus', 'bus armada', 'nama armada', 'no armada', 'armada bus', 'nama unit', 'no unit', 'unit bus', 'bus unit'],
 }
 
@@ -190,6 +205,9 @@ const FIELD_PATTERNS: { field: AssignableField; re: RegExp }[] = [
   { field: 'roomType', re: /(tipe|type|jenis|kategori|kelas)\s*(kamar|room|penginapan)|room\s*type/ },
   { field: 'room', re: /(no\.?\s*)?(kamar|room|penginapan)\b/ },
   { field: 'vw', re: /(no\.?\s*)?(vw|vehicle|kendaraan|mobil)\b/ },
+  { field: 'jeepParis', re: /jeep\s*paris|^paris$/ },
+  { field: 'jeepMerapi', re: /jeep\s*merapi|^merapi$/ },
+  { field: 'jeepBromo', re: /jeep\s*bromo|^bromo$/ },
   { field: 'bus', re: /\b(bus|unit|armada)\b/ },
 ]
 
@@ -834,6 +852,9 @@ function parseSheet(sheetName: string, rows: unknown[][]): SheetParse {
       room: cellTextAt(row, map.room) || null,
       roomType: cellTextAt(row, map.roomType) || null,
       vw: cellTextAt(row, map.vw) || null,
+      jeepParis: cellTextAt(row, map.jeepParis) || null,
+      jeepMerapi: cellTextAt(row, map.jeepMerapi) || null,
+      jeepBromo: cellTextAt(row, map.jeepBromo) || null,
     })
   }
 
@@ -975,6 +996,9 @@ export type PreviewParticipant = {
   room: string | null
   roomType: string | null
   vw: string | null
+  jeepParis: string | null
+  jeepMerapi: string | null
+  jeepBromo: string | null
 }
 
 export type ImportPreview = {
@@ -1000,6 +1024,9 @@ export function buildPreview(parsed: ExcelParseResult): ImportPreview {
         room: p.room ?? null,
         roomType: p.roomType ?? null,
         vw: p.vw ?? null,
+        jeepParis: p.jeepParis ?? null,
+        jeepMerapi: p.jeepMerapi ?? null,
+        jeepBromo: p.jeepBromo ?? null,
       })),
     })),
     total: parsed.total,
@@ -1023,6 +1050,9 @@ const TEMPLATE_COL_WIDTH: Record<string, number> = {
   'No Kamar': 12,
   'Tipe Kamar': 14,
   'No VW': 12,
+  'Jeep Paris': 12,
+  'Jeep Merapi': 12,
+  'Jeep Bromo': 12,
 }
 
 /**
@@ -1031,12 +1061,12 @@ const TEMPLATE_COL_WIDTH: Record<string, number> = {
  */
 const TEMPLATE_ROWS: (string | number)[][][] = [
   [
-    [1, 'Ahmad Fauzi', 'Sukabumi', '12/03/1998', '085812345678', 'A1', '101', 'Twin', 'VW-01'],
-    [2, 'Siti Rahmawati', 'Bandung', '05/11/2000', '085812345679', 'A2', '102', 'Twin', 'VW-01'],
+    [1, 'Ahmad Fauzi', 'Sukabumi', '12/03/1998', '085812345678', 'A1', '101', 'Twin', 'VW-01', '1', '', ''],
+    [2, 'Siti Rahmawati', 'Bandung', '05/11/2000', '085812345679', 'A2', '102', 'Twin', 'VW-01', '1', '', ''],
   ],
   [
-    [1, 'Nurhaliza Putri', 'Bogor', '30/01/1999', '085812345681', 'B1', '201', 'Double', 'VW-02'],
-    [2, 'Agus Setiawan', 'Depok', '17/09/2001', '085812345682', 'B2', '202', 'Double', 'VW-02'],
+    [1, 'Nurhaliza Putri', 'Bogor', '30/01/1999', '085812345681', 'B1', '201', 'Double', 'VW-02', '', '1', ''],
+    [2, 'Agus Setiawan', 'Depok', '17/09/2001', '085812345682', 'B2', '202', 'Double', 'VW-02', '', '', '1'],
   ],
 ]
 
@@ -1056,6 +1086,7 @@ export const eventSchema = z.object({
   title: z.string().trim().min(1, 'Judul wajib diisi'),
   date: z.string().min(1, 'Tanggal wajib diisi'),
   location: z.string().trim().default(''),
+  vwName: z.string().trim().optional(),
   status: z.enum(['DRAFT', 'ACTIVE', 'CLOSED']).default('ACTIVE'),
   note: z.string().trim().nullish(),
   panduanItinerary: z.string().trim().nullish(),
@@ -1069,6 +1100,8 @@ export const eventPatchSchema = z.object({
   title: z.string().trim().min(1, 'Judul wajib diisi').optional(),
   date: z.string().min(1, 'Tanggal wajib diisi').optional(),
   location: z.string().trim().optional(),
+  vwName: z.string().trim().optional(),
+  vwTitle: z.string().trim().nullish(),
   status: z.enum(['DRAFT', 'ACTIVE', 'CLOSED']).optional(),
   note: z.string().trim().nullish(),
   panduanItinerary: z.string().trim().nullish(),

@@ -177,12 +177,29 @@ export function ParticipantGroups({ eventId, mode }: { eventId: string; mode: 'r
   const [groups, setGroups] = useState<Group[] | null>(null)
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(0)
+  const [autoTitle, setAutoTitle] = useState('')
+  const [vwTitle, setVwTitle] = useState<string | null>(null)
+  const [titleDraft, setTitleDraft] = useState('')
+  const [titleSaving, setTitleSaving] = useState(false)
+  const [titleFailed, setTitleFailed] = useState(false)
+  const [vwDesc, setVwDesc] = useState<string | null>(null)
+  const [descDraft, setDescDraft] = useState('')
+  const [descSaving, setDescSaving] = useState(false)
+  const [descFailed, setDescFailed] = useState(false)
 
   const endpoint = mode === 'room' ? 'rooms' : 'vw'
 
   useEffect(() => {
     setPage(0)
   }, [eventId, mode])
+
+  useEffect(() => {
+    setTitleDraft(vwTitle ?? autoTitle)
+  }, [vwTitle, autoTitle])
+
+  useEffect(() => {
+    setDescDraft(vwDesc ?? autoTitle)
+  }, [vwDesc, autoTitle])
 
   useEffect(() => {
     let cancelled = false
@@ -194,7 +211,12 @@ export function ParticipantGroups({ eventId, mode }: { eventId: string; mode: 'r
       try {
         const res = await fetch(`/api/admin/events/${eventId}/${endpoint}`, { cache: 'no-store' })
         if (!res.ok || cancelled) return
-        const payload = (await res.json().catch(() => null)) as { groups?: ApiGroup[] } | null
+        const payload = (await res.json().catch(() => null)) as {
+          groups?: ApiGroup[]
+          autoTitle?: string
+          vwTitle?: string | null
+          denahVwCrewName?: string | null
+        } | null
         if (!payload || cancelled) return
         setGroups(
           (payload.groups ?? []).map((g) => ({
@@ -204,6 +226,11 @@ export function ParticipantGroups({ eventId, mode }: { eventId: string; mode: 'r
             members: g.members,
           })),
         )
+        if (mode === 'vw') {
+          setAutoTitle(payload.autoTitle ?? '')
+          setVwTitle(payload.vwTitle ?? null)
+          setVwDesc(payload.denahVwCrewName ?? null)
+        }
       } catch {
         // abaikan, refresh berikutnya
       } finally {
@@ -224,6 +251,60 @@ export function ParticipantGroups({ eventId, mode }: { eventId: string; mode: 'r
       window.removeEventListener(PARTICIPANTS_CHANGED_EVENT, onChanged)
     }
   }, [eventId, endpoint, mode])
+
+  async function commitTitle(value?: string) {
+    if (mode !== 'vw' || titleSaving) return
+    const next = (value ?? titleDraft).trim()
+    const baseline = (vwTitle ?? autoTitle).trim()
+    if (next === baseline) {
+      setTitleDraft(vwTitle ?? autoTitle)
+      return
+    }
+    setTitleSaving(true)
+    setTitleFailed(false)
+    try {
+      const res = await fetch(`/api/admin/events/${eventId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ vwTitle: next }),
+      })
+      if (!res.ok) throw new Error('Gagal menyimpan.')
+      setVwTitle(next || null)
+      notifyParticipantsChanged()
+    } catch {
+      setTitleFailed(true)
+      setTitleDraft(vwTitle ?? autoTitle)
+    } finally {
+      setTitleSaving(false)
+    }
+  }
+
+  async function commitDesc(value?: string) {
+    if (mode !== 'vw' || descSaving) return
+    const next = (value ?? descDraft).trim()
+    const baseline = (vwDesc ?? autoTitle).trim()
+    if (next === baseline) {
+      setDescDraft(vwDesc ?? autoTitle)
+      return
+    }
+    setDescSaving(true)
+    setDescFailed(false)
+    try {
+      const res = await fetch(`/api/admin/events/${eventId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ denahVwCrewName: next && next !== autoTitle ? next : null }),
+      })
+      if (!res.ok) throw new Error('Gagal menyimpan.')
+      setVwDesc(next && next !== autoTitle ? next : null)
+      notifyParticipantsChanged()
+    } catch {
+      setDescFailed(true)
+      setDescDraft(vwDesc ?? autoTitle)
+    } finally {
+      setDescSaving(false)
+    }
+  }
 
   const groupsSafe = groups ?? []
   const pageCount = Math.max(1, Math.ceil(groupsSafe.length / PAGE_SIZE))
@@ -251,6 +332,84 @@ export function ParticipantGroups({ eventId, mode }: { eventId: string; mode: 'r
             : 'Kelompok peserta berdasarkan No VW. Klik No VW lalu Enter untuk mengubah.'}{' '}
           Peserta otomatis pindah grup ketika nilainya diubah.
         </p>
+
+        {mode === 'vw' && (
+          <div className="mt-3">
+            <label className="text-[11px] font-semibold uppercase tracking-wide text-[#657080]">Judul Denah VW</label>
+            <div className="mt-1 flex items-center gap-2">
+              <input
+                value={titleDraft}
+                onChange={(e) => setTitleDraft(e.target.value)}
+                onBlur={() => commitTitle()}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    ;(e.target as HTMLInputElement).blur()
+                  } else if (e.key === 'Escape') {
+                    setTitleDraft(vwTitle ?? autoTitle)
+                    ;(e.target as HTMLInputElement).blur()
+                  }
+                }}
+                placeholder={autoTitle || 'Denah VW'}
+                disabled={titleSaving}
+                title={titleFailed ? 'Gagal menyimpan, coba lagi' : undefined}
+                className={`w-full max-w-md rounded-xl border px-3 py-2 text-sm font-semibold text-[#1b3555] outline-none transition-colors placeholder:font-normal placeholder:text-[#9aa3af] focus:ring-2 focus:ring-[#1b4f9c]/15 disabled:opacity-60 ${
+                  titleFailed ? 'border-red-300 bg-red-50' : 'border-[#dfe4e8] bg-[#f8fafc] focus:border-[#1b4f9c] focus:bg-white'
+                }`}
+              />
+              {titleSaving && <Loader2 size={14} className="animate-spin text-[#1b4f9c]" />}
+              {vwTitle && !titleSaving && (
+                <button
+                  type="button"
+                  onClick={() => commitTitle('')}
+                  className="rounded-full border border-[#dfe4e8] px-3 py-1.5 text-[11px] font-bold text-[#1b4f9c] transition-colors hover:bg-[#eef4fb]"
+                >
+                  Otomatis
+                </button>
+              )}
+            </div>
+            <p className="mt-1 text-[11px] text-[#9aa3af]">
+              {vwTitle ? `Ditimpa manual. Klik "Otomatis" untuk memakai judul otomatis (${autoTitle}).` : `Otomatis mengikuti kendaraan: ${autoTitle}.`}
+            </p>
+
+            <label className="mt-3 block text-[11px] font-semibold uppercase tracking-wide text-[#657080]">Deskripsi Denah VW</label>
+            <div className="mt-1 flex items-center gap-2">
+              <input
+                value={descDraft}
+                onChange={(e) => setDescDraft(e.target.value)}
+                onBlur={() => commitDesc()}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    ;(e.target as HTMLInputElement).blur()
+                  } else if (e.key === 'Escape') {
+                    setDescDraft(vwDesc ?? autoTitle)
+                    ;(e.target as HTMLInputElement).blur()
+                  }
+                }}
+                placeholder={autoTitle || 'Ketik deskripsi'}
+                disabled={descSaving}
+                title={descFailed ? 'Gagal menyimpan, coba lagi' : undefined}
+                className={`w-full max-w-md rounded-xl border px-3 py-2 text-sm font-semibold text-[#1b3555] outline-none transition-colors placeholder:font-normal placeholder:text-[#9aa3af] focus:ring-2 focus:ring-[#1b4f9c]/15 disabled:opacity-60 ${
+                  descFailed ? 'border-red-300 bg-red-50' : 'border-[#dfe4e8] bg-[#f8fafc] focus:border-[#1b4f9c] focus:bg-white'
+                }`}
+              />
+              {descSaving && <Loader2 size={14} className="animate-spin text-[#1b4f9c]" />}
+              {vwDesc && !descSaving && (
+                <button
+                  type="button"
+                  onClick={() => commitDesc('')}
+                  className="rounded-full border border-[#dfe4e8] px-3 py-1.5 text-[11px] font-bold text-[#1b4f9c] transition-colors hover:bg-[#eef4fb]"
+                >
+                  Otomatis
+                </button>
+              )}
+            </div>
+            <p className="mt-1 text-[11px] text-[#9aa3af]">
+              {vwDesc ? `Ditimpa manual. Klik "Otomatis" untuk memakai ${autoTitle}.` : `Otomatis mengikuti kendaraan: ${autoTitle}.`}
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="p-5">

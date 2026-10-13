@@ -5,6 +5,12 @@ import { useState } from 'react'
 import { Bus, Loader2, Plus, X } from 'lucide-react'
 import { useModal } from '@/components/admin/use-modal'
 
+const QUICK_UNITS = [
+  { name: 'Jeep Merapi', capacity: 4 },
+  { name: 'Jeep Paris', capacity: 4 },
+  { name: 'Jeep Bromo', capacity: 5 },
+] as const
+
 type AddBusProps = {
   eventId: string
   // 'button' = pemicunya ikut dirender (dipakai saat panel unit masih kosong).
@@ -89,6 +95,29 @@ export function AddBus({ eventId, mode = 'button', open: controlledOpen, onOpenC
               <p className="mt-2 text-[11px] font-semibold text-[#657080]">
                 Nama ini dipakai untuk mengelompokkan peserta dan crew. Bisa diubah nanti.
               </p>
+
+              <div className="mt-3">
+                <p className="text-[11px] font-semibold text-[#657080]">Pilihan cepat</p>
+                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                  {QUICK_UNITS.map((u) => {
+                    const selected = name.trim() === u.name
+                    return (
+                      <button
+                        key={u.name}
+                        type="button"
+                        onClick={() => setName(u.name)}
+                        className={`rounded-full border px-3 py-1.5 text-[11px] font-bold transition-colors ${
+                          selected
+                            ? 'border-[#1b4f9c] bg-[#eef4fb] text-[#1b4f9c]'
+                            : 'border-[#dfe4e8] text-[#657080] hover:bg-[#f1f3f5]'
+                        }`}
+                      >
+                        {u.name} · {u.capacity} orang
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
 
               {error && <p className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-[11px] font-semibold text-red-600">{error}</p>}
 

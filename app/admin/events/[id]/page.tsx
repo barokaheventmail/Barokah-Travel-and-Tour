@@ -236,6 +236,7 @@ export default async function EventDetail({
                     title: event.title,
                     date: event.date.toISOString(),
                     location: event.location,
+                    vwName: event.vwName,
                     status: event.status,
                     note: event.note ?? '',
                   }}

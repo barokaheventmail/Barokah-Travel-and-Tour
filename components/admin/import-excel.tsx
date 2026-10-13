@@ -57,6 +57,9 @@ const FIELD_LABEL: Record<string, string> = {
   room: 'No Kamar',
   roomType: 'Tipe Kamar',
   vw: 'No VW',
+  jeepParis: 'Jeep Paris',
+  jeepMerapi: 'Jeep Merapi',
+  jeepBromo: 'Jeep Bromo',
   bus: 'Unit',
 }
 
@@ -468,6 +471,7 @@ export function ImportExcel({ eventId }: { eventId: string }) {
     setError(null)
     setErrorNotes([])
     setResult(null)
+    setLoading(false)
     if (inputRef.current) inputRef.current.value = ''
   }
 
@@ -482,7 +486,11 @@ export function ImportExcel({ eventId }: { eventId: string }) {
   }
 
   async function checkFile() {
-    if (!file) return
+    if (loading !== false) return
+    if (!file) {
+      inputRef.current?.click()
+      return
+    }
     setLoading('preview')
     setError(null)
     setErrorNotes([])
@@ -555,7 +563,7 @@ export function ImportExcel({ eventId }: { eventId: string }) {
         <button
           type="button"
           onClick={checkFile}
-          disabled={!file || loading !== false}
+          disabled={loading !== false}
           className="flex shrink-0 items-center justify-center gap-1.5 rounded-full bg-[#2ca84a] px-5 py-2.5 text-xs font-bold text-white transition-colors duration-200 hover:bg-[#219b42] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading === 'preview' ? <Loader2 size={14} className="animate-spin" /> : <UploadCloud size={14} />}

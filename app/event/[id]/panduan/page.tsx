@@ -5,6 +5,7 @@ import { Dancing_Script } from 'next/font/google'
 import { BookOpen, Clock3, Download, MapPin, Phone, QrCode } from 'lucide-react'
 import { prisma } from '@/lib/db'
 import { parseItineraryDoc, groupItineraryByDay } from '@/lib/itinerary'
+import { vehicleLabel, vehicleSectionTitle } from '@/lib/participant-groups'
 import { DEFAULT_PANDUAN_RULES, parsePanduanRules } from '@/lib/panduan-rules'
 import { qrDataUrl, encodeToken } from '@/lib/scan'
 import { Logo } from '@/components/site'
@@ -83,7 +84,7 @@ function SectionLogos({
 async function getEvent(id: string) {
   return prisma.event.findUnique({
     where: { id },
-    select: { id: true, title: true, date: true, location: true, panduanItinerary: true, panduanRules: true, crewName: true, crewPhone: true, crewRole: true, crewPhotoUrl: true, denahKamarCrewName: true, denahKamarCrewRole: true, denahKamarCrewPhotoUrl: true, denahVwCrewName: true, denahVwCrewRole: true, denahVwCrewPhotoUrl: true, panduanLogoLeft: true, panduanLogoRight: true, panduanLogoTopRight: true, panduanLogoTopRight2: true },
+    select: { id: true, title: true, date: true, location: true, vwName: true, vwTitle: true, panduanItinerary: true, panduanRules: true, crewName: true, crewPhone: true, crewRole: true, crewPhotoUrl: true, denahKamarCrewName: true, denahKamarCrewRole: true, denahKamarCrewPhotoUrl: true, denahVwCrewName: true, denahVwCrewRole: true, denahVwCrewPhotoUrl: true, panduanLogoLeft: true, panduanLogoRight: true, panduanLogoTopRight: true, panduanLogoTopRight2: true },
   })
 }
 
@@ -109,7 +110,7 @@ export default async function EventPanduanPage({
   const participant = participantToken
     ? await prisma.participant.findUnique({
         where: { token: participantToken },
-        select: { id: true, eventId: true, busId: true, seat: true, room: true, vw: true, name: true, token: true, ticketCode: true },
+        select: { id: true, eventId: true, busId: true, seat: true, room: true, vw: true, jeepParis: true, jeepMerapi: true, jeepBromo: true, name: true, token: true, ticketCode: true },
       })
     : null
   const ownBus = participant && participant.eventId === id ? participant : null
@@ -121,6 +122,19 @@ export default async function EventPanduanPage({
   })
 
   const ownBusName = ownBus ? (buses.find((b) => b.id === ownBus.busId)?.name ?? null) : null
+  const ownVehicle = ownBus ? vehicleLabel(ownBus) : null
+
+  const [vwCount, jeepParisCount, jeepMerapiCount, jeepBromoCount] = await Promise.all([
+    prisma.participant.count({ where: { eventId: id, vw: { not: '' } } }),
+    prisma.participant.count({ where: { eventId: id, jeepParis: { not: '' } } }),
+    prisma.participant.count({ where: { eventId: id, jeepMerapi: { not: '' } } }),
+    prisma.participant.count({ where: { eventId: id, jeepBromo: { not: '' } } }),
+  ])
+  const vehicleTitle = vehicleSectionTitle(
+    { vw: vwCount, jeepParis: jeepParisCount, jeepMerapi: jeepMerapiCount, jeepBromo: jeepBromoCount },
+    event.vwName,
+    event.vwTitle,
+  )
   const ownQr = ownBus ? await qrDataUrl(encodeToken(ownBus.token), 320) : null
 
   const { rows: itinerary, notes: itineraryNotes, sideNotes: itinerarySideNotes, footerNote: itineraryFooterNote } = parseItineraryDoc(event.panduanItinerary)
@@ -605,8 +619,8 @@ export default async function EventPanduanPage({
                   topRight={event.panduanLogoTopRight}
                   topRight2={event.panduanLogoTopRight2}
                 />
-                <h2 className="mb-6 mt-12 text-center text-xl font-extrabold uppercase tracking-wide text-[#00A3E0]">Denah VW</h2>
-                <PublicVwMap eventId={id} highlightVw={ownBus?.vw ?? null} highlightName={ownBus?.name ?? null} />
+                <h2 className="mb-6 mt-12 text-center text-xl font-extrabold uppercase tracking-wide text-[#00A3E0]">{vehicleTitle}</h2>
+                <PublicVwMap eventId={id} highlightVehicle={ownVehicle} highlightName={ownBus?.name ?? null} />
                 {(event.denahVwCrewName || event.denahVwCrewPhotoUrl) && (
                   <div className="mt-6 flex flex-col items-end pr-8 pt-4 text-center">
                     {event.denahVwCrewPhotoUrl ? (
@@ -625,7 +639,7 @@ export default async function EventPanduanPage({
                       className="relative z-[1] mt-3 block w-36 bg-[#f5b915] px-3 py-1 text-center text-sm font-extrabold uppercase tracking-wide text-white"
                       style={{ clipPath: 'polygon(0 0, 100% 0, calc(100% - 12px) 50%, 100% 100%, 0 100%, 12px 50%)' }}
                     >
-                      {event.denahVwCrewName}
+                      {event.denahVwCrewName || vehicleTitle}
                     </strong>
                   </div>
                 )}

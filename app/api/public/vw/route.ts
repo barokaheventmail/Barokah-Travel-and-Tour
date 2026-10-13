@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { compareVehicleLabel, vehicleInfo } from '@/lib/participant-groups'
 
 export async function GET(request: NextRequest) {
   const eventId = (request.nextUrl.searchParams.get('eventId') ?? '').trim().slice(0, 100)
@@ -23,21 +24,19 @@ export async function GET(request: NextRequest) {
 
   const participants = await prisma.participant.findMany({
     where: { eventId },
-    select: { busId: true, vw: true, name: true, order: true },
+    select: { busId: true, vw: true, jeepParis: true, jeepMerapi: true, jeepBromo: true, name: true, order: true },
   })
 
   type Member = { name: string; busName: string; busOrder: number; order: number }
-  type Group = { vw: string; members: Member[] }
-  const UNASSIGNED = 'Tanpa VW'
+  type Group = { vehicle: string; rank: number; members: Member[] }
   const groups = new Map<string, Group>()
 
   for (const p of participants) {
-    const vw = (p.vw ?? '').trim()
-    const key = vw || UNASSIGNED
-    let group = groups.get(key)
+    const info = vehicleInfo(p)
+    let group = groups.get(info.label)
     if (!group) {
-      group = { vw: key, members: [] }
-      groups.set(key, group)
+      group = { vehicle: info.label, rank: info.rank, members: [] }
+      groups.set(info.label, group)
     }
     group.members.push({
       name: p.name,
@@ -51,15 +50,12 @@ export async function GET(request: NextRequest) {
     .map((group) => {
       group.members.sort((a, b) => a.busOrder - b.busOrder || a.order - b.order)
       return {
-        vw: group.vw,
+        vehicle: group.vehicle,
+        rank: group.rank,
         members: group.members.map((m) => ({ name: m.name, busName: m.busName })),
       }
     })
-    .sort((a, b) => {
-      if (a.vw === UNASSIGNED) return 1
-      if (b.vw === UNASSIGNED) return -1
-      return a.vw.localeCompare(b.vw, undefined, { numeric: true })
-    })
+    .sort((a, b) => compareVehicleLabel({ label: a.vehicle, rank: a.rank }, { label: b.vehicle, rank: b.rank }))
 
   return NextResponse.json({ vws }, { headers: { 'Cache-Control': 'no-store' } })
 }
