@@ -71,8 +71,8 @@ export function SeatGrid({
                 type="button"
                 disabled={!s?.present && !isMine}
                 onClick={() => s?.present && onSelect?.({ seat: String(n), name: s.name })}
-                title={s?.present ? s.name : isMine ? 'Kursi Anda' : undefined}
-                aria-label={isMine ? `Kursi ${n} — kursi Anda` : `Kursi ${n}`}
+                title={s?.present ? s.name : undefined}
+                aria-label={`Kursi ${n}`}
                 style={{ aspectRatio: `${cell.w} / ${cell.h}` }}
                 className={`flex w-full min-w-0 items-center justify-center overflow-hidden text-xs font-normal tabular-nums leading-none transition-colors duration-150 ${
                   isMine

@@ -42,7 +42,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Data tidak valid' }, { status: 400 })
   }
 
-  const { title, date, location, status, note, panduanItinerary, crewName, crewPhone, crewRole, crewPhotoUrl, panduanLogoLeft, panduanLogoRight, panduanLogoTopRight, panduanLogoTopRight2 } = parsed.data
+  const { title, date, location, status, note, panduanItinerary, crewName, crewPhone, crewRole, crewPhotoUrl, denahKamarCrewName, denahKamarCrewRole, denahKamarCrewPhotoUrl, denahVwCrewName, denahVwCrewRole, denahVwCrewPhotoUrl, panduanLogoLeft, panduanLogoRight, panduanLogoTopRight, panduanLogoTopRight2 } = parsed.data
 
   const data: Prisma.EventUpdateInput = {}
   if (title !== undefined) data.title = title
@@ -59,6 +59,12 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   if (crewPhone !== undefined) data.crewPhone = crewPhone || null
   if (crewRole !== undefined) data.crewRole = crewRole || null
   if (crewPhotoUrl !== undefined) data.crewPhotoUrl = crewPhotoUrl || null
+  if (denahKamarCrewName !== undefined) data.denahKamarCrewName = denahKamarCrewName || null
+  if (denahKamarCrewRole !== undefined) data.denahKamarCrewRole = denahKamarCrewRole || null
+  if (denahKamarCrewPhotoUrl !== undefined) data.denahKamarCrewPhotoUrl = denahKamarCrewPhotoUrl || null
+  if (denahVwCrewName !== undefined) data.denahVwCrewName = denahVwCrewName || null
+  if (denahVwCrewRole !== undefined) data.denahVwCrewRole = denahVwCrewRole || null
+  if (denahVwCrewPhotoUrl !== undefined) data.denahVwCrewPhotoUrl = denahVwCrewPhotoUrl || null
   if (panduanLogoLeft !== undefined) data.panduanLogoLeft = panduanLogoLeft || null
   if (panduanLogoRight !== undefined) data.panduanLogoRight = panduanLogoRight || null
   if (panduanLogoTopRight !== undefined) data.panduanLogoTopRight = panduanLogoTopRight || null

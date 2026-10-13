@@ -138,9 +138,9 @@ export function PublicVwMap({
                             </td>
                           )}
                           <td
-                            className={`border border-[#cdd8e2] px-3 py-2 text-left align-middle font-normal text-[#1b3555]${top} ${isMyName ? 'bg-[#fde68a]' : ''}`}
+                            className={`border border-[#cdd8e2] px-3 py-2 text-left align-middle font-normal text-[#1b3555]${top} ${isMyName ? 'bg-[#bfdbfe]' : ''}`}
                           >
-                            {member.name}
+                            <span className={isMyName ? 'font-bold' : ''}>{member.name}</span>
                           </td>
                         </tr>
                       )

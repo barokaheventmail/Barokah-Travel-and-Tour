@@ -108,7 +108,7 @@ function SectionLogos({
 async function getEvent(id: string) {
   return prisma.event.findUnique({
     where: { id },
-    select: { id: true, title: true, date: true, location: true, panduanItinerary: true, panduanRules: true, crewName: true, crewPhone: true, crewRole: true, crewPhotoUrl: true, panduanLogoLeft: true, panduanLogoRight: true, panduanLogoTopRight: true, panduanLogoTopRight2: true },
+    select: { id: true, title: true, date: true, location: true, panduanItinerary: true, panduanRules: true, crewName: true, crewPhone: true, crewRole: true, crewPhotoUrl: true, denahKamarCrewName: true, denahKamarCrewRole: true, denahKamarCrewPhotoUrl: true, denahVwCrewName: true, denahVwCrewRole: true, denahVwCrewPhotoUrl: true, panduanLogoLeft: true, panduanLogoRight: true, panduanLogoTopRight: true, panduanLogoTopRight2: true },
   })
 }
 
@@ -605,6 +605,28 @@ export default async function EventPanduanPage({
                 />
                 <h2 className="mb-6 mt-12 text-center text-xl font-extrabold uppercase tracking-wide text-[#00A3E0]">Denah Kamar</h2>
                 <PublicRoomMap eventId={id} highlightRoom={ownBus?.room ?? null} highlightName={ownBus?.name ?? null} />
+                {(event.denahKamarCrewName || event.denahKamarCrewPhotoUrl) && (
+                  <div className="mt-6 flex flex-col items-end pr-8 pt-4 text-center">
+                    {event.denahKamarCrewPhotoUrl ? (
+                      <div className="relative flex h-24 w-36 shrink-0 items-center justify-center">
+                        <span aria-hidden className="absolute -inset-3 rounded-lg bg-white/70 blur-lg" />
+                        <div className="relative flex h-24 w-36 shrink-0 items-center justify-center overflow-hidden rounded-lg shadow-lg shadow-black/50">
+                          <img src={event.denahKamarCrewPhotoUrl} alt={event.denahKamarCrewName ?? undefined} className="h-full w-full object-cover" />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex h-24 w-36 shrink-0 items-center justify-center rounded-lg text-2xl font-bold text-[#f5b915] shadow-lg shadow-black/50">
+                        {event.denahKamarCrewName?.slice(0, 2).toUpperCase()}
+                      </div>
+                    )}
+                    <strong
+                      className="relative z-[1] mt-3 block w-36 bg-[#f5b915] px-3 py-1 text-center text-sm font-extrabold uppercase tracking-wide text-white"
+                      style={{ clipPath: 'polygon(0 0, 100% 0, calc(100% - 12px) 50%, 100% 100%, 0 100%, 12px 50%)' }}
+                    >
+                      {event.denahKamarCrewName}
+                    </strong>
+                  </div>
+                )}
               </section>
             )}
 
@@ -618,6 +640,28 @@ export default async function EventPanduanPage({
                 />
                 <h2 className="mb-6 mt-12 text-center text-xl font-extrabold uppercase tracking-wide text-[#00A3E0]">Denah VW</h2>
                 <PublicVwMap eventId={id} highlightVw={ownBus?.vw ?? null} highlightName={ownBus?.name ?? null} />
+                {(event.denahVwCrewName || event.denahVwCrewPhotoUrl) && (
+                  <div className="mt-6 flex flex-col items-end pr-8 pt-4 text-center">
+                    {event.denahVwCrewPhotoUrl ? (
+                      <div className="relative flex h-24 w-36 shrink-0 items-center justify-center">
+                        <span aria-hidden className="absolute -inset-3 rounded-lg bg-white/70 blur-lg" />
+                        <div className="relative flex h-24 w-36 shrink-0 items-center justify-center overflow-hidden rounded-lg shadow-lg shadow-black/50">
+                          <img src={event.denahVwCrewPhotoUrl} alt={event.denahVwCrewName ?? undefined} className="h-full w-full object-cover" />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex h-24 w-36 shrink-0 items-center justify-center rounded-lg text-2xl font-bold text-[#f5b915] shadow-lg shadow-black/50">
+                        {event.denahVwCrewName?.slice(0, 2).toUpperCase()}
+                      </div>
+                    )}
+                    <strong
+                      className="relative z-[1] mt-3 block w-36 bg-[#f5b915] px-3 py-1 text-center text-sm font-extrabold uppercase tracking-wide text-white"
+                      style={{ clipPath: 'polygon(0 0, 100% 0, calc(100% - 12px) 50%, 100% 100%, 0 100%, 12px 50%)' }}
+                    >
+                      {event.denahVwCrewName}
+                    </strong>
+                  </div>
+                )}
               </section>
             )}
 

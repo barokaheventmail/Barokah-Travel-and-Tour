@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE `Event` ADD COLUMN `denahVwCrewName` VARCHAR(500) NULL,
+ADD COLUMN `denahVwCrewRole` VARCHAR(500) NULL,
+ADD COLUMN `denahVwCrewPhotoUrl` VARCHAR(500) NULL;

@@ -145,9 +145,9 @@ export function PublicRoomMap({
                             </td>
                           )}
                           <td
-                            className={`border border-[#cdd8e2] px-3 py-2 text-left align-middle font-normal text-[#1b3555]${top} ${isMyName ? 'bg-[#fde68a]' : ''}`}
+                            className={`border border-[#cdd8e2] px-3 py-2 text-left align-middle font-normal text-[#1b3555]${top} ${isMyName ? 'bg-[#bfdbfe]' : ''}`}
                           >
-                            {member.name}
+                            <span className={isMyName ? 'font-bold' : ''}>{member.name}</span>
                           </td>
                           <td
                             className={`border border-[#cdd8e2] px-2 py-2 text-center align-middle text-[11px] font-bold text-[#1b3555]${top}`}

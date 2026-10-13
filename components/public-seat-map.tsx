@@ -111,11 +111,6 @@ export function PublicSeatMap({
   return (
     <div className="mt-4">
       <div className="flex flex-wrap items-center gap-2">
-        {mySeat && (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#eef4fb] px-3 py-1 text-[11px] font-bold text-[#1b4f9c]">
-            <Armchair size={12} /> Kursi Anda: No {mySeat}
-          </span>
-        )}
         {!loading && data && (
           <span
             className={`ml-auto text-[11px] font-bold ${
@@ -185,8 +180,7 @@ export function PublicSeatMap({
               </span>
               {mySeat && (
                 <span className="flex items-center gap-1.5">
-                  <span className="inline-block h-3 w-3 bg-[#1b4f9c] ring-2 ring-[#e8c54a] ring-offset-1" />{' '}
-                  Kursi Anda
+                  <span className="inline-block h-3 w-3 bg-[#1b4f9c] ring-2 ring-[#e8c54a] ring-offset-1" />
                 </span>
               )}
               <span className="ml-auto text-[11px] text-[#9aa3af] print:hidden">Ketuk kursi hijau untuk lihat nama</span>
@@ -234,18 +228,13 @@ export function PublicSeatMap({
               return (
                 <div
                   key={s.order}
-                  className={`flex items-stretch divide-x divide-[#f0f3f6] ${isMine ? 'bg-[#eef4fb]' : ''}`}
+                  className={`flex items-stretch divide-x divide-[#f0f3f6] ${isMine ? 'bg-[#bfdbfe]' : ''}`}
                 >
                   <span className="flex w-10 shrink-0 items-center justify-center px-2 py-2 text-[11px] font-bold tabular-nums text-[#1b3555]">
                     {s.seat ?? s.order}
                   </span>
                   <p className="flex min-w-0 flex-1 items-center gap-1.5 px-3 py-2 text-[13px] font-normal text-[#1b3555]">
-                    <span className="min-w-0 break-words">{s.name}</span>
-                    {isMine && (
-                      <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide text-[#1b4f9c]">
-                        Kursi Anda
-                      </span>
-                    )}
+                    <span className={`min-w-0 break-words ${isMine ? 'font-bold' : ''}`}>{s.name}</span>
                   </p>
                   <span className="flex w-24 shrink-0 items-center justify-center px-2 py-2 text-[10px] font-bold uppercase tracking-wide">
                     {s.present ? (
