@@ -114,7 +114,7 @@ export function PublicRoomMap({
             <thead>
               <tr className="bg-[#00A3E0] text-[10px] font-bold uppercase tracking-wide text-white">
                 <th className="w-10 border border-[#7fc7e8] px-2 py-2">No</th>
-                <th className="border border-[#7fc7e8] px-3 py-2 text-left">Nama</th>
+                <th className="border border-[#7fc7e8] px-3 py-2 text-center">Nama</th>
                 <th className="w-16 border border-[#7fc7e8] px-2 py-2">Bus</th>
                 <th className="w-20 border border-[#7fc7e8] px-2 py-2">No Kamar</th>
                 <th className="w-24 border border-[#7fc7e8] px-2 py-2">Tipe Kamar</th>
@@ -134,7 +134,7 @@ export function PublicRoomMap({
                         <tr
                           key={`${group.room}-${j}`}
                           ref={isMyName ? ownRowRef : undefined}
-                          className={isMyName ? 'bg-[#fde68a]' : groupBase}
+                          className={groupBase}
                         >
                           {j === 0 && (
                             <td
@@ -145,14 +145,9 @@ export function PublicRoomMap({
                             </td>
                           )}
                           <td
-                            className={`border border-[#cdd8e2] px-3 py-2 text-left align-middle font-normal text-[#1b3555]${top}`}
+                            className={`border border-[#cdd8e2] px-3 py-2 text-left align-middle font-normal text-[#1b3555]${top} ${isMyName ? 'bg-[#fde68a]' : ''}`}
                           >
                             {member.name}
-                            {isMyName && (
-                              <span className="ml-1.5 shrink-0 text-[10px] font-bold uppercase tracking-wide text-[#92400e]">
-                                Nama Anda
-                              </span>
-                            )}
                           </td>
                           <td
                             className={`border border-[#cdd8e2] px-2 py-2 text-center align-middle text-[11px] font-bold text-[#1b3555]${top}`}

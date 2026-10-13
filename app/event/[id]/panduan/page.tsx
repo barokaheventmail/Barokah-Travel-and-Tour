@@ -10,6 +10,7 @@ import { Logo } from '@/components/site'
 import { EventNavbar } from '@/components/event-navbar'
 import { PublicSeatMap } from '@/components/public-seat-map'
 import { PublicRoomMap } from '@/components/public-room-map'
+import { PublicVwMap } from '@/components/public-vw-map'
 import { PrintButton } from '@/components/admin/print-button'
 
 export const dynamic = 'force-dynamic'
@@ -133,7 +134,7 @@ export default async function EventPanduanPage({
   const participant = participantToken
     ? await prisma.participant.findUnique({
         where: { token: participantToken },
-        select: { id: true, eventId: true, busId: true, seat: true, room: true, name: true, token: true, ticketCode: true },
+        select: { id: true, eventId: true, busId: true, seat: true, room: true, vw: true, name: true, token: true, ticketCode: true },
       })
     : null
   const ownBus = participant && participant.eventId === id ? participant : null
@@ -604,6 +605,19 @@ export default async function EventPanduanPage({
                 />
                 <h2 className="mb-6 mt-12 text-center text-xl font-extrabold uppercase tracking-wide text-[#00A3E0]">Denah Kamar</h2>
                 <PublicRoomMap eventId={id} highlightRoom={ownBus?.room ?? null} highlightName={ownBus?.name ?? null} />
+              </section>
+            )}
+
+            {buses.length > 0 && (
+              <section className="border border-[#dfe4e8] bg-white p-5 print:min-h-[272mm]">
+                <SectionLogos
+                  logoLeft={logoLeftUrl}
+                  logoRight={logoRightUrl}
+                  topRight={event.panduanLogoTopRight}
+                  topRight2={event.panduanLogoTopRight2}
+                />
+                <h2 className="mb-6 mt-12 text-center text-xl font-extrabold uppercase tracking-wide text-[#00A3E0]">Denah VW</h2>
+                <PublicVwMap eventId={id} highlightVw={ownBus?.vw ?? null} highlightName={ownBus?.name ?? null} />
               </section>
             )}
 

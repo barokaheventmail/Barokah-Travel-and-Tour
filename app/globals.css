@@ -90,8 +90,9 @@ input[type='number'] { -moz-appearance:textfield; appearance:textfield; }
   .print-credentials table thead { display:table-header-group; }
   .print-credentials .print-avoid-break, .print-credentials tr { break-inside:avoid; page-break-inside:avoid; }
 }
-/* Keep bordered content cards softly rounded without changing section dividers. */
-.border:not([class*='rounded-']) { border-radius: .8rem; }
+/* Keep bordered content cards softly rounded without changing section dividers
+   or table cells (tables must stay sharp). */
+.border:not([class*='rounded-']):not(table):not(thead):not(tbody):not(tr):not(th):not(td) { border-radius: .8rem; }
 .border-b, .border-t, .border-y { border-radius: 0; }
 .trust-marquee { overflow:hidden; width:100%; }
 .trust-marquee-track { display:inline-flex; animation:trustMarquee 24s linear infinite; will-change:transform; }
