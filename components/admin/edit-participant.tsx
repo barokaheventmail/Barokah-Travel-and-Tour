@@ -122,36 +122,66 @@ export function EditParticipant({ eventId, participant, buses }: { eventId: stri
             </div>
 
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              <input
-                value={form.name}
-                onChange={(e) => set('name', e.target.value)}
-                required
-                placeholder="Nama lengkap"
-                className={inputCls}
-              />
-              <input value={form.birthPlace} onChange={(e) => set('birthPlace', e.target.value)} placeholder="Tempat lahir" className={inputCls} />
-              <input value={form.birthDate} onChange={(e) => set('birthDate', e.target.value)} type="date" placeholder="Tanggal lahir" className={inputCls} />
-              <input value={form.phone} onChange={(e) => set('phone', e.target.value)} placeholder="No Telp/HP" className={inputCls} />
-              <input value={form.seat} onChange={(e) => set('seat', e.target.value)} placeholder="No Kursi" className={inputCls} />
-              <input value={form.room} onChange={(e) => set('room', e.target.value)} placeholder="No Kamar" className={inputCls} />
-              <input value={form.roomType} onChange={(e) => set('roomType', e.target.value)} placeholder="Tipe Kamar" className={inputCls} />
-              <input value={form.vw} onChange={(e) => set('vw', e.target.value)} placeholder="No VW" className={inputCls} />
-              <select value={form.busId} onChange={(e) => set('busId', e.target.value)} className={inputCls}>
-                {buses.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.name}
-                  </option>
-                ))}
-              </select>
-              <input
-                value={form.order}
-                onChange={(e) => set('order', e.target.value)}
-                type="number"
-                min={1}
-                required
-                placeholder="Nomor urut"
-                className={inputCls}
-              />
+              <div>
+                <label className={labelCls}>Nama Lengkap</label>
+                <input
+                  value={form.name}
+                  onChange={(e) => set('name', e.target.value)}
+                  required
+                  placeholder="Nama lengkap"
+                  className={inputCls}
+                />
+              </div>
+              <div>
+                <label className={labelCls}>Tempat Lahir</label>
+                <input value={form.birthPlace} onChange={(e) => set('birthPlace', e.target.value)} placeholder="Tempat lahir" className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Tanggal Lahir</label>
+                <input value={form.birthDate} onChange={(e) => set('birthDate', e.target.value)} type="date" placeholder="Tanggal lahir" className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>No Telp / HP</label>
+                <input value={form.phone} onChange={(e) => set('phone', e.target.value)} placeholder="No Telp/HP" className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>No Kursi</label>
+                <input value={form.seat} onChange={(e) => set('seat', e.target.value)} placeholder="No Kursi" className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>No Kamar</label>
+                <input value={form.room} onChange={(e) => set('room', e.target.value)} placeholder="No Kamar" className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Tipe Kamar</label>
+                <input value={form.roomType} onChange={(e) => set('roomType', e.target.value)} placeholder="Tipe Kamar" className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>No VW</label>
+                <input value={form.vw} onChange={(e) => set('vw', e.target.value)} placeholder="No VW" className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Unit / Bus</label>
+                <select value={form.busId} onChange={(e) => set('busId', e.target.value)} className={inputCls}>
+                  {buses.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className={labelCls}>Nomor Urut</label>
+                <input
+                  value={form.order}
+                  onChange={(e) => set('order', e.target.value)}
+                  type="number"
+                  min={1}
+                  required
+                  placeholder="Nomor urut"
+                  className={inputCls}
+                />
+              </div>
             </div>
 
             {error && <p className="mt-3 rounded-xl bg-red-50 px-4 py-2.5 text-xs font-semibold text-red-600">{error}</p>}
@@ -179,5 +209,7 @@ export function EditParticipant({ eventId, participant, buses }: { eventId: stri
   )
 }
 
+const labelCls = 'block text-xs font-semibold uppercase tracking-wide text-[#657080]'
+
 const inputCls =
-  'w-full rounded-xl border border-[#dfe4e8] bg-[#f8fafc] px-4 py-2.5 text-sm font-semibold text-[#1b3555] outline-none placeholder:text-[#9aa3af] focus:border-[#1b4f9c] focus:bg-white focus:ring-2 focus:ring-[#1b4f9c]/15'
+  'mt-1.5 w-full rounded-xl border border-[#dfe4e8] bg-[#f8fafc] px-4 py-2.5 text-sm font-semibold text-[#1b3555] outline-none placeholder:text-[#9aa3af] focus:border-[#1b4f9c] focus:bg-white focus:ring-2 focus:ring-[#1b4f9c]/15'

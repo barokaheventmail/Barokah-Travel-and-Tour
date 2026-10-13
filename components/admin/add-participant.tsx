@@ -50,8 +50,10 @@ export function AddParticipant({ eventId, buses }: { eventId: string; buses: { i
     )
   }
 
+  const labelCls = 'block text-xs font-semibold uppercase tracking-wide text-[#657080]'
+
   const inputCls =
-    'w-full rounded-xl border border-[#dfe4e8] bg-[#f8fafc] px-4 py-2.5 text-sm font-semibold text-[#1b3555] outline-none placeholder:text-[#9aa3af] focus:border-[#1b4f9c] focus:bg-white focus:ring-2 focus:ring-[#1b4f9c]/15'
+    'mt-1.5 w-full rounded-xl border border-[#dfe4e8] bg-[#f8fafc] px-4 py-2.5 text-sm font-semibold text-[#1b3555] outline-none placeholder:text-[#9aa3af] focus:border-[#1b4f9c] focus:bg-white focus:ring-2 focus:ring-[#1b4f9c]/15'
 
   return (
     <form onSubmit={submit} className="animate-fade-up space-y-3 rounded-2xl border border-[#dfe4e8] bg-white p-4">
@@ -62,21 +64,45 @@ export function AddParticipant({ eventId, buses }: { eventId: string; buses: { i
         </button>
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
-        <input value={form.name} onChange={(e) => set('name', e.target.value)} required placeholder="Nama lengkap" className={inputCls} />
-        <select value={form.busName} onChange={(e) => set('busName', e.target.value)} className={inputCls}>
-          {buses.length === 0 && <option value="Bus 1">Bus 1</option>}
-          {buses.map((b) => (
-            <option key={b.id} value={b.name}>
-              {b.name}
-            </option>
-          ))}
-        </select>
-        <input value={form.phone} onChange={(e) => set('phone', e.target.value)} placeholder="No Telp/HP" className={inputCls} />
-        <input value={form.seat} onChange={(e) => set('seat', e.target.value)} placeholder="No Kursi" className={inputCls} />
-        <input value={form.room} onChange={(e) => set('room', e.target.value)} placeholder="No Kamar" className={inputCls} />
-        <input value={form.roomType} onChange={(e) => set('roomType', e.target.value)} placeholder="Tipe Kamar" className={inputCls} />
-        <input value={form.vw} onChange={(e) => set('vw', e.target.value)} placeholder="No VW" className={inputCls} />
-        <input type="date" value={form.birthDate} onChange={(e) => set('birthDate', e.target.value)} placeholder="Tanggal Lahir" className={inputCls} />
+        <div>
+          <label className={labelCls}>Nama Lengkap</label>
+          <input value={form.name} onChange={(e) => set('name', e.target.value)} required placeholder="Nama lengkap" className={inputCls} />
+        </div>
+        <div>
+          <label className={labelCls}>Unit / Bus</label>
+          <select value={form.busName} onChange={(e) => set('busName', e.target.value)} className={inputCls}>
+            {buses.length === 0 && <option value="Bus 1">Bus 1</option>}
+            {buses.map((b) => (
+              <option key={b.id} value={b.name}>
+                {b.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className={labelCls}>No Telp / HP</label>
+          <input value={form.phone} onChange={(e) => set('phone', e.target.value)} placeholder="No Telp/HP" className={inputCls} />
+        </div>
+        <div>
+          <label className={labelCls}>No Kursi</label>
+          <input value={form.seat} onChange={(e) => set('seat', e.target.value)} placeholder="No Kursi" className={inputCls} />
+        </div>
+        <div>
+          <label className={labelCls}>No Kamar</label>
+          <input value={form.room} onChange={(e) => set('room', e.target.value)} placeholder="No Kamar" className={inputCls} />
+        </div>
+        <div>
+          <label className={labelCls}>Tipe Kamar</label>
+          <input value={form.roomType} onChange={(e) => set('roomType', e.target.value)} placeholder="Tipe Kamar" className={inputCls} />
+        </div>
+        <div>
+          <label className={labelCls}>No VW</label>
+          <input value={form.vw} onChange={(e) => set('vw', e.target.value)} placeholder="No VW" className={inputCls} />
+        </div>
+        <div>
+          <label className={labelCls}>Tanggal Lahir</label>
+          <input type="date" value={form.birthDate} onChange={(e) => set('birthDate', e.target.value)} placeholder="Tanggal Lahir" className={inputCls} />
+        </div>
       </div>
       {error && <p className="rounded-xl bg-red-50 px-4 py-2.5 text-xs font-semibold text-red-600">{error}</p>}
       <div className="flex justify-end gap-2">
