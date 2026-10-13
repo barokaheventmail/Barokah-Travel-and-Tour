@@ -331,9 +331,6 @@ export default async function EventDetail({
           initialDenahCrewName={event.denahKamarCrewName ?? ''}
           initialDenahCrewRole={event.denahKamarCrewRole ?? ''}
           initialDenahCrewPhotoUrl={event.denahKamarCrewPhotoUrl ?? null}
-          initialDenahVwCrewName={event.denahVwCrewName ?? ''}
-          initialDenahVwCrewRole={event.denahVwCrewRole ?? ''}
-          initialDenahVwCrewPhotoUrl={event.denahVwCrewPhotoUrl ?? null}
           initialLogoLeft={event.panduanLogoLeft ?? null}
           initialLogoRight={event.panduanLogoRight ?? null}
           initialLogoTopRight={event.panduanLogoTopRight ?? null}

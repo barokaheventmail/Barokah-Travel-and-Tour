@@ -14,7 +14,10 @@ export async function GET(_request: Request, { params }: Params) {
   const { id } = await params
 
   const [event, buses, participants] = await Promise.all([
-    prisma.event.findUnique({ where: { id }, select: { vwName: true, vwTitle: true, denahVwCrewName: true } }),
+    prisma.event.findUnique({
+      where: { id },
+      select: { vwName: true, vwTitle: true, denahVwCrewName: true, denahVwCrewPhotoUrl: true },
+    }),
     prisma.bus.findMany({
       where: { eventId: id },
       select: { id: true, name: true, order: true },
@@ -51,9 +54,10 @@ export async function GET(_request: Request, { params }: Params) {
   const vwTitle = (event?.vwTitle ?? '').trim() || null
   const title = vwTitle ?? autoTitle
   const denahVwCrewName = (event?.denahVwCrewName ?? '').trim() || null
+  const denahVwCrewPhotoUrl = event?.denahVwCrewPhotoUrl ?? null
 
   return NextResponse.json(
-    { groups, vwName: event?.vwName ?? 'VW MAGELANG', vwTitle, autoTitle, title, denahVwCrewName },
+    { groups, vwName: event?.vwName ?? 'VW MAGELANG', vwTitle, autoTitle, title, denahVwCrewName, denahVwCrewPhotoUrl },
     { headers: { 'Cache-Control': 'no-store' } },
   )
 }

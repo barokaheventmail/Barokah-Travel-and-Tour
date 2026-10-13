@@ -9,9 +9,9 @@ import { ParticipantGroups } from './participant-groups'
 type View = 'unit' | 'room' | 'vw'
 
 const VIEWS: { id: View; label: string; icon: typeof Bus }[] = [
-  { id: 'unit', label: 'Per Unit', icon: Bus },
-  { id: 'room', label: 'Per Kamar', icon: BedDouble },
-  { id: 'vw', label: 'Per VW', icon: Car },
+  { id: 'unit', label: 'Unit', icon: Bus },
+  { id: 'room', label: 'Denah Kamar', icon: BedDouble },
+  { id: 'vw', label: 'Denah Mobil', icon: Car },
 ]
 
 export function PesertaTabs({

@@ -167,9 +167,6 @@ export function PanduanEditor({
   initialDenahCrewName,
   initialDenahCrewRole,
   initialDenahCrewPhotoUrl,
-  initialDenahVwCrewName,
-  initialDenahVwCrewRole,
-  initialDenahVwCrewPhotoUrl,
   initialLogoLeft,
   initialLogoRight,
   initialLogoTopRight,
@@ -187,9 +184,6 @@ export function PanduanEditor({
   initialDenahCrewName: string
   initialDenahCrewRole: string
   initialDenahCrewPhotoUrl: string | null
-  initialDenahVwCrewName: string
-  initialDenahVwCrewRole: string
-  initialDenahVwCrewPhotoUrl: string | null
   initialLogoLeft: string | null
   initialLogoRight: string | null
   initialLogoTopRight: string | null
@@ -217,10 +211,6 @@ export function PanduanEditor({
   const [denahCrewEditing, setDenahCrewEditing] = useState(false)
   const [uploadingDenahPhoto, setUploadingDenahPhoto] = useState(false)
   const [denahCrewBusy, setDenahCrewBusy] = useState(false)
-  const [denahVwCrew, setDenahVwCrew] = useState({ name: initialDenahVwCrewName, role: initialDenahVwCrewRole, photoUrl: initialDenahVwCrewPhotoUrl })
-  const [denahVwCrewEditing, setDenahVwCrewEditing] = useState(false)
-  const [uploadingDenahVwPhoto, setUploadingDenahVwPhoto] = useState(false)
-  const [denahVwCrewBusy, setDenahVwCrewBusy] = useState(false)
   const [logoLeft, setLogoLeft] = useState<string | null>(initialLogoLeft)
   const [logoRight, setLogoRight] = useState<string | null>(initialLogoRight)
   const [logoTopRight, setLogoTopRight] = useState<string | null>(initialLogoTopRight)
@@ -677,99 +667,6 @@ export function PanduanEditor({
       setStatus({ kind: 'err', msg: err instanceof Error ? err.message : 'Gagal menghapus crew.' })
     } finally {
       setDenahCrewBusy(false)
-    }
-  }
-
-  async function uploadDenahVwCrewPhoto(file: File) {
-    if (!/^image\/(jpeg|png|webp)$/.test(file.type)) {
-      setStatus({ kind: 'err', msg: 'Hanya mendukung gambar JPG, PNG, atau WebP.' })
-      return
-    }
-    setUploadingDenahVwPhoto(true)
-    setStatus(null)
-    try {
-      const fd = new FormData()
-      fd.append('file', file)
-      fd.append('slot', 'vw')
-      const res = await fetch(`/api/admin/events/${eventId}/crew-photo`, { method: 'POST', body: fd })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? 'Gagal mengunggah foto.')
-      setDenahVwCrew((c) => ({ ...c, photoUrl: data.url }))
-      setStatus({ kind: 'ok', msg: 'Foto crew denah VW diperbarui.' })
-      router.refresh()
-    } catch (err) {
-      setStatus({ kind: 'err', msg: err instanceof Error ? err.message : 'Gagal mengunggah foto.' })
-    } finally {
-      setUploadingDenahVwPhoto(false)
-    }
-  }
-
-  async function removeDenahVwCrewPhoto() {
-    setDenahVwCrewBusy(true)
-    setStatus(null)
-    try {
-      const res = await fetch(`/api/admin/events/${eventId}/crew-photo?slot=vw`, { method: 'DELETE' })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? 'Gagal menghapus foto.')
-      setDenahVwCrew((c) => ({ ...c, photoUrl: null }))
-      setStatus({ kind: 'ok', msg: 'Foto crew denah VW dihapus.' })
-      router.refresh()
-    } catch (err) {
-      setStatus({ kind: 'err', msg: err instanceof Error ? err.message : 'Gagal menghapus foto.' })
-    } finally {
-      setDenahVwCrewBusy(false)
-    }
-  }
-
-  async function saveDenahVwCrew() {
-    setDenahVwCrewBusy(true)
-    setStatus(null)
-    try {
-      const res = await fetch(`/api/admin/events/${eventId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          denahVwCrewName: denahVwCrew.name.trim() || null,
-          denahVwCrewRole: denahVwCrew.role.trim() || null,
-          denahVwCrewPhotoUrl: denahVwCrew.photoUrl,
-        }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? 'Gagal menyimpan crew.')
-      setDenahVwCrewEditing(false)
-      setStatus({ kind: 'ok', msg: 'Crew on duty denah VW tersimpan.' })
-      router.refresh()
-    } catch (err) {
-      setStatus({ kind: 'err', msg: err instanceof Error ? err.message : 'Gagal menyimpan crew.' })
-    } finally {
-      setDenahVwCrewBusy(false)
-    }
-  }
-
-  async function clearDenahVwCrew() {
-    setDenahVwCrewBusy(true)
-    setStatus(null)
-    try {
-      if (denahVwCrew.photoUrl) {
-        const res = await fetch(`/api/admin/events/${eventId}/crew-photo?slot=vw`, { method: 'DELETE' })
-        const data = await res.json()
-        if (!res.ok) throw new Error(data.error ?? 'Gagal menghapus foto.')
-      }
-      const res = await fetch(`/api/admin/events/${eventId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ denahVwCrewName: null, denahVwCrewRole: null, denahVwCrewPhotoUrl: null }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? 'Gagal menghapus crew.')
-      setDenahVwCrew({ name: '', role: '', photoUrl: null })
-      setDenahVwCrewEditing(false)
-      setStatus({ kind: 'ok', msg: 'Crew on duty denah VW dihapus.' })
-      router.refresh()
-    } catch (err) {
-      setStatus({ kind: 'err', msg: err instanceof Error ? err.message : 'Gagal menghapus crew.' })
-    } finally {
-      setDenahVwCrewBusy(false)
     }
   }
 
@@ -1374,108 +1271,6 @@ export function PanduanEditor({
                 className="inline-flex items-center gap-1.5 rounded-full bg-[#1b4f9c] px-5 py-2 text-xs font-bold text-white transition-colors duration-200 hover:bg-[#143d79] active:scale-95 disabled:opacity-60"
               >
                 {denahCrewBusy ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
-                Simpan Crew
-              </button>
-            </div>
-          </div>
-        )}
-        </section>
-
-        <section className="border-t border-[#eef1f4] p-5">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex min-w-0 items-center gap-2">
-              <span className="shrink-0 rounded-full px-0 py-1 text-sm font-bold text-black">Denah VW</span>
-              <span className="truncate text-[11px] text-[#9aa3af]">Tampil di bawah tabel Denah VW</span>
-            </div>
-            {!denahVwCrew.name && !denahVwCrewEditing && (
-              <button type="button" onClick={() => setDenahVwCrewEditing(true)} className={addBtnCls}>
-                <Plus size={12} /> Tambah Crew
-              </button>
-            )}
-          </div>
-
-        {denahVwCrew.name ? (
-          <div className="mt-3 flex items-center gap-3">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#dcebe0] text-base font-bold text-[#2ca84a]">
-              {denahVwCrew.photoUrl ? (
-                <img src={denahVwCrew.photoUrl} alt={denahVwCrew.name} className="h-full w-full object-cover" />
-              ) : (
-                denahVwCrew.name.slice(0, 2).toUpperCase()
-              )}
-            </div>
-            <div className="min-w-0">
-              <strong className="block text-sm text-[#1b3555]">{denahVwCrew.name}</strong>
-            </div>
-            <div className="ml-auto flex items-center gap-1">
-              <button type="button" onClick={() => setDenahVwCrewEditing(true)} className="inline-flex items-center gap-1 rounded-full border border-[#dfe4e8] px-3 py-1.5 text-[11px] font-bold text-[#1b4f9c] transition-colors hover:bg-[#eef4fb]">
-                <Pencil size={11} /> Edit
-              </button>
-              <button type="button" onClick={clearDenahVwCrew} disabled={denahVwCrewBusy} className="inline-flex items-center gap-1 rounded-full border border-[#dfe4e8] px-3 py-1.5 text-[11px] font-bold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60">
-                <Trash2 size={11} /> Hapus
-              </button>
-            </div>
-          </div>
-        ) : (
-          <p className="mt-2 text-xs text-[#9aa3af]">Belum ada crew on duty untuk denah VW.</p>
-        )}
-
-        {denahVwCrewEditing && (
-          <div className="mt-4 space-y-3 border-t border-[#eef1f4] pt-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#dcebe0] text-xl font-bold text-[#2ca84a]">
-                {denahVwCrew.photoUrl ? (
-                  <img src={denahVwCrew.photoUrl} alt={denahVwCrew.name || 'Foto crew'} className="h-full w-full object-cover" />
-                ) : (
-                  denahVwCrew.name.slice(0, 2).toUpperCase() || 'VW'
-                )}
-              </div>
-              <label className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-[#dfe4e8] px-3 py-1.5 text-[11px] font-bold text-[#1b4f9c] transition-colors hover:bg-[#eef4fb] disabled:opacity-60">
-                {uploadingDenahVwPhoto ? <Loader2 size={11} className="animate-spin" /> : null}
-                {uploadingDenahVwPhoto ? 'Mengunggah…' : 'Unggah Foto'}
-                <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" disabled={uploadingDenahVwPhoto || denahVwCrewBusy} onChange={(e) => {
-                  const file = e.target.files?.[0]
-                  if (file) uploadDenahVwCrewPhoto(file)
-                  e.target.value = ''
-                }} />
-              </label>
-              {denahVwCrew.photoUrl && (
-                <button type="button" onClick={removeDenahVwCrewPhoto} disabled={uploadingDenahVwPhoto || denahVwCrewBusy} className="text-[11px] font-bold text-red-600 hover:underline disabled:opacity-60">
-                  Hapus Foto
-                </button>
-              )}
-            </div>
-
-            <textarea
-              value={denahVwCrew.name}
-              onChange={(e) => {
-                setDenahVwCrew((c) => ({ ...c, name: e.target.value }))
-                e.target.style.height = 'auto'
-                e.target.style.height = `${e.target.scrollHeight}px`
-              }}
-              placeholder="Ketik deskripsi"
-              rows={1}
-              className={`${descRowCls} w-full resize-none overflow-hidden`}
-            />
-
-            <div className="flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setDenahVwCrewEditing(false)
-                  setDenahVwCrew({ name: initialDenahVwCrewName, role: initialDenahVwCrewRole, photoUrl: initialDenahVwCrewPhotoUrl })
-                }}
-                disabled={denahVwCrewBusy}
-                className="rounded-full border border-[#dfe4e8] px-4 py-2 text-xs font-bold text-[#657080] transition-colors hover:bg-[#eef1f4] disabled:opacity-60"
-              >
-                Batal
-              </button>
-              <button
-                type="button"
-                onClick={saveDenahVwCrew}
-                disabled={denahVwCrewBusy}
-                className="inline-flex items-center gap-1.5 rounded-full bg-[#1b4f9c] px-5 py-2 text-xs font-bold text-white transition-colors duration-200 hover:bg-[#143d79] active:scale-95 disabled:opacity-60"
-              >
-                {denahVwCrewBusy ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
                 Simpan Crew
               </button>
             </div>

@@ -99,14 +99,14 @@ export function PublicRoomMap({
           <p className="mb-2 flex items-center gap-1.5 text-xs font-bold text-[#1b3555]">
             <BedDouble size={14} className="text-[#00A3E0]" /> Denah Kamar — Semua Bus
           </p>
-          <table className="w-full table-fixed border-collapse border border-[#b9c6d2] text-[13px]">
+          <table className="w-full table-fixed border-collapse border border-[#b9c6d2] text-[11px] sm:text-[13px]">
             <thead>
-              <tr className="bg-[#00A3E0] text-[10px] font-bold uppercase tracking-wide text-white">
-                <th className="w-10 border border-[#7fc7e8] px-2 py-2">No</th>
-                <th className="border border-[#7fc7e8] px-3 py-2 text-center">Nama</th>
-                <th className="w-16 border border-[#7fc7e8] px-2 py-2">Bus</th>
-                <th className="w-20 border border-[#7fc7e8] px-2 py-2">No Kamar</th>
-                <th className="w-24 border border-[#7fc7e8] px-2 py-2">Tipe Kamar</th>
+              <tr className="bg-[#00A3E0] text-[9px] font-bold uppercase tracking-wide text-white sm:text-[10px]">
+                <th className="w-7 border border-[#7fc7e8] px-1 py-2 sm:w-10 sm:px-2">No</th>
+                <th className="border border-[#7fc7e8] px-2 py-2 text-center sm:px-3">Nama</th>
+                <th className="w-10 border border-[#7fc7e8] px-1 py-2 sm:w-16 sm:px-2">Bus</th>
+                <th className="w-14 border border-[#7fc7e8] px-1 py-2 sm:w-20 sm:px-2">No Kamar</th>
+                <th className="w-16 border border-[#7fc7e8] px-1 py-2 sm:w-24 sm:px-2">Tipe Kamar</th>
               </tr>
             </thead>
             <tbody>
@@ -127,18 +127,18 @@ export function PublicRoomMap({
                           {j === 0 && (
                             <td
                               rowSpan={group.members.length}
-                              className="border border-[#cdd8e2] border-t-2 border-t-[#8a99a8] px-2 py-2 text-center align-middle text-[11px] font-bold tabular-nums text-[#1b3555]"
+                              className="border border-[#cdd8e2] border-t-2 border-t-[#8a99a8] px-1 py-1.5 text-center align-middle text-[10px] font-bold tabular-nums text-[#1b3555] sm:px-2 sm:py-2 sm:text-[11px]"
                             >
                               {groupNo}
                             </td>
                           )}
                           <td
-                            className={`border border-[#cdd8e2] px-3 py-2 text-left align-middle font-normal text-[#1b3555]${top} ${isMyName ? 'bg-[#bfdbfe]' : ''}`}
+                            className={`border border-[#cdd8e2] px-2 py-1.5 text-left align-middle font-normal text-[#1b3555] sm:px-3 sm:py-2${top} ${isMyName ? 'bg-[#bfdbfe]' : ''}`}
                           >
                             <span className={isMyName ? 'font-bold' : ''}>{member.name}</span>
                           </td>
                           <td
-                            className={`border border-[#cdd8e2] px-2 py-2 text-center align-middle text-[11px] font-bold text-[#1b3555]${top}`}
+                            className={`border border-[#cdd8e2] px-1 py-1.5 text-center align-middle text-[10px] font-bold text-[#1b3555] sm:px-2 sm:py-2 sm:text-[11px]${top}`}
                           >
                             {member.busName}
                           </td>
@@ -146,13 +146,13 @@ export function PublicRoomMap({
                             <>
                               <td
                                 rowSpan={group.members.length}
-                                className="border border-[#cdd8e2] border-t-2 border-t-[#8a99a8] px-2 py-2 text-center align-middle text-[11px] font-bold tabular-nums text-[#1b3555]"
+                              className="border border-[#cdd8e2] border-t-2 border-t-[#8a99a8] px-1 py-1.5 text-center align-middle text-[10px] font-bold tabular-nums text-[#1b3555] sm:px-2 sm:py-2 sm:text-[11px]"
                               >
                                 {group.room}
                               </td>
                               <td
                                 rowSpan={group.members.length}
-                                className="border border-[#cdd8e2] border-t-2 border-t-[#8a99a8] px-2 py-2 text-center align-middle text-[11px] font-bold text-[#657080]"
+                                className="border border-[#cdd8e2] border-t-2 border-t-[#8a99a8] px-1 py-1.5 text-center align-middle text-[10px] font-bold text-[#657080] sm:px-2 sm:py-2 sm:text-[11px]"
                               >
                                 {group.roomType ?? '—'}
                               </td>

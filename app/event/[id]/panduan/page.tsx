@@ -14,6 +14,7 @@ import { PublicSeatMap } from '@/components/public-seat-map'
 import { PublicRoomMap } from '@/components/public-room-map'
 import { PublicVwMap } from '@/components/public-vw-map'
 import { PrintButton } from '@/components/admin/print-button'
+import { BackToTop } from '@/components/back-to-top'
 
 export const dynamic = 'force-dynamic'
 
@@ -135,6 +136,7 @@ export default async function EventPanduanPage({
     event.vwName,
     event.vwTitle,
   )
+  const hasVehicles = vwCount + jeepParisCount + jeepMerapiCount + jeepBromoCount > 0
   const ownQr = ownBus ? await qrDataUrl(encodeToken(ownBus.token), 320) : null
 
   const { rows: itinerary, notes: itineraryNotes, sideNotes: itinerarySideNotes, footerNote: itineraryFooterNote } = parseItineraryDoc(event.panduanItinerary)
@@ -146,6 +148,7 @@ export default async function EventPanduanPage({
 
   return (
     <main className="print-guide min-h-screen bg-[#f4f7fa] print:bg-white pb-12">
+      <BackToTop />
       <div className="print:hidden">
         <EventNavbar eventId={event.id} variant="panduan" />
       </div>
@@ -615,7 +618,7 @@ export default async function EventPanduanPage({
               </section>
             )}
 
-            {buses.length > 0 && (
+            {hasVehicles && (
               <section className="border border-[#dfe4e8] bg-white p-5 print:min-h-[272mm]">
                 <SectionLogos
                   logoLeft={logoLeftUrl}
