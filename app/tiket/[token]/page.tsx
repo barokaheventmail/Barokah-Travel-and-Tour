@@ -37,7 +37,7 @@ export default async function TicketPage({ params }: { params: Promise<{ token: 
         </div>
         <div className="print-ticket overflow-hidden rounded-2xl border border-[#dfe4e8] bg-white shadow-2xl">
           <div className="bg-[#1b4f9c] px-6 py-5 text-white">
-            <p className="text-xs font-bold uppercase tracking-wider text-white/60">Barokah Tour &amp; Travel</p>
+            <p className="text-xs font-bold uppercase tracking-wider text-white/60">Barokah Event</p>
             <p className="mt-1 text-lg font-bold">Tiket Wisata</p>
           </div>
 

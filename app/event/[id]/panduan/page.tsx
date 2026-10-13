@@ -164,7 +164,6 @@ export default async function EventPanduanPage({
         <>
           <div className="border-b border-[#dfe4e8] px-4 py-10 print:hidden">
             <div className="mx-auto max-w-2xl px-4">
-              <p className="eyebrow">Perjalanan Anda</p>
               <h1 className="mt-2 text-3xl font-bold text-[#1b3555]">{event.title}</h1>
               <div className="mt-4 flex flex-wrap gap-4 text-sm text-[#657080]">
                 <span className="flex items-center gap-1">
@@ -239,7 +238,7 @@ export default async function EventPanduanPage({
             </div>
 
 
-            <section className="pdf-plain print-avoid-break border border-[#dfe4e8] bg-white p-5 print:break-after-page print:min-h-[272mm] print:border-0 print:bg-transparent print:p-0">
+            <section className="tt-bg print-avoid-break bg-gradient-to-r from-[#071e3d] via-[#0d2850] to-[#163d78] p-5 print:break-after-page print:min-h-[272mm]">
               <SectionLogos
                 logoLeft={logoLeftUrl}
                 logoRight={logoRightUrl}
@@ -250,19 +249,15 @@ export default async function EventPanduanPage({
 
               <div className="mt-4 space-y-4">
                 <div>
-                  <h3 className="inline-block border-2 border-[#e0b200] bg-[url('/Bg-7-bagian-panduan.png')] bg-cover bg-center px-3 pt-1 pb-5 text-sm font-bold uppercase tracking-wide text-[#1b4f9c] [clip-path:polygon(0_0,100%_0,100%_100%,calc(100%_-_12px)_calc(100%_-_14px),0_calc(100%_-_14px))]">
-                    Our Vision
-                  </h3>
-                  <p className="mt-2 text-sm leading-relaxed text-[#1b3555]">
+                  <PanduanHeading>Our Vision</PanduanHeading>
+                  <p className="mt-2 text-sm leading-relaxed text-[#f5b915]">
                     Menjadi biro perjalanan terkemuka dengan menciptakan produk-produk berkualitas yang berbasis budaya dan pendidikan dalam rangka pengembangan pariwisata.
                   </p>
                 </div>
 
                 <div>
-                  <h3 className="inline-block border-2 border-[#e0b200] bg-[url('/Bg-7-bagian-panduan.png')] bg-cover bg-center px-3 pt-1 pb-5 text-sm font-bold uppercase tracking-wide text-[#1b4f9c] [clip-path:polygon(0_0,100%_0,100%_100%,calc(100%_-_12px)_calc(100%_-_14px),0_calc(100%_-_14px))]">
-                    Our Mission
-                  </h3>
-                  <ul className="mt-2 space-y-2 text-sm leading-relaxed text-[#1b3555]">
+                  <PanduanHeading>Our Mission</PanduanHeading>
+                  <ul className="mt-2 space-y-2 text-sm leading-relaxed text-[#f5b915]">
                     <li className="flex gap-2">
                       <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#2ca84a]" />
                       Ikut menjaga keajegan Pariwisata yang berlandaskan Budaya dengan mengemas paket-paket wisata yang berkualitas dengan penekanan pada pelayanan yang ramah, sopan dan jujur.
@@ -278,9 +273,9 @@ export default async function EventPanduanPage({
                   </ul>
                 </div>
 
-                <div className="border-t border-[#dfe4e8] pt-4">
+                <div className="border-t border-[#f5b915]/40 pt-4">
                   <h3 className="text-3xl font-extrabold uppercase tracking-wide text-[#f5b915]">Ujung Tombak</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-[#1b3555]">
+                  <p className="mt-2 text-sm leading-relaxed text-[#f5b915]">
                     Tantangan terberat yang dihadapi adalah tantangan dalam memberikan pelayanan terbaik kepada setiap customer. Tanggung jawab terberat untuk memberikan pelayanan terbaik itu ada pada ujung tombak yang setiap hari berinteraksi dengan customer. Mereka ini dibekali dengan suatu pemahaman bahwa sebagai ujung tombak bagi perusahaan haruslah memiliki hati yang tulus dan pikiran yang jernih, karena hanya dengan ketulusan dan kejernihan kita dapat melayani dengan baik.
                   </p>
                 </div>
@@ -302,73 +297,78 @@ export default async function EventPanduanPage({
               />
               <h2 className="text-center text-2xl font-extrabold uppercase tracking-wide text-black">Doa Bepergian Jauh</h2>
               <div>
-                <p className="mt-3 text-right text-lg leading-loose text-black" dir="rtl" lang="ar">
-                  سُبْحَانَ الَّذِي سَخَّرَ لَنَا هَذَا وَمَا كُنَّا لَهُ مُقْرِنِينَ ۝ وَإِنَّا إِلَىٰ رَبِّنَا لَمُنقَلِبُونَ
+                <p className="mt-3 font-bold text-right text-lg leading-loose text-black" dir="rtl" lang="ar">
+                  أَللّٰهُمَّ هَوِّنْ عَلَيْنَا سَفَرَنَا هٰذَا وَاطْوِعَنَّابُعْدَهُ أَللّٰهُمَّ أَنْتَ الصَّاحِبُ فِى السَّفَرِوَالْخَلِيْفَةُ فِى الْأَهْلِ
                 </p>
                 <p className="mt-2 text-sm leading-relaxed text-black">
-                  “Mahasuci Allah yang telah menundukkan semua ini bagi kami, padahal kami sebelumnya tidak mampu
-                  menguasainya. Dan sesungguhnya kami akan kembali kepada Tuhan kami.”
-                </p>
-                <p className="mt-4 text-right text-lg leading-loose text-black" dir="rtl" lang="ar">
-                  اللَّهُمَّ إِنَّا نَسْأَلُكَ فِي سَفَرِنَا هَذَا الْبِرَّ وَالتَّقْوَى وَمِنَ الْعَمَلِ مَا تَرْضَى،
-                  اللَّهُمَّ هَوِّنْ عَلَيْنَا سَفَرَنَا هَذَا وَاطْوِ عَنَّا بُعْدَهُ، اللَّهُمَّ أَنْتَ الصَّاحِبُ فِي
-                  السَّفَرِ وَالْخَلِيفَةُ فِي الْأَهْلِ
-                </p>
-                <p className="mt-2 text-sm leading-relaxed text-black">
-                  “Ya Allah, kami memohon kepada-Mu kebaikan dan ketakwaan dalam perjalanan ini, serta amal yang Engkau
-                  ridhai. Ya Allah, mudahkanlah perjalanan kami ini dan dekatkanlah jaraknya. Ya Allah, Engkaulah teman
-                  dalam perjalanan dan penjaga keluarga kami.”
+                  “Ya Allah, mudahkanlah kami bepergian ini, dan dekatkanlah kejauhannya. Ya Allah yang menemani dalam
+                  bepergian, dan Engkau pula yang melindungi keluarga.”
                 </p>
               </div>
 
-              <h2 className="text-center text-2xl font-extrabold uppercase tracking-wide text-black">Tata Cara Salat Jamak</h2>
+              <h2 className="text-center text-2xl font-extrabold uppercase tracking-wide text-black">Tata Cara Shalat Jamak</h2>
               <div>
-                <p className="text-sm leading-relaxed text-black">
-                  Salat jamak adalah menggabungkan dua salat fardu dalam satu waktu karena sedang dalam perjalanan
-                  (safar). Salat yang boleh dijamak adalah Zuhur dengan Asar, serta Maghrib dengan Isya.
+                <h3 className="mt-3 text-[11px] font-bold uppercase tracking-wide text-black">1. Jamak Taqdim</h3>
+                <p className="mt-1 text-sm leading-relaxed text-black">
+                  Jamak Taqdim yaitu meringkas atau mengerjakan 2 sholat fardhu sekaligus di waktu sholat yang pertama,
+                  yaitu:
                 </p>
-                <p className="mt-3 text-sm leading-relaxed text-black">
-                  <strong>Jamak takdim</strong> — menggabungkan dua salat pada waktu salat yang pertama (misalnya Zuhur
-                  dan Asar dikerjakan di waktu Zuhur). <br />
-                  <strong>Jamak takhir</strong> — menggabungkan dua salat pada waktu salat yang kedua (misalnya Zuhur
-                  dan Asar dikerjakan di waktu Asar).
+                <ul className="mt-2 list-inside list-disc space-y-1.5 text-sm leading-relaxed text-black">
+                  <li>Sholat Dzuhur dan Ashar, dikerjakan saat waktu Dzuhur.</li>
+                  <li>Sholat Maghrib dan Isya, dikerjakan saat waktu Maghrib.</li>
+                </ul>
+
+                <h3 className="mt-4 text-[11px] font-bold uppercase tracking-wide text-black">2. Jamak Takhir</h3>
+                <p className="mt-1 text-sm leading-relaxed text-black">
+                  Jamak Takhir yaitu meringkas atau mengerjakan 2 sholat fardhu sekaligus di waktu sholat yang terakhir,
+                  yaitu:
                 </p>
-                <p className="mt-3 text-sm leading-relaxed text-black">
-                  Dalam safar, salat juga boleh di<strong>qashar</strong>, yaitu meringkas salat yang berjumlah empat
-                  rakaat (Zuhur, Asar, Isya) menjadi dua rakaat.
-                </p>
+                <ul className="mt-2 list-inside list-disc space-y-1.5 text-sm leading-relaxed text-black">
+                  <li>Sholat Dzuhur dan Ashar, dikerjakan saat waktu Ashar.</li>
+                  <li>Sholat Maghrib dan Isya&apos;, dikerjakan saat waktu Isya.</li>
+                </ul>
               </div>
 
               <div>
-                <h2 className="text-center text-2xl font-extrabold uppercase tracking-wide text-black">Tata Cara Salat Jamak Takdim</h2>
-                <h3 className="mt-3 text-[11px] font-bold uppercase tracking-wide text-black">Niat Salat Zuhur</h3>
-                <p className="mt-1 text-right text-lg leading-loose text-black" dir="rtl" lang="ar">
-                  أُصَلِّي فَرْضَ الظُّهْرِ أَرْبَعَ رَكَعَاتٍ مَجْمُوعًا إِلَيْهِ الْعَصْرُ أَدَاءً لِلَّهِ تَعَالَى
-                </p>
-                <p className="mt-0.5 text-sm italic leading-relaxed text-black" dir="ltr">
-                  Ushalli fardhas-zuhri arba‘a raka‘atin majmu‘an ilaihil-ashru adaa-an lillahi ta‘aala
-                </p>
-                <p className="mt-0.5 text-sm leading-relaxed text-black">
-                  “Aku berniat salat fardu Zuhur empat rakaat yang dijamak dengan Asar, karena Allah Ta’ala.”
-                </p>
-                <h3 className="mt-3 text-[11px] font-bold uppercase tracking-wide text-black">Niat Salat Asar</h3>
-                <p className="mt-1 text-right text-lg leading-loose text-black" dir="rtl" lang="ar">
-                  أُصَلِّي فَرْضَ الْعَصْرِ أَرْبَعَ رَكَعَاتٍ مَجْمُوعًا إِلَى الظُّهْرِ أَدَاءً لِلَّهِ تَعَالَى
-                </p>
-                <p className="mt-0.5 text-sm italic leading-relaxed text-black" dir="ltr">
-                  Ushalli fardhal-ashri arba‘a raka‘atin majmu‘an ilaz-zuhri adaa-an lillahi ta‘aala
+                <h2 className="text-center text-2xl font-extrabold uppercase tracking-wide text-black">Tata Cara Sholat Jamak Takdim</h2>
+
+                <h3 className="mt-3 text-[11px] font-bold uppercase tracking-wide text-black">Niat Sholat Jamak Takdim di Waktu Dzuhur</h3>
+                <p className="mt-1 text-sm leading-relaxed text-black">Niat sholat dzuhur dahulu:</p>
+                <p className="mt-1 font-bold text-right text-lg leading-loose text-black" dir="rtl" lang="ar">
+                  أُصَلِّيْ فَرْضَ الظُّهْرِ أَرْبَعَ رَكَعَاتٍ مَجْمُوْعًا مَعَ العَصْرِ أَدَاءً لِلَّهِ تَعَالَى
                 </p>
                 <p className="mt-0.5 text-sm leading-relaxed text-black">
-                  “Aku berniat salat fardu Asar empat rakaat yang dijamak dengan Zuhur, karena Allah Ta’ala.”
+                  “Aku niat sholat fardhu dhuhur empat rakaat digabung dengan sholat ashar jamak takdim karena Allah
+                  Ta’aala.”
                 </p>
-                <h3 className="mt-3 text-[11px] font-bold uppercase tracking-wide text-black">Urutan Mengerjakan</h3>
-                <ol className="mt-2 list-inside list-decimal space-y-1.5 text-sm leading-relaxed text-black">
-                  <li>Berniat salat Zuhur jamak takdim.</li>
-                  <li>Kerjakan salat Zuhur empat rakaat lalu salam.</li>
-                  <li>Berniat salat Asar jamak takdim.</li>
-                  <li>Kerjakan salat Asar empat rakaat lalu salam.</li>
-                </ol>
-                <p className="mt-2 text-xs italic text-black">Keduanya dikerjakan berurutan pada waktu Zuhur.</p>
+
+                <p className="mt-3 text-sm leading-relaxed text-black">Lalu, niat sholat ashar:</p>
+                <p className="mt-1 font-bold text-right text-lg leading-loose text-black" dir="rtl" lang="ar">
+                  أُصَلِّيْ فَرْضَ العَصْرِ أَرْبَعَ رَكَعَاتٍ مَجْمُوْعًا مَعَ الظُّهْرِ أَدَاءً لِلَّهِ تَعَالَى
+                </p>
+                <p className="mt-0.5 text-sm leading-relaxed text-black">
+                  “Aku niat sholat fardhu ashar empat rakaat digabung dengan sholat dhuhur jamak takdim karena Allah
+                  Ta’aala.”
+                </p>
+
+                <h3 className="mt-4 text-[11px] font-bold uppercase tracking-wide text-black">Niat Sholat Jamak Takdim di Waktu Magrib</h3>
+                <p className="mt-1 text-sm leading-relaxed text-black">Niat solat magrib dahulu:</p>
+                <p className="mt-1 font-bold text-right text-lg leading-loose text-black" dir="rtl" lang="ar">
+                  أُصَلِّيْ فَرْضَ الْمَغْرِبِ ثَلَاثَ رَكَعَاتٍ مُسْتَقْبِلَ الْقِبْلَةِ مَجْمُوْعًا بِالْعِشَاءِ جَمْعَ تَقْدِيْمٍ لِلّٰهِ تَعَالَى
+                </p>
+                <p className="mt-0.5 text-sm leading-relaxed text-black">
+                  “Aku niat sholat fardhu maghrib tiga rakaat digabung dengan sholat isyak jamak takdim karena Allah
+                  Ta’aala.”
+                </p>
+
+                <p className="mt-3 text-sm leading-relaxed text-black">Lalu niat solat isya:</p>
+                <p className="mt-1 font-bold text-right text-lg leading-loose text-black" dir="rtl" lang="ar">
+                  أُصَلِّيْ فَرْضَ العِشَاءِ أَرْبَعَ رَكَعَاتٍ مَجْمُوْعًا مع المغرب جمع تقديم أَدَاءً لِلَّهِ تَعَالَى
+                </p>
+                <p className="mt-0.5 text-sm leading-relaxed text-black">
+                  “Aku sengaja shalat fardhu isya empat rakaat yang dijama&apos; dengan maghrib, dengan jama taqdim,
+                  fardu karena Allah Ta’aala.”
+                </p>
               </div>
             </section>
 
@@ -380,70 +380,74 @@ export default async function EventPanduanPage({
                 topRight2={event.panduanLogoTopRight2}
               />
               <div>
-                <h2 className="text-center text-2xl font-extrabold uppercase tracking-wide text-black">Tata Cara Salat Jamak Takdim dengan Qashar</h2>
-                <h3 className="mt-3 text-[11px] font-bold uppercase tracking-wide text-black">Niat Salat Zuhur</h3>
-                <p className="mt-1 text-right text-lg leading-loose text-black" dir="rtl" lang="ar">
-                  أُصَلِّي فَرْضَ الظُّهْرِ رَكْعَتَيْنِ قَصْرًا مَجْمُوعًا إِلَى الْعَصْرِ أَدَاءً لِلَّهِ تَعَالَى
-                </p>
-                <p className="mt-0.5 text-sm italic leading-relaxed text-black" dir="ltr">
-                  Ushalli fardhas-zuhri rak‘ataini qashran majmu‘an ilal-ashri adaa-an lillahi ta‘aala
+                <h2 className="text-center text-2xl font-extrabold uppercase tracking-wide text-black">Tata Cara Sholat Jamak Takdim dengan Qashar</h2>
+
+                <h3 className="mt-3 text-[11px] font-bold uppercase tracking-wide text-black">Niat Sholat Dhuhur dan Ashar, dilakukan di waktu dhuhur (Jamak Takdim)</h3>
+                <p className="mt-1 font-bold text-right text-lg leading-loose text-black" dir="rtl" lang="ar">
+                  أُصَلِّيْ فَرْضَ الظُّهْرِ رَكْعَتَيْنِ مُسْتَقْبِلَ الْقِبْلَةِ مَجْمُوْعًا بِالْعَصْرِ جَمْعَ تَقْدِيْمٍ قَصْرًا لِلّٰهِ تَعَالَى
                 </p>
                 <p className="mt-0.5 text-sm leading-relaxed text-black">
-                  “Aku berniat salat fardu Zuhur dua rakaat qashar yang dijamak dengan Asar, karena Allah Ta’ala.”
+                  “Aku berniat shalat fardhu dhuhur dua rakaat digabungkan dengan shalat ashar dengan jamak takdim,
+                  diringkas karena Allah Ta’ala.”
                 </p>
-                <h3 className="mt-3 text-[11px] font-bold uppercase tracking-wide text-black">Niat Salat Asar</h3>
-                <p className="mt-1 text-right text-lg leading-loose text-black" dir="rtl" lang="ar">
-                  أُصَلِّي فَرْضَ الْعَصْرِ رَكْعَتَيْنِ قَصْرًا مَجْمُوعًا إِلَى الظُّهْرِ أَدَاءً لِلَّهِ تَعَالَى
-                </p>
-                <p className="mt-0.5 text-sm italic leading-relaxed text-black" dir="ltr">
-                  Ushalli fardhal-ashri rak‘ataini qashran majmu‘an ilaz-zuhri adaa-an lillahi ta‘aala
+                <p className="mt-3 font-bold text-right text-lg leading-loose text-black" dir="rtl" lang="ar">
+                  أُصَلِّيْ فَرْضَ الْعَصْرِ رَكْعَتَيْنِ مُسْتَقْبِلَ الْقِبْلَةِ مَجْمُوْعًا بِالظُّهْرِ جَمْعَ تَقْدِيْمٍ قَصْرًا لِلّٰهِ تَعَالَى
                 </p>
                 <p className="mt-0.5 text-sm leading-relaxed text-black">
-                  “Aku berniat salat fardu Asar dua rakaat qashar yang dijamak dengan Zuhur, karena Allah Ta’ala.”
+                  “Aku berniat shalat ashar dua rakaat digabungkan dengan shalat dhuhur dengan jamak takdim, diringkas
+                  karena Allah Ta’ala.”
                 </p>
-                <h3 className="mt-3 text-[11px] font-bold uppercase tracking-wide text-black">Urutan Mengerjakan</h3>
-                <ol className="mt-2 list-inside list-decimal space-y-1.5 text-sm leading-relaxed text-black">
-                  <li>Berniat salat Zuhur qashar jamak takdim.</li>
-                  <li>Kerjakan salat Zuhur dua rakaat lalu salam.</li>
-                  <li>Berniat salat Asar qashar jamak takdim.</li>
-                  <li>Kerjakan salat Asar dua rakaat lalu salam.</li>
-                </ol>
-                <p className="mt-2 text-xs italic text-black">
-                  Keduanya dikerjakan berurutan pada waktu Zuhur, masing-masing dua rakaat.
+
+                <h3 className="mt-4 text-[11px] font-bold uppercase tracking-wide text-black">Niat Sholat Maghrib dan Isya, dilakukan di waktu maghrib (Jamak Takdim)</h3>
+                <p className="mt-1 font-bold text-right text-lg leading-loose text-black" dir="rtl" lang="ar">
+                  أُصَلِّيْ فَرْضَ الْعِشَاءِ رَكْعَتَيْنِ قَصْرًا مَجْمُوْعًا إِلَىالْمَغْرِبِ لِلّٰهِ تَعَالَى
+                </p>
+                <p className="mt-0.5 text-sm leading-relaxed text-black">
+                  “Saya niat sholat fardhu Isya dua rakaat secara qashar dikumpulkan pada sholat Maghrib karena
+                  Allah.”
+                </p>
+                <p className="mt-3 font-bold text-right text-lg leading-loose text-black" dir="rtl" lang="ar">
+                  أُصَلِّيْ فَرْضَ الْعِشَاءِ رَكْعَتَيْنِ قَصْرًا مَجْمُوْعًا إِلَىالْمَغْرِبِ لِلّٰهِ تَعَالَى
+                </p>
+                <p className="mt-0.5 text-sm leading-relaxed text-black">
+                  “Aku berniat shalat fardhu isya dua raka’at dikumpulkan dengan magrib dikumpulkan di waktu magrib
+                  diringkas karena Allah Ta’ala.”
                 </p>
               </div>
 
               <div>
-                <h2 className="text-center text-2xl font-extrabold uppercase tracking-wide text-black">Tata Cara Salat Jamak Takhir dengan Qashar</h2>
-                <h3 className="mt-3 text-[11px] font-bold uppercase tracking-wide text-black">Niat Salat Zuhur</h3>
-                <p className="mt-1 text-right text-lg leading-loose text-black" dir="rtl" lang="ar">
-                  أُصَلِّي فَرْضَ الظُّهْرِ رَكْعَتَيْنِ قَصْرًا مَجْمُوعًا مَعَ الْعَصْرِ أَدَاءً لِلَّهِ تَعَالَى
-                </p>
-                <p className="mt-0.5 text-sm italic leading-relaxed text-black" dir="ltr">
-                  Ushalli fardhas-zuhri rak‘ataini qashran majmu‘an ma‘al-ashri adaa-an lillahi ta‘aala
+                <h2 className="text-center text-2xl font-extrabold uppercase tracking-wide text-black">Tata Cara Sholat Jamak Takhir dengan Qashar</h2>
+
+                <h3 className="mt-3 text-[11px] font-bold uppercase tracking-wide text-black">Niat Sholat Dhuhur dan Ashar, dilakukan di waktu Ashar (Jamak Takhir)</h3>
+                <p className="mt-1 font-bold text-right text-lg leading-loose text-black" dir="rtl" lang="ar">
+                  أُصَلِّيْ فَرْضَ الْعَصْرِ رَكْعَتَيْنِ مَجْمُوْعًا بِالظُّهْرِ جَمْعَ تَأْخِيْرٍ قَصْرً لِلّٰهِ تَعَالَى
                 </p>
                 <p className="mt-0.5 text-sm leading-relaxed text-black">
-                  “Aku berniat salat fardu Zuhur dua rakaat qashar yang dijamak dengan Asar, karena Allah Ta’ala.”
+                  “Aku berniat sholat fardhu ashar dua rakaat digabungkan dengan sholat dzuhur dengan jamak takhir,
+                  diringkas karena Allah Ta’ala.”
                 </p>
-                <h3 className="mt-3 text-[11px] font-bold uppercase tracking-wide text-black">Niat Salat Asar</h3>
-                <p className="mt-1 text-right text-lg leading-loose text-black" dir="rtl" lang="ar">
-                  أُصَلِّي فَرْضَ الْعَصْرِ رَكْعَتَيْنِ قَصْرًا مَجْمُوعًا إِلَى الظُّهْرِ أَدَاءً لِلَّهِ تَعَالَى
-                </p>
-                <p className="mt-0.5 text-sm italic leading-relaxed text-black" dir="ltr">
-                  Ushalli fardhal-ashri rak‘ataini qashran majmu‘an ilaz-zuhri adaa-an lillahi ta‘aala
+                <p className="mt-3 font-bold text-right text-lg leading-loose text-black" dir="rtl" lang="ar">
+                  أُصَلِّيْ فَرْضَ الظُّهْرِ رَكْعَتَيْنِ مَجْمُوْعًا إِلَى الْعَصْرِ جَمْعَ تَأْخِيْرٍ قَصْرً لِلّٰهِ تَعَالَى
                 </p>
                 <p className="mt-0.5 text-sm leading-relaxed text-black">
-                  “Aku berniat salat fardu Asar dua rakaat qashar yang dijamak dengan Zuhur, karena Allah Ta’ala.”
+                  “Aku berniat sholat fardhu dhuhri dua rakaat digabungkan dengan sholat ashar dengan jamak takhir,
+                  diringkas karena Allah Ta’ala.”
                 </p>
-                <h3 className="mt-3 text-[11px] font-bold uppercase tracking-wide text-black">Urutan Mengerjakan</h3>
-                <ol className="mt-2 list-inside list-decimal space-y-1.5 text-sm leading-relaxed text-black">
-                  <li>Berniat salat Zuhur qashar jamak takhir.</li>
-                  <li>Kerjakan salat Zuhur dua rakaat lalu salam.</li>
-                  <li>Berniat salat Asar qashar jamak takhir.</li>
-                  <li>Kerjakan salat Asar dua rakaat lalu salam.</li>
-                </ol>
-                <p className="mt-2 text-xs italic text-black">
-                  Keduanya dikerjakan berurutan pada waktu Asar, masing-masing dua rakaat.
+
+                <h3 className="mt-4 text-[11px] font-bold uppercase tracking-wide text-black">Niat Sholat Maghrib dan Isya, dilakukan di waktu isya (Jamak Takhir)</h3>
+                <p className="mt-1 font-bold text-right text-lg leading-loose text-black" dir="rtl" lang="ar">
+                  أُصَلِّيْ فَرْضَ الْعِشَاءِ رَكْعَتَيْنِ مَجْمُوْعًا بِالْمَغْرِبِ جَمْعَ تَأْخِيْرٍ قَصْرً لِلّٰهِ تَعَالَى
+                </p>
+                <p className="mt-0.5 text-sm leading-relaxed text-black">
+                  “Aku berniat sholat fardhu isya dua rakaat digabungkan dengan sholat maghrib dengan jamak takhir,
+                  diringkas karena Allah Ta’ala.”
+                </p>
+                <p className="mt-3 font-bold text-right text-lg leading-loose text-black" dir="rtl" lang="ar">
+                  أُصَلِّيْ فَرْضَ الْمَغْرِبِ ثَلَاثَ رَكَعَاتٍ مَجْمُوْعًا إِلَى الْعِشَاءِ جَمْعَ تَأْخِيْرٍ لِلّٰهِ تَعَالَى
+                </p>
+                <p className="mt-0.5 text-sm leading-relaxed text-black">
+                  “Aku berniat sholat fardhu maghrib tiga rakaat digabungkan dengan sholat isya dengan jamak takhir,
+                  karena Allah Ta’ala.”
                 </p>
               </div>
             </section>

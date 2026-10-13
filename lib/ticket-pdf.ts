@@ -136,7 +136,7 @@ export async function buildTicketPdf(data: TicketPdfData): Promise<Uint8Array> {
     page.drawImage(logo, { x: MARGIN, y: height - MARGIN - logoH, width: w, height: logoH })
   } else {
     page.drawText('Barokah', { x: MARGIN, y: height - MARGIN - 22, size: 15, font: bold, color: NAVY })
-    page.drawText('Tour & Travel', { x: MARGIN, y: height - MARGIN - 36, size: 9, font: regular, color: MUTED })
+    page.drawText('Event', { x: MARGIN, y: height - MARGIN - 36, size: 9, font: regular, color: MUTED })
   }
 
   const titleW = inner - (logo ? 190 : 0)
