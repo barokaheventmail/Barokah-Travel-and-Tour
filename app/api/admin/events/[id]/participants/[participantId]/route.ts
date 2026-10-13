@@ -12,6 +12,7 @@ const updateSchema = z
     phone: z.string().trim().nullish(),
     seat: z.string().trim().nullish(),
     room: z.string().trim().nullish(),
+    roomType: z.string().trim().nullish(),
     vw: z.string().trim().nullish(),
     busId: z.string().min(1, 'Pilih bus.').optional(),
     order: z.coerce.number().int('Nomor urut harus angka bulat.').positive('Nomor urut harus lebih dari 0.').optional(),
@@ -52,6 +53,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   if (data.phone !== undefined) patch.phone = data.phone || null
   if (data.seat !== undefined) patch.seat = data.seat || null
   if (data.room !== undefined) patch.room = data.room || null
+  if (data.roomType !== undefined) patch.roomType = data.roomType || null
   if (data.vw !== undefined) patch.vw = data.vw || null
 
   let busId = existing.busId

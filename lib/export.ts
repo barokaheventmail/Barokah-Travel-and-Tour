@@ -10,6 +10,7 @@ export type ExportParticipant = {
   phone: string | null
   seat: string | null
   room: string | null
+  roomType: string | null
   vw: string | null
   scannedAt: Date | null
   scannedBy: string | null
@@ -47,6 +48,7 @@ const COLUMNS: { header: string; key: keyof ExportParticipant | 'status'; width:
   { header: 'No HP', key: 'phone', width: 16 },
   { header: 'Kursi', key: 'seat', width: 10 },
   { header: 'Kamar', key: 'room', width: 10 },
+  { header: 'Tipe Kamar', key: 'roomType', width: 12 },
   { header: 'VW', key: 'vw', width: 12 },
   { header: 'Status', key: 'status', width: 10 },
   { header: 'Waktu Scan', key: 'scannedAt', width: 18 },
@@ -153,6 +155,7 @@ function addBusSheet(wb: ExcelJS.Workbook, bus: ExportBus, sheetName: string) {
       phone: p.phone,
       seat: p.seat,
       room: p.room,
+      roomType: p.roomType,
       vw: p.vw,
       status: p.scannedAt ? 'HADIR' : 'BELUM',
       scannedAt: formatWaktuScan(p.scannedAt),
@@ -161,8 +164,9 @@ function addBusSheet(wb: ExcelJS.Workbook, bus: ExportBus, sheetName: string) {
     row.alignment = { vertical: 'middle' }
     row.getCell(1).alignment = { vertical: 'middle', horizontal: 'center' }
     row.getCell(1).numFmt = '0'
-    // No HP & No Kursi disimpan sebagai teks supaya tidak jadi notasi ilmiah.
-    for (const idx of [5, 6, 7, 8]) row.getCell(idx).numFmt = '@'
+    // No HP, No Kursi, No Kamar, Tipe Kamar & VW disimpan sebagai teks supaya
+    // tidak jadi notasi ilmiah.
+    for (const idx of [5, 6, 7, 8, 9]) row.getCell(idx).numFmt = '@'
     fillRow(row, p.scannedAt ? HADIR_FILL : BELUM_FILL)
   }
 
@@ -277,7 +281,7 @@ export function buildExportWorkbook(input: ExportInput, filter: ExportFilter): E
 /** CSV datar (format lama), tanggal sudah dirapikan ke dd/MM/yyyy. */
 export function buildExportCsv(input: ExportInput, filter: ExportFilter): string {
   const buses = filterBuses(input.buses, filter)
-  const header = ['No', 'Nama', 'Tempat Lahir', 'Tgl Lahir', 'No HP', 'Kursi', 'Kamar', 'VW', 'Bus', 'Status', 'Waktu Scan', 'Crew']
+  const header = ['No', 'Nama', 'Tempat Lahir', 'Tgl Lahir', 'No HP', 'Kursi', 'Kamar', 'Tipe Kamar', 'VW', 'Bus', 'Status', 'Waktu Scan', 'Crew']
   const cell = (v: string | number | null | undefined) => `"${String(v ?? '').replace(/"/g, '""')}"`
   const lines = [header.map(cell).join(',')]
   for (const bus of buses) {
@@ -291,6 +295,7 @@ export function buildExportCsv(input: ExportInput, filter: ExportFilter): string
           p.phone ?? '',
           p.seat ?? '',
           p.room ?? '',
+          p.roomType ?? '',
           p.vw ?? '',
           bus.name,
           p.scannedAt ? 'HADIR' : 'BELUM',

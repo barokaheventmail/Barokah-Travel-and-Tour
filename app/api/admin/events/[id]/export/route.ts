@@ -61,6 +61,7 @@ export async function GET(request: NextRequest, { params }: Params) {
       phone: p.phone,
       seat: p.seat,
       room: p.room,
+      roomType: p.roomType,
       vw: p.vw,
       scannedAt: p.scannedAt,
       scannedBy: p.scannedBy?.username ?? null,

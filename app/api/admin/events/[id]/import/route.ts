@@ -168,12 +168,13 @@ export async function POST(request: NextRequest, { params }: Params) {
             phone: p.phone,
             seat: p.seat,
             room: p.room,
+            roomType: p.roomType,
             vw: p.vw,
           }
           // `undefined` berarti "jangan sentuh field ini" supaya data lama
           // tidak hilang saat file yang diimport lebih sepi.
           const data = overwriteEmpty
-            ? { ...values, birthPlace: values.birthPlace ?? null, birthDate: values.birthDate ?? null, phone: values.phone ?? null, seat: values.seat ?? null, room: values.room ?? null, vw: values.vw ?? null }
+            ? { ...values, birthPlace: values.birthPlace ?? null, birthDate: values.birthDate ?? null, phone: values.phone ?? null, seat: values.seat ?? null, room: values.room ?? null, roomType: values.roomType ?? null, vw: values.vw ?? null }
             : {
                 name: values.name,
                 ...(values.birthPlace != null ? { birthPlace: values.birthPlace } : {}),
@@ -181,6 +182,7 @@ export async function POST(request: NextRequest, { params }: Params) {
                 ...(values.phone != null ? { phone: values.phone } : {}),
                 ...(values.seat != null ? { seat: values.seat } : {}),
                 ...(values.room != null ? { room: values.room } : {}),
+                ...(values.roomType != null ? { roomType: values.roomType } : {}),
                 ...(values.vw != null ? { vw: values.vw } : {}),
               }
 

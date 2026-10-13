@@ -18,6 +18,7 @@ export type RowParticipant = {
   phone: string | null
   seat: string | null
   room: string | null
+  roomType: string | null
   vw: string | null
   scannedAt: string | null
   scannedBy: { username: string; name: string | null } | null
@@ -435,6 +436,7 @@ export function ParticipantTable({
       phone: items.some((p) => p.phone),
       seat: items.some((p) => p.seat),
       room: items.some((p) => p.room),
+      roomType: items.some((p) => p.roomType),
       vw: items.some((p) => p.vw),
     }),
     [items],
@@ -571,6 +573,7 @@ export function ParticipantTable({
                         {hasAny.phone && <th className="px-3 py-2.5">Telp/HP</th>}
                         {hasAny.seat && <th className="px-3 py-2.5">Kursi</th>}
                         {hasAny.room && <th className="px-3 py-2.5">Kamar</th>}
+                        {hasAny.roomType && <th className="px-3 py-2.5">Tipe Kamar</th>}
                         {hasAny.vw && <th className="px-3 py-2.5">VW</th>}
                         <th className="px-3 py-2.5">Kehadiran</th>
                         <th className="px-3 py-2.5 text-right">Aksi</th>
@@ -594,6 +597,9 @@ export function ParticipantTable({
                           {hasAny.phone && <td className={`px-3 text-[#657080] py-2.5`}>{p.phone || '—'}</td>}
                           {hasAny.seat && <td className={`px-3 text-[#657080] py-2.5`}>{p.seat || '—'}</td>}
                           {hasAny.room && <td className={`px-3 text-[#657080] py-2.5`}>{p.room || '—'}</td>}
+                          {hasAny.roomType && (
+                            <td className={`px-3 text-[#657080] py-2.5`}>{p.roomType || '—'}</td>
+                          )}
                           {hasAny.vw && <td className={`px-3 text-[#657080] py-2.5`}>{p.vw || '—'}</td>}
                           <td className={`px-3 py-2.5`}>
                             <div className="flex flex-wrap items-center gap-1.5">

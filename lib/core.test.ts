@@ -137,6 +137,23 @@ describe('parseExcel', () => {
     expect(result.buses[0].participants[0].name).toBe('Zainal')
     expect(result.buses[0].participants[0].phone).toBe('085700000001')
   })
+
+  it('membaca kolom Tipe Kamar tanpa menggeser No Kamar / No VW', () => {
+    const buf = makeBufferFull([
+      {
+        name: 'Bus 1',
+        aoa: [
+          ['No', 'Nama Lengkap', 'Tempat Lahir', 'Tanggal Lahir', 'No. Telp/HP', 'No Kursi', 'No Kamar', 'Tipe Kamar', 'No VW'],
+          [1, 'Ahmad Fauzi', 'Sukabumi', '12/03/1998', '085812345678', 'A1', '101', 'Twin', 'VW-01'],
+        ],
+      },
+    ])
+    const result = parseWorkbook(buf)
+    const p = result.buses[0].participants[0]
+    expect(p.room).toBe('101')
+    expect(p.roomType).toBe('Twin')
+    expect(p.vw).toBe('VW-01')
+  })
 })
 
 describe('parseDate', () => {
@@ -591,6 +608,7 @@ describe('template Excel resmi', () => {
       phone: '085812345678',
       seat: 'A1',
       room: '101',
+      roomType: 'Twin',
       vw: 'VW-01',
     })
     expect(ymd(fauzi.birthDate)).toBe('1998-03-12')
@@ -602,6 +620,7 @@ describe('template Excel resmi', () => {
       phone: '085812345679',
       seat: 'A2',
       room: '102',
+      roomType: 'Twin',
       vw: 'VW-01',
     })
     expect(ymd(siti.birthDate)).toBe('2000-11-05')

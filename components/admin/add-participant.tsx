@@ -8,7 +8,7 @@ import { notifyParticipantAdded } from '@/lib/events'
 export function AddParticipant({ eventId, buses }: { eventId: string; buses: { id: string; name: string }[] }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
-  const [form, setForm] = useState({ name: '', busName: buses[0]?.name ?? 'Bus 1', phone: '', seat: '', room: '', vw: '', birthDate: '' })
+  const [form, setForm] = useState({ name: '', busName: buses[0]?.name ?? 'Bus 1', phone: '', seat: '', room: '', roomType: '', vw: '', birthDate: '' })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -28,7 +28,7 @@ export function AddParticipant({ eventId, buses }: { eventId: string; buses: { i
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Gagal menambah peserta.')
-      setForm({ name: '', busName: form.busName, phone: '', seat: '', room: '', vw: '', birthDate: '' })
+      setForm({ name: '', busName: form.busName, phone: '', seat: '', room: '', roomType: '', vw: '', birthDate: '' })
       notifyParticipantAdded()
       router.refresh()
     } catch (err) {
@@ -74,6 +74,7 @@ export function AddParticipant({ eventId, buses }: { eventId: string; buses: { i
         <input value={form.phone} onChange={(e) => set('phone', e.target.value)} placeholder="No Telp/HP" className={inputCls} />
         <input value={form.seat} onChange={(e) => set('seat', e.target.value)} placeholder="No Kursi" className={inputCls} />
         <input value={form.room} onChange={(e) => set('room', e.target.value)} placeholder="No Kamar" className={inputCls} />
+        <input value={form.roomType} onChange={(e) => set('roomType', e.target.value)} placeholder="Tipe Kamar" className={inputCls} />
         <input value={form.vw} onChange={(e) => set('vw', e.target.value)} placeholder="No VW" className={inputCls} />
         <input type="date" value={form.birthDate} onChange={(e) => set('birthDate', e.target.value)} placeholder="Tanggal Lahir" className={inputCls} />
       </div>

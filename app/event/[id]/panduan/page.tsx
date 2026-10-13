@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
+import { Dancing_Script } from 'next/font/google'
 import { BookOpen, Clock3, Download, MapPin, Phone, QrCode } from 'lucide-react'
 import { prisma } from '@/lib/db'
 import { parseItineraryDoc, groupItineraryByDay } from '@/lib/itinerary'
@@ -8,9 +9,16 @@ import { qrDataUrl, encodeToken } from '@/lib/scan'
 import { Logo } from '@/components/site'
 import { EventNavbar } from '@/components/event-navbar'
 import { PublicSeatMap } from '@/components/public-seat-map'
+import { PublicRoomMap } from '@/components/public-room-map'
 import { PrintButton } from '@/components/admin/print-button'
 
 export const dynamic = 'force-dynamic'
+
+const latinScript = Dancing_Script({
+  subsets: ['latin'],
+  weight: '700',
+  display: 'swap',
+})
 
 const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
 const months = [
@@ -125,7 +133,7 @@ export default async function EventPanduanPage({
   const participant = participantToken
     ? await prisma.participant.findUnique({
         where: { token: participantToken },
-        select: { id: true, eventId: true, busId: true, seat: true, name: true, token: true, ticketCode: true },
+        select: { id: true, eventId: true, busId: true, seat: true, room: true, name: true, token: true, ticketCode: true },
       })
     : null
   const ownBus = participant && participant.eventId === id ? participant : null
@@ -252,14 +260,18 @@ export default async function EventPanduanPage({
 
               <div className="mt-4 space-y-4">
                 <div>
-                  <h3 className="text-sm font-bold uppercase tracking-wide text-[#1b4f9c]">Our Vision</h3>
+                  <h3 className="inline-block border-2 border-[#e0b200] bg-[url('/Bg-7-bagian-panduan.png')] bg-cover bg-center px-3 pt-1 pb-5 text-sm font-bold uppercase tracking-wide text-[#1b4f9c] [clip-path:polygon(0_0,100%_0,100%_100%,calc(100%_-_12px)_calc(100%_-_14px),0_calc(100%_-_14px))]">
+                    Our Vision
+                  </h3>
                   <p className="mt-2 text-sm leading-relaxed text-[#1b3555]">
                     Menjadi biro perjalanan terkemuka dengan menciptakan produk-produk berkualitas yang berbasis budaya dan pendidikan dalam rangka pengembangan pariwisata.
                   </p>
                 </div>
 
                 <div>
-                  <h3 className="text-sm font-bold uppercase tracking-wide text-[#1b4f9c]">Our Mission</h3>
+                  <h3 className="inline-block border-2 border-[#e0b200] bg-[url('/Bg-7-bagian-panduan.png')] bg-cover bg-center px-3 pt-1 pb-5 text-sm font-bold uppercase tracking-wide text-[#1b4f9c] [clip-path:polygon(0_0,100%_0,100%_100%,calc(100%_-_12px)_calc(100%_-_14px),0_calc(100%_-_14px))]">
+                    Our Mission
+                  </h3>
                   <ul className="mt-2 space-y-2 text-sm leading-relaxed text-[#1b3555]">
                     <li className="flex gap-2">
                       <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#2ca84a]" />
@@ -283,11 +295,10 @@ export default async function EventPanduanPage({
                   </p>
                 </div>
 
-                <div className="rounded-lg bg-[#eef4fb] p-4 text-center">
-                  <p className="text-sm font-bold italic text-[#1b4f9c]">
+                <div className="text-center">
+                  <p className={`${latinScript.className} text-3xl leading-tight text-[#f5b915]`}>
                     &ldquo;Your Satisfaction Is Our Pride&rdquo;
                   </p>
-                  <p className="mt-1 text-xs text-[#657080]">diatas doa bepergian jauh</p>
                 </div>
               </div>
             </section>
@@ -580,6 +591,19 @@ export default async function EventPanduanPage({
                   initialBusId={ownBus?.busId ?? null}
                   highlightSeat={ownBus?.seat ?? null}
                 />
+              </section>
+            )}
+
+            {buses.length > 0 && (
+              <section className="border border-[#dfe4e8] bg-white p-5 print:min-h-[272mm]">
+                <SectionLogos
+                  logoLeft={logoLeftUrl}
+                  logoRight={logoRightUrl}
+                  topRight={event.panduanLogoTopRight}
+                  topRight2={event.panduanLogoTopRight2}
+                />
+                <h2 className="mb-6 mt-12 text-center text-xl font-extrabold uppercase tracking-wide text-[#00A3E0]">Denah Kamar</h2>
+                <PublicRoomMap eventId={id} highlightRoom={ownBus?.room ?? null} highlightName={ownBus?.name ?? null} />
               </section>
             )}
 

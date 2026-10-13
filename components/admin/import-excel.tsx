@@ -55,6 +55,7 @@ const FIELD_LABEL: Record<string, string> = {
   phone: 'No Telp/Hp',
   seat: 'No Kursi',
   room: 'No Kamar',
+  roomType: 'Tipe Kamar',
   vw: 'No VW',
   bus: 'Unit',
 }
@@ -301,6 +302,7 @@ function PreviewPanel({
                             <th className="px-2 py-1.5">HP</th>
                             <th className="px-2 py-1.5">Kursi</th>
                             <th className="px-2 py-1.5">Kamar</th>
+                            <th className="px-2 py-1.5">Tipe Kamar</th>
                             <th className="px-2 py-1.5">VW</th>
                           </tr>
                         </thead>
@@ -314,6 +316,7 @@ function PreviewPanel({
                               <td className="px-2 py-1 text-[#657080]">{p.phone ?? '-'}</td>
                               <td className="px-2 py-1 text-[#657080]">{p.seat ?? '-'}</td>
                               <td className="px-2 py-1 text-[#657080]">{p.room ?? '-'}</td>
+                              <td className="px-2 py-1 text-[#657080]">{p.roomType ?? '-'}</td>
                               <td className="px-2 py-1 text-[#657080]">{p.vw ?? '-'}</td>
                             </tr>
                           ))}

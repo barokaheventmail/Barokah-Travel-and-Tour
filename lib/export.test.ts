@@ -22,6 +22,7 @@ function peserta(n: number, over: Partial<ExportBus['participants'][number]> = {
     phone: '08123456789',
     seat: `${n}A`,
     room: '101',
+    roomType: 'Twin',
     vw: 'B',
     scannedAt: null as Date | null,
     scannedBy: null as string | null,
@@ -132,30 +133,30 @@ describe('buildExportWorkbook', () => {
   it('sheet armada rapi: header styled, membeku, ada autoFilter, semua kolom punya width', () => {
     const ws = buildExportWorkbook(input(), { status: 'all' }).getWorksheet('Bus 01')!
     const header = ws.getRow(1)
-    expect([5, 6, 7, 8].map((i) => ws.getColumn(i).width)).toEqual([16, 10, 10, 12])
+    expect([5, 6, 7, 8, 9].map((i) => ws.getColumn(i).width)).toEqual([16, 10, 10, 12, 12])
     expect(header.getCell(1).font?.bold).toBe(true)
     expect(header.getCell(1).font?.color?.argb).toBe('FFFFFFFF')
     expect((header.getCell(1).fill as ExcelJS.FillPattern).fgColor?.argb).toBe('FF163D78')
     expect(ws.views).toEqual([{ state: 'frozen', ySplit: 1 }])
-    expect(ws.autoFilter).toEqual({ from: { row: 1, column: 1 }, to: { row: 1, column: 11 } })
-    expect(ws.getColumn(11).width).toBe(14)
+    expect(ws.autoFilter).toEqual({ from: { row: 1, column: 1 }, to: { row: 1, column: 12 } })
+    expect(ws.getColumn(12).width).toBe(14)
   })
 
   it('tidak ada kolom Bus di sheet armada (sama dengan nama sheet)', () => {
     const ws = buildExportWorkbook(input(), { status: 'all' }).getWorksheet('Bus 01')!
-    const headers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((i) => ws.getRow(1).getCell(i).value)
-    expect(headers).toEqual(['No', 'Nama', 'Tempat Lahir', 'Tgl Lahir', 'No HP', 'Kursi', 'Kamar', 'VW', 'Status', 'Waktu Scan', 'Crew'])
+    const headers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((i) => ws.getRow(1).getCell(i).value)
+    expect(headers).toEqual(['No', 'Nama', 'Tempat Lahir', 'Tgl Lahir', 'No HP', 'Kursi', 'Kamar', 'Tipe Kamar', 'VW', 'Status', 'Waktu Scan', 'Crew'])
   })
 
   it('isi baris: tanggal dd/MM/yyyy lokal, status, waktu scan, no HP teks', () => {
     const ws = buildExportWorkbook(input(), { status: 'all' }).getWorksheet('Bus 01')!
     const baris = { belum: ws.getRow(2), hadir: ws.getRow(3) }
     expect(baris.belum.getCell(4).value).toBe('12/03/1998')
-    expect(baris.belum.getCell(9).value).toBe('BELUM')
-    expect(baris.belum.getCell(10).value).toBe('')
-    expect(baris.hadir.getCell(9).value).toBe('HADIR')
-    expect(baris.hadir.getCell(10).value).toBe('01/03/2026 06:05')
-    expect(baris.hadir.getCell(11).value).toBe('admin')
+    expect(baris.belum.getCell(10).value).toBe('BELUM')
+    expect(baris.belum.getCell(11).value).toBe('')
+    expect(baris.hadir.getCell(10).value).toBe('HADIR')
+    expect(baris.hadir.getCell(11).value).toBe('01/03/2026 06:05')
+    expect(baris.hadir.getCell(12).value).toBe('admin')
     expect(baris.hadir.getCell(5).value).toBe('08123456789')
     expect(baris.hadir.getCell(5).numFmt).toBe('@')
   })

@@ -177,6 +177,7 @@ model Participant {
   phone          String?
   seat           String?
   room           String?
+  roomType       String?
   vw             String?
   token          String    @unique @default(cuid())
   ticketCode     String

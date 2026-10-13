@@ -9,6 +9,7 @@ export type ExcelParticipant = {
   phone?: string | null
   seat?: string | null
   room?: string | null
+  roomType?: string | null
   vw?: string | null
 }
 
@@ -79,6 +80,7 @@ export const TEMPLATE_HEADERS = [
   'No Telp/Hp',
   'No Kursi',
   'No Kamar',
+  'Tipe Kamar',
   'No VW',
 ] as const
 
@@ -90,6 +92,7 @@ const FIELD_LABEL: Record<AssignableField, string> = {
   phone: 'No Telp/Hp',
   seat: 'No Kursi',
   room: 'No Kamar',
+  roomType: 'Tipe Kamar',
   vw: 'No VW',
   bus: 'Unit',
 }
@@ -102,6 +105,7 @@ const FIELD_ORDER: AssignableField[] = [
   'phone',
   'seat',
   'room',
+  'roomType',
   'vw',
   'bus',
 ]
@@ -157,6 +161,17 @@ const FIELD_ALIASES: Record<AssignableField, string[]> = {
   ],
   seat: ['no kursi', 'kursi', 'no seat', 'seat', 'nomor kursi', 'no kursi bus', 'kursi bus', 'seat number'],
   room: ['no kamar', 'kamar', 'no room', 'room', 'penginapan', 'nomor kamar', 'no kamar hotel', 'kamar hotel'],
+  roomType: [
+    'tipe kamar',
+    'type kamar',
+    'tipe room',
+    'room type',
+    'jenis kamar',
+    'tipe penginapan',
+    'kategori kamar',
+    'class kamar',
+    'kelas kamar',
+  ],
   vw: ['no vw', 'vw', 'vehicle', 'no kendaraan', 'kendaraan', 'mobil', 'no mobil', 'nomor vw'],
   bus: ['bus', 'unit', 'armada', 'no bus', 'nama bus', 'kendaraan bus', 'bus armada', 'nama armada', 'no armada', 'armada bus', 'nama unit', 'no unit', 'unit bus', 'bus unit'],
 }
@@ -172,6 +187,7 @@ const FIELD_PATTERNS: { field: AssignableField; re: RegExp }[] = [
     re: /(no\.?\s*(telp|tlp|hp|hps|wa|whatsapp|telepon|ponsel)|\b(hp|telp|telepon|wa|whatsapp|kontak)\b)/,
   },
   { field: 'seat', re: /(no\.?\s*)?(kursi|seat)\b/ },
+  { field: 'roomType', re: /(tipe|type|jenis|kategori|kelas)\s*(kamar|room|penginapan)|room\s*type/ },
   { field: 'room', re: /(no\.?\s*)?(kamar|room|penginapan)\b/ },
   { field: 'vw', re: /(no\.?\s*)?(vw|vehicle|kendaraan|mobil)\b/ },
   { field: 'bus', re: /\b(bus|unit|armada)\b/ },
@@ -816,6 +832,7 @@ function parseSheet(sheetName: string, rows: unknown[][]): SheetParse {
       phone: normalizePhone(cellRawAt(row, map.phone)),
       seat: cellTextAt(row, map.seat) || null,
       room: cellTextAt(row, map.room) || null,
+      roomType: cellTextAt(row, map.roomType) || null,
       vw: cellTextAt(row, map.vw) || null,
     })
   }
@@ -956,6 +973,7 @@ export type PreviewParticipant = {
   phone: string | null
   seat: string | null
   room: string | null
+  roomType: string | null
   vw: string | null
 }
 
@@ -980,6 +998,7 @@ export function buildPreview(parsed: ExcelParseResult): ImportPreview {
         phone: p.phone ?? null,
         seat: p.seat ?? null,
         room: p.room ?? null,
+        roomType: p.roomType ?? null,
         vw: p.vw ?? null,
       })),
     })),
@@ -1002,6 +1021,7 @@ const TEMPLATE_COL_WIDTH: Record<string, number> = {
   'No Telp/Hp': 16,
   'No Kursi': 12,
   'No Kamar': 12,
+  'Tipe Kamar': 14,
   'No VW': 12,
 }
 
@@ -1011,12 +1031,12 @@ const TEMPLATE_COL_WIDTH: Record<string, number> = {
  */
 const TEMPLATE_ROWS: (string | number)[][][] = [
   [
-    [1, 'Ahmad Fauzi', 'Sukabumi', '12/03/1998', '085812345678', 'A1', '101', 'VW-01'],
-    [2, 'Siti Rahmawati', 'Bandung', '05/11/2000', '085812345679', 'A2', '102', 'VW-01'],
+    [1, 'Ahmad Fauzi', 'Sukabumi', '12/03/1998', '085812345678', 'A1', '101', 'Twin', 'VW-01'],
+    [2, 'Siti Rahmawati', 'Bandung', '05/11/2000', '085812345679', 'A2', '102', 'Twin', 'VW-01'],
   ],
   [
-    [1, 'Nurhaliza Putri', 'Bogor', '30/01/1999', '085812345681', 'B1', '201', 'VW-02'],
-    [2, 'Agus Setiawan', 'Depok', '17/09/2001', '085812345682', 'B2', '202', 'VW-02'],
+    [1, 'Nurhaliza Putri', 'Bogor', '30/01/1999', '085812345681', 'B1', '201', 'Double', 'VW-02'],
+    [2, 'Agus Setiawan', 'Depok', '17/09/2001', '085812345682', 'B2', '202', 'Double', 'VW-02'],
   ],
 ]
 

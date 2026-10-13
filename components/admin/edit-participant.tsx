@@ -17,6 +17,7 @@ export type RowParticipant = {
   phone: string | null
   seat: string | null
   room: string | null
+  roomType: string | null
   vw: string | null
   scannedAt: string | null
   scannedBy: { username: string } | null
@@ -32,6 +33,7 @@ export function EditParticipant({ eventId, participant, buses }: { eventId: stri
     phone: '',
     seat: '',
     room: '',
+    roomType: '',
     vw: '',
     busId: '',
     order: '',
@@ -47,6 +49,7 @@ export function EditParticipant({ eventId, participant, buses }: { eventId: stri
       phone: participant.phone ?? '',
       seat: participant.seat ?? '',
       room: participant.room ?? '',
+      roomType: participant.roomType ?? '',
       vw: participant.vw ?? '',
       busId: participant.busId,
       order: String(participant.order),
@@ -71,6 +74,7 @@ export function EditParticipant({ eventId, participant, buses }: { eventId: stri
         phone: form.phone.trim(),
         seat: form.seat.trim(),
         room: form.room.trim(),
+        roomType: form.roomType.trim(),
         vw: form.vw.trim(),
         busId: form.busId,
         order: Number(form.order),
@@ -130,6 +134,7 @@ export function EditParticipant({ eventId, participant, buses }: { eventId: stri
               <input value={form.phone} onChange={(e) => set('phone', e.target.value)} placeholder="No Telp/HP" className={inputCls} />
               <input value={form.seat} onChange={(e) => set('seat', e.target.value)} placeholder="No Kursi" className={inputCls} />
               <input value={form.room} onChange={(e) => set('room', e.target.value)} placeholder="No Kamar" className={inputCls} />
+              <input value={form.roomType} onChange={(e) => set('roomType', e.target.value)} placeholder="Tipe Kamar" className={inputCls} />
               <input value={form.vw} onChange={(e) => set('vw', e.target.value)} placeholder="No VW" className={inputCls} />
               <select value={form.busId} onChange={(e) => set('busId', e.target.value)} className={inputCls}>
                 {buses.map((b) => (
