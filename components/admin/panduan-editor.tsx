@@ -732,6 +732,8 @@ export function PanduanEditor({
 
   const rowCls =
     'rounded-lg border border-[#dfe4e8] bg-white px-3 py-2 text-sm font-semibold text-[#1b3555] outline-none transition-colors placeholder:text-[#9aa3af] focus:border-[#1b4f9c] focus:ring-2 focus:ring-[#1b4f9c]/15'
+  const descRowCls =
+    'rounded-lg border border-[#dfe4e8] bg-white px-3 py-2 text-xs font-medium text-[#1b3555] outline-none transition-colors placeholder:text-[#9aa3af] focus:border-[#1b4f9c] focus:ring-2 focus:ring-[#1b4f9c]/15'
   const addBtnCls =
     'flex items-center gap-1 rounded-full bg-[#eef4fb] px-3 py-1.5 text-[11px] font-bold text-[#1b4f9c] transition-colors hover:bg-[#e2ecf8]'
 
@@ -1052,20 +1054,19 @@ export function PanduanEditor({
             className={`${rowCls} w-full resize-y`}
           />
         </div>
-      </div>
 
-      <div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">
-        <div className="flex items-center justify-between gap-2">
-          <div>
-            <h2 className="text-sm font-bold text-[#1b3555]">Crew on Duty — Tata Tertib</h2>
-            <p className="mt-0.5 text-xs text-[#657080]">Tampil di bawah Tata Tertib.</p>
+        <section className="mt-5 rounded-xl border border-[#e8ecf1] bg-[#fbfcfe] p-4">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex min-w-0 items-center gap-2">
+              <span className="shrink-0 rounded-full px-0 py-1 text-sm font-bold text-black">Crew on Duty — Tata Tertib</span>
+              <span className="truncate text-[11px] text-[#9aa3af]">Tampil di bawah Tata Tertib</span>
+            </div>
+            {!crew.name && !crewEditing && (
+              <button type="button" onClick={() => setCrewEditing(true)} className={addBtnCls}>
+                <Plus size={12} /> Tambah Crew
+              </button>
+            )}
           </div>
-          {!crew.name && !crewEditing && (
-            <button type="button" onClick={() => setCrewEditing(true)} className={addBtnCls}>
-              <Plus size={12} /> Tambah Crew
-            </button>
-          )}
-        </div>
 
         {crew.name ? (
           <div className="mt-3 flex items-center gap-3">
@@ -1123,13 +1124,13 @@ export function PanduanEditor({
               value={crew.name}
               onChange={(e) => setCrew((c) => ({ ...c, name: e.target.value }))}
               placeholder="Nama crew"
-              className={`${rowCls} w-full`}
+              className={`${descRowCls} w-full`}
             />
             <input
               value={crew.role}
               onChange={(e) => setCrew((c) => ({ ...c, role: e.target.value }))}
               placeholder="Jabatan / Peran (mis. Tour Leader)"
-              className={`${rowCls} w-full`}
+              className={`${descRowCls} w-full`}
             />
 
             <div className="flex justify-end gap-2">
@@ -1156,20 +1157,22 @@ export function PanduanEditor({
             </div>
           </div>
         )}
+        </section>
       </div>
 
-      <div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">
-        <div className="flex items-center justify-between gap-2">
-          <div>
-            <h2 className="text-sm font-bold text-[#1b3555]">Crew on Duty — Denah Kamar</h2>
-            <p className="mt-0.5 text-xs text-[#657080]">Tampil di bawah tabel Denah Kamar, terpisah dari crew Tata Tertib.</p>
+      <div className="rounded-2xl border border-[#dfe4e8] bg-white shadow-sm">
+        <section className="p-5">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex min-w-0 items-center gap-2">
+              <span className="shrink-0 rounded-full px-0 py-1 text-sm font-bold text-black">Denah Kamar</span>
+              <span className="truncate text-[11px] text-[#9aa3af]">Tampil di bawah tabel Denah Kamar</span>
+            </div>
+            {!denahCrew.name && !denahCrewEditing && (
+              <button type="button" onClick={() => setDenahCrewEditing(true)} className={addBtnCls}>
+                <Plus size={12} /> Tambah Crew
+              </button>
+            )}
           </div>
-          {!denahCrew.name && !denahCrewEditing && (
-            <button type="button" onClick={() => setDenahCrewEditing(true)} className={addBtnCls}>
-              <Plus size={12} /> Tambah Crew
-            </button>
-          )}
-        </div>
 
         {denahCrew.name ? (
           <div className="mt-3 flex items-center gap-3">
@@ -1229,9 +1232,9 @@ export function PanduanEditor({
                 e.target.style.height = 'auto'
                 e.target.style.height = `${e.target.scrollHeight}px`
               }}
-              placeholder="Nama crew"
+              placeholder="Ketik deskripsi"
               rows={1}
-              className={`${rowCls} w-full resize-none overflow-hidden`}
+              className={`${descRowCls} w-full resize-none overflow-hidden`}
             />
 
             <div className="flex justify-end gap-2">
@@ -1258,20 +1261,20 @@ export function PanduanEditor({
             </div>
           </div>
         )}
-      </div>
+        </section>
 
-      <div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">
-        <div className="flex items-center justify-between gap-2">
-          <div>
-            <h2 className="text-sm font-bold text-[#1b3555]">Crew on Duty — Denah VW</h2>
-            <p className="mt-0.5 text-xs text-[#657080]">Tampil di bawah tabel Denah VW, terpisah dari crew Denah Kamar.</p>
+        <section className="border-t border-[#eef1f4] p-5">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex min-w-0 items-center gap-2">
+              <span className="shrink-0 rounded-full px-0 py-1 text-sm font-bold text-black">Denah VW</span>
+              <span className="truncate text-[11px] text-[#9aa3af]">Tampil di bawah tabel Denah VW</span>
+            </div>
+            {!denahVwCrew.name && !denahVwCrewEditing && (
+              <button type="button" onClick={() => setDenahVwCrewEditing(true)} className={addBtnCls}>
+                <Plus size={12} /> Tambah Crew
+              </button>
+            )}
           </div>
-          {!denahVwCrew.name && !denahVwCrewEditing && (
-            <button type="button" onClick={() => setDenahVwCrewEditing(true)} className={addBtnCls}>
-              <Plus size={12} /> Tambah Crew
-            </button>
-          )}
-        </div>
 
         {denahVwCrew.name ? (
           <div className="mt-3 flex items-center gap-3">
@@ -1331,9 +1334,9 @@ export function PanduanEditor({
                 e.target.style.height = 'auto'
                 e.target.style.height = `${e.target.scrollHeight}px`
               }}
-              placeholder="Nama crew"
+              placeholder="Ketik deskripsi"
               rows={1}
-              className={`${rowCls} w-full resize-none overflow-hidden`}
+              className={`${descRowCls} w-full resize-none overflow-hidden`}
             />
 
             <div className="flex justify-end gap-2">
@@ -1360,6 +1363,7 @@ export function PanduanEditor({
             </div>
           </div>
         )}
+        </section>
       </div>
 
       <div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">

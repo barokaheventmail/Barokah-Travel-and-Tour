@@ -1,6 +1,5 @@
-import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { Eye, History, Package, QrCode, Bookmark } from 'lucide-react'
+import { AdminNav } from '@/components/admin/admin-nav'
 import { AutoRefresh } from '@/components/admin/auto-refresh'
 import { LogoutButton } from '@/components/admin/logout-button'
 import { Logo } from '@/components/site'
@@ -15,55 +14,42 @@ const ROLE_LABEL: Record<string, string> = {
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await requireAdminSession()
   if (!session) redirect('/login?scope=ADMIN&next=/admin')
+  const roleLabel = ROLE_LABEL[session.role] ?? 'Admin'
   return (
     <div className="min-h-screen bg-[#f4f7fa]" suppressHydrationWarning>
       <AutoRefresh />
-      <header className="sticky top-0 z-30 border-b border-[#dfe4e8] bg-white/90 print:hidden backdrop-blur">
-        <div className="container-wide flex h-16 items-center justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-3">
-            <Logo className="h-8 w-auto" />
-            <p className="truncate text-sm font-bold text-[#1b3555]">
-              Panel {ROLE_LABEL[session.role] ?? 'Admin'}
-            </p>
-          </div>
-          <nav className="flex items-center gap-2">
-            {session.role === 'OWNER' && (
-              <Link
-                href="/admin/pengawasan"
-                className="flex items-center gap-1.5 rounded-full border border-[#dfe4e8] bg-white px-3 py-1.5 text-xs font-bold text-[#1b3555] transition-colors duration-200 hover:bg-[#f1f3f5]"
-              >
-                <Eye size={13} /> Pengawasan
-              </Link>
-            )}
-            <Link
-              href="/admin/logs"
-              className="flex items-center gap-1.5 rounded-full border border-[#dfe4e8] bg-white px-3 py-1.5 text-xs font-bold text-[#1b3555] transition-colors duration-200 hover:bg-[#f1f3f5]"
-            >
-              <History size={13} /> Riwayat
-            </Link>
-            <Link
-              href="/admin/preset"
-              className="flex items-center gap-1.5 rounded-full border border-[#dfe4e8] bg-white px-3 py-1.5 text-xs font-bold text-[#1b3555] transition-colors duration-200 hover:bg-[#f1f3f5]"
-            >
-              <Bookmark size={13} /> Preset
-            </Link>
-            <Link
-              href="/admin"
-              className="flex items-center gap-1.5 rounded-full border border-[#dfe4e8] bg-white px-3 py-1.5 text-xs font-bold text-[#1b3555] transition-colors duration-200 hover:bg-[#f1f3f5]"
-            >
-              <QrCode size={13} /> Event
-            </Link>
-            <Link
-              href="/admin/paket"
-              className="flex items-center gap-1.5 rounded-full border border-[#dfe4e8] bg-white px-3 py-1.5 text-xs font-bold text-[#1b3555] transition-colors duration-200 hover:bg-[#f1f3f5]"
-            >
-              <Package size={13} /> Paket Event
-            </Link>
-            <LogoutButton />
-          </nav>
+
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-[#dfe4e8] bg-white lg:flex print:hidden">
+        <div className="flex h-16 shrink-0 items-center gap-3 border-b border-[#dfe4e8] px-5">
+          <Logo className="h-8 w-auto" />
+          <p className="truncate text-sm font-bold text-[#1b3555]">Panel {roleLabel}</p>
         </div>
-      </header>
-      <main className="container-wide px-4 py-6 pb-16">{children}</main>
+        <div className="flex-1 overflow-y-auto">
+          <AdminNav role={session.role} className="h-full flex-col" />
+        </div>
+        <div className="shrink-0 border-t border-[#dfe4e8] p-3">
+          <LogoutButton />
+        </div>
+      </aside>
+
+      <div className="lg:pl-64">
+        <header className="sticky top-0 z-30 border-b border-[#dfe4e8] bg-white/90 backdrop-blur lg:hidden print:hidden">
+          <div className="container-wide flex h-16 items-center justify-between gap-3 px-4">
+            <div className="flex min-w-0 items-center gap-3">
+              <Logo className="h-8 w-auto" />
+              <p className="truncate text-sm font-bold text-[#1b3555]">Panel {roleLabel}</p>
+            </div>
+            <LogoutButton />
+          </div>
+        </header>
+        <div className="container-wide px-4 pt-4 lg:hidden">
+          <AdminNav
+            role={session.role}
+            className="flex-row overflow-x-auto rounded-2xl border border-[#dfe4e8] bg-white p-2 shadow-sm"
+          />
+        </div>
+        <main className="container-wide px-4 py-6 pb-16">{children}</main>
+      </div>
     </div>
   )
 }
