@@ -1179,12 +1179,12 @@ export function PanduanEditor({
         <section className="p-5">
           <div className="flex items-center justify-between gap-2">
             <div className="flex min-w-0 items-center gap-2">
-              <span className="shrink-0 rounded-full px-0 py-1 text-sm font-bold text-black">Denah Kamar</span>
+              <span className="shrink-0 rounded-full px-0 py-1 text-sm font-bold text-black">Gambar Hotel</span>
               <span className="truncate text-[11px] text-[#9aa3af]">Tampil di bawah tabel Denah Kamar</span>
             </div>
             {!denahCrew.name && !denahCrewEditing && (
               <button type="button" onClick={() => setDenahCrewEditing(true)} className={addBtnCls}>
-                <Plus size={12} /> Tambah Crew
+                <Plus size={12} /> Tambah Gambar
               </button>
             )}
           </div>
@@ -1211,7 +1211,7 @@ export function PanduanEditor({
             </div>
           </div>
         ) : (
-          <p className="mt-2 text-xs text-[#9aa3af]">Belum ada crew on duty untuk denah kamar.</p>
+          <p className="mt-2 text-xs text-[#9aa3af]">Belum ada gambar hotel.</p>
         )}
 
         {denahCrewEditing && (
@@ -1247,7 +1247,7 @@ export function PanduanEditor({
                 e.target.style.height = 'auto'
                 e.target.style.height = `${e.target.scrollHeight}px`
               }}
-              placeholder="Ketik deskripsi"
+              placeholder="Nama Hotel"
               rows={1}
               className={`${descRowCls} w-full resize-none overflow-hidden`}
             />
@@ -1271,7 +1271,7 @@ export function PanduanEditor({
                 className="inline-flex items-center gap-1.5 rounded-full bg-[#1b4f9c] px-5 py-2 text-xs font-bold text-white transition-colors duration-200 hover:bg-[#143d79] active:scale-95 disabled:opacity-60"
               >
                 {denahCrewBusy ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
-                Simpan Crew
+                Simpan Gambar
               </button>
             </div>
           </div>
