@@ -8,8 +8,9 @@ import { EditEvent } from '@/components/admin/edit-event'
 import { DeleteEvent } from '@/components/admin/delete-event'
 import { ImportExcel } from '@/components/admin/import-excel'
 import { ExportMenu } from '@/components/admin/export-menu'
-import { ParticipantTable, type RowBus } from '@/components/admin/participant-table'
+import { type RowBus } from '@/components/admin/participant-table'
 import { AddParticipant } from '@/components/admin/add-participant'
+import { PesertaTabs } from '@/components/admin/peserta-tabs'
 import { ArmadaActions } from '@/components/admin/armada-actions'
 import { BusArmadaSection, type BusWithWorkersData } from '@/components/admin/bus-crew'
 import { SeatLayoutEditor, type SeatBus } from '@/components/admin/seat-layout-editor'
@@ -352,7 +353,7 @@ export default async function EventDetail({
             </div>
             <AddParticipant eventId={event.id} buses={buses} />
           </div>
-          <ParticipantTable
+          <PesertaTabs
             eventId={event.id}
             buses={buses}
             totalParticipants={totalParticipants}
