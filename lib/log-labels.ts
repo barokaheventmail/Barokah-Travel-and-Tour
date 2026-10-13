@@ -51,6 +51,9 @@ const ACTION_GROUP: Record<string, LogGroup> = {
   'participant.update': 'Peserta',
   'participant.room.update': 'Peserta',
   'participant.delete': 'Peserta',
+  'roomType.create': 'Peserta',
+  'roomType.update': 'Peserta',
+  'roomType.delete': 'Peserta',
   'attendance.reset': 'Kehadiran',
   'attendance.set': 'Kehadiran',
   'attendance.clear': 'Kehadiran',
@@ -125,6 +128,9 @@ export const LOG_ACTIONS: { group: LogGroup; actions: { value: string; label: st
       { value: 'participant.update', label: 'Ubah peserta' },
       { value: 'participant.room.update', label: 'Ubah tipe kamar (grup)' },
       { value: 'participant.delete', label: 'Hapus peserta' },
+      { value: 'roomType.create', label: 'Tambah tipe kamar' },
+      { value: 'roomType.update', label: 'Ubah tipe kamar' },
+      { value: 'roomType.delete', label: 'Hapus tipe kamar' },
     ],
   },
   {
@@ -369,6 +375,20 @@ export function formatLogDetail(action: string, detail: LogDetail): string {
     case 'participant.delete': {
       const n = getValue(detail, 'name')
       return `Peserta "${n ?? '???'}" dihapus`
+    }
+    case 'roomType.create': {
+      const n = getValue(detail, 'name')
+      return `Tipe kamar "${n ?? '???'}" ditambahkan`
+    }
+    case 'roomType.update': {
+      const from = getValue(detail, 'from')
+      const to = getValue(detail, 'to')
+      const count = detail && typeof detail.participants === 'number' ? detail.participants : null
+      return `Tipe kamar "${from ?? '???'}" → "${to ?? '???'}"${count ? ` (${count.toLocaleString('id-ID')} peserta)` : ''}`
+    }
+    case 'roomType.delete': {
+      const n = getValue(detail, 'name')
+      return `Tipe kamar "${n ?? '???'}" dihapus`
     }
     case 'attendance.set': {
       const n = getValue(detail, 'name')

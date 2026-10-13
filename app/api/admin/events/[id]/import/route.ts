@@ -5,6 +5,7 @@ import { prisma } from '@/lib/db'
 import { logger } from '@/lib/logger'
 import { buildPreview, parseWorkbook, type ExcelParseResult } from '@/lib/excel'
 import { conflictSummary, planImport, type ImportConflict } from '@/lib/import-match'
+import { collectRoomTypeNames } from '@/lib/room-types'
 import { ticketCodeFromToken } from '@/lib/scan'
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024
@@ -136,6 +137,7 @@ export async function POST(request: NextRequest, { params }: Params) {
   const busResults: { name: string; created: number; updated: number; skipped: number }[] = []
   let totalCreated = 0
   let totalUpdated = 0
+  let addedRoomTypes: string[] = []
 
   try {
     await prisma.$transaction(async (tx) => {
@@ -225,6 +227,25 @@ export async function POST(request: NextRequest, { params }: Params) {
         busResults.push({ name: bus.name, created, updated, skipped: 0 })
       }
 
+      // Tipe kamar baru dari file otomatis masuk ke daftar pilihan event ini,
+      // supaya admin cukup memilihnya saat mengisi tipe kamar nanti.
+      const importedTypes = collectRoomTypeNames(parsed.buses.flatMap((b) => b.participants.map((p) => p.roomType)))
+      if (importedTypes.length > 0) {
+        const existingTypes = await tx.roomType.findMany({
+          where: { eventId: id },
+          select: { name: true, order: true },
+        })
+        const have = new Set(existingTypes.map((r) => r.name))
+        let nextOrder = existingTypes.reduce((max, r) => Math.max(max, r.order), -1) + 1
+        const toCreate = importedTypes
+          .filter((n) => !have.has(n))
+          .map((name) => ({ eventId: id, name, order: nextOrder++ }))
+        if (toCreate.length > 0) {
+          await tx.roomType.createMany({ data: toCreate, skipDuplicates: true })
+          addedRoomTypes = toCreate.map((r) => r.name)
+        }
+      }
+
       await tx.activityLog.create({
         data: {
           eventId: id,
@@ -235,6 +256,7 @@ export async function POST(request: NextRequest, { params }: Params) {
             created: totalCreated,
             updated: totalUpdated,
             skipped: parsed.skipped,
+            roomTypesAdded: addedRoomTypes,
             sheetsIgnored: parsed.diagnostics.sheets.filter((s) => s.status === 'ignored').length,
             sheetsEmpty: parsed.diagnostics.sheets.filter((s) => s.status === 'empty').length,
             guessedColumns: parsed.diagnostics.sheets.reduce(
@@ -260,6 +282,7 @@ export async function POST(request: NextRequest, { params }: Params) {
     created: totalCreated,
     updated: totalUpdated,
     skipped: parsed.skipped,
+    roomTypesAdded: addedRoomTypes,
     buses: busResults,
     warnings: parsed.diagnostics.warnings,
     sheets: parsed.diagnostics.sheets.map((s) => ({

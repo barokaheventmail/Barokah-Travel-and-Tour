@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { Loader2, Pencil, X } from 'lucide-react'
 import { toISOInput } from '@/lib/dates'
 import { notifyParticipantsChanged } from '@/lib/events'
+import type { RoomTypeOption } from '@/lib/room-types'
 
 export type RowBus = { id: string; name: string; order: number }
 export type RowParticipant = {
@@ -26,7 +27,7 @@ export type RowParticipant = {
   scannedBy: { username: string } | null
 }
 
-export function EditParticipant({ eventId, participant, buses }: { eventId: string; participant: RowParticipant; buses: RowBus[] }) {
+export function EditParticipant({ eventId, participant, buses, roomTypes }: { eventId: string; participant: RowParticipant; buses: RowBus[]; roomTypes: RoomTypeOption[] }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState({
@@ -166,7 +167,17 @@ export function EditParticipant({ eventId, participant, buses }: { eventId: stri
               </div>
               <div>
                 <label className={labelCls}>Tipe Kamar</label>
-                <input value={form.roomType} onChange={(e) => set('roomType', e.target.value)} placeholder="Tipe Kamar" className={inputCls} />
+                <select value={form.roomType} onChange={(e) => set('roomType', e.target.value)} className={inputCls}>
+                  <option value="">— Pilih tipe kamar —</option>
+                  {roomTypes.map((rt) => (
+                    <option key={rt.id} value={rt.name}>
+                      {rt.name}
+                    </option>
+                  ))}
+                  {form.roomType.trim() !== '' && !roomTypes.some((rt) => rt.name === form.roomType) && (
+                    <option value={form.roomType}>{form.roomType}</option>
+                  )}
+                </select>
               </div>
               <div>
                 <label className={labelCls}>No VW</label>

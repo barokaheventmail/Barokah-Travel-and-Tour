@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { BadgeCheck, Bus, Check, ChevronDown, Loader2, RefreshCcw, Search, SearchX, X } from 'lucide-react'
 import { formatTanggalPendek } from '@/lib/dates'
 import { PARTICIPANTS_CHANGED_EVENT, PARTICIPANT_ADDED_EVENT } from '@/lib/events'
+import type { RoomTypeOption } from '@/lib/room-types'
 import { EditParticipant } from './edit-participant'
 import { DeleteParticipant } from './delete-participant'
 import { ToggleAttendance } from './toggle-attendance'
@@ -231,11 +232,13 @@ function BusPicker({
 export function ParticipantTable({
   eventId,
   buses,
+  roomTypes,
   totalParticipants,
   totalAttended,
 }: {
   eventId: string
   buses: RowBus[]
+  roomTypes: RoomTypeOption[]
   totalParticipants: number
   totalAttended: number
 }) {
@@ -626,7 +629,7 @@ export function ParticipantTable({
                           </td>
                           <td className={`px-3 py-2.5`}>
                             <div className="flex items-center justify-end">
-                              <EditParticipant eventId={eventId} participant={p} buses={buses} />
+                              <EditParticipant eventId={eventId} participant={p} buses={buses} roomTypes={roomTypes} />
                               <DeleteParticipant eventId={eventId} participant={p} />
                             </div>
                           </td>

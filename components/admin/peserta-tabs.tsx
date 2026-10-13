@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { BedDouble, Bus, Car } from 'lucide-react'
+import type { RoomTypeOption } from '@/lib/room-types'
 import { ParticipantTable, type RowBus } from './participant-table'
 import { ParticipantGroups } from './participant-groups'
 
@@ -16,11 +17,13 @@ const VIEWS: { id: View; label: string; icon: typeof Bus }[] = [
 export function PesertaTabs({
   eventId,
   buses,
+  roomTypes,
   totalParticipants,
   totalAttended,
 }: {
   eventId: string
   buses: RowBus[]
+  roomTypes: RoomTypeOption[]
   totalParticipants: number
   totalAttended: number
 }) {
@@ -48,11 +51,12 @@ export function PesertaTabs({
         <ParticipantTable
           eventId={eventId}
           buses={buses}
+          roomTypes={roomTypes}
           totalParticipants={totalParticipants}
           totalAttended={totalAttended}
         />
       )}
-      {view === 'room' && <ParticipantGroups eventId={eventId} mode="room" />}
+      {view === 'room' && <ParticipantGroups eventId={eventId} mode="room" roomTypes={roomTypes} />}
       {view === 'vw' && <ParticipantGroups eventId={eventId} mode="vw" />}
     </div>
   )

@@ -4,6 +4,8 @@ import { Fragment, useEffect, useRef, useState } from 'react'
 import { BedDouble, Car, ChevronLeft, ChevronRight, Loader2, SearchX } from 'lucide-react'
 import { PARTICIPANTS_CHANGED_EVENT, notifyParticipantsChanged } from '@/lib/events'
 import { UNASSIGNED_ROOM } from '@/lib/participant-groups'
+import type { RoomTypeOption } from '@/lib/room-types'
+import { RoomTypeOptions } from './room-type-options'
 
 type Member = {
   id: string
@@ -110,7 +112,17 @@ function InlineEdit({
   )
 }
 
-function GroupRoomTypeEdit({ eventId, room, roomType }: { eventId: string; room: string; roomType: string | null }) {
+function GroupRoomTypeEdit({
+  eventId,
+  room,
+  roomType,
+  options,
+}: {
+  eventId: string
+  room: string
+  roomType: string | null
+  options: RoomTypeOption[]
+}) {
   const [val, setVal] = useState(roomType ?? '')
   const [saving, setSaving] = useState(false)
   const [failed, setFailed] = useState(false)
@@ -120,13 +132,10 @@ function GroupRoomTypeEdit({ eventId, room, roomType }: { eventId: string; room:
     setFailed(false)
   }, [roomType])
 
-  async function commit() {
+  async function commit(next: string) {
     if (saving) return
-    const next = val.trim()
-    if (next === (roomType ?? '').trim()) {
-      setVal(roomType ?? '')
-      return
-    }
+    setVal(next)
+    if (next.trim() === (roomType ?? '').trim()) return
     setSaving(true)
     setFailed(false)
     try {
@@ -146,34 +155,34 @@ function GroupRoomTypeEdit({ eventId, room, roomType }: { eventId: string; room:
     }
   }
 
+  const current = val.trim()
+  const isLegacy = current !== '' && !options.some((o) => o.name === current)
+
   return (
     <span className="relative flex items-center">
-      <input
+      <select
         value={val}
-        onChange={(e) => setVal(e.target.value)}
-        onBlur={commit}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault()
-            ;(e.target as HTMLInputElement).blur()
-          } else if (e.key === 'Escape') {
-            setVal(roomType ?? '')
-            ;(e.target as HTMLInputElement).blur()
-          }
-        }}
-        placeholder="Tipe kamar"
+        onChange={(e) => commit(e.target.value)}
         disabled={saving}
         title={failed ? 'Gagal menyimpan, coba lagi' : undefined}
-        className={`w-full rounded-md border bg-transparent px-1.5 py-1 text-center text-[11px] font-bold text-[#1b3555] outline-none transition-colors placeholder:font-normal placeholder:text-[#b6bec8] hover:border-[#cdd8e2] focus:border-[#1b4f9c] focus:bg-white focus:ring-2 focus:ring-[#1b4f9c]/15 disabled:opacity-60 ${
+        className={`w-full cursor-pointer rounded-md border px-1.5 py-1 text-center text-[11px] font-bold text-[#1b3555] outline-none transition-colors hover:border-[#cdd8e2] focus:border-[#1b4f9c] focus:bg-white focus:ring-2 focus:ring-[#1b4f9c]/15 disabled:opacity-60 ${
           failed ? 'border-red-300 bg-red-50' : 'border-transparent'
         }`}
-      />
-      {saving && <Loader2 size={11} className="absolute right-1 animate-spin text-[#1b4f9c]" />}
+      >
+        <option value="">—</option>
+        {options.map((o) => (
+          <option key={o.id} value={o.name}>
+            {o.name}
+          </option>
+        ))}
+        {isLegacy && <option value={val}>{val}</option>}
+      </select>
+      {saving && <Loader2 size={11} className="pointer-events-none absolute right-1 animate-spin text-[#1b4f9c]" />}
     </span>
   )
 }
 
-export function ParticipantGroups({ eventId, mode }: { eventId: string; mode: 'room' | 'vw' }) {
+export function ParticipantGroups({ eventId, mode, roomTypes = [] }: { eventId: string; mode: 'room' | 'vw'; roomTypes?: RoomTypeOption[] }) {
   const [groups, setGroups] = useState<Group[] | null>(null)
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(0)
@@ -328,10 +337,12 @@ export function ParticipantGroups({ eventId, mode }: { eventId: string; mode: 'r
         </h2>
         <p className="mt-0.5 text-xs text-[#657080]">
           {mode === 'room'
-            ? 'Kelompok peserta berdasarkan No Kamar. No Kamar diubah per peserta; Tipe Kamar cukup diedit sekali dan berlaku untuk seluruh kamar.'
+            ? 'Kelompok peserta berdasarkan No Kamar. No Kamar diubah per peserta; Tipe Kamar cukup dipilih sekali dan berlaku untuk seluruh kamar.'
             : 'Kelompok peserta berdasarkan No VW. Klik No VW lalu Enter untuk mengubah.'}{' '}
           Peserta otomatis pindah grup ketika nilainya diubah.
         </p>
+
+        {mode === 'room' && <RoomTypeOptions eventId={eventId} roomTypes={roomTypes} />}
 
         {mode === 'vw' && (
           <div className="mt-3">
@@ -488,7 +499,7 @@ export function ParticipantGroups({ eventId, mode }: { eventId: string; mode: 'r
                                       {group.key === UNASSIGNED_ROOM ? (
                                         <span className="text-[11px] font-semibold text-[#b6bec8]">—</span>
                                       ) : (
-                                        <GroupRoomTypeEdit eventId={eventId} room={group.label} roomType={group.roomType} />
+                                        <GroupRoomTypeEdit eventId={eventId} room={group.label} roomType={group.roomType} options={roomTypes} />
                                       )}
                                     </td>
                                   )}

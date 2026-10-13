@@ -4,8 +4,9 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { Loader2, UserPlus, X } from 'lucide-react'
 import { notifyParticipantAdded } from '@/lib/events'
+import type { RoomTypeOption } from '@/lib/room-types'
 
-export function AddParticipant({ eventId, buses }: { eventId: string; buses: { id: string; name: string }[] }) {
+export function AddParticipant({ eventId, buses, roomTypes }: { eventId: string; buses: { id: string; name: string }[]; roomTypes: RoomTypeOption[] }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState({ name: '', busName: buses[0]?.name ?? 'Bus 1', phone: '', seat: '', room: '', roomType: '', vw: '', jeepParis: '', jeepMerapi: '', jeepBromo: '', birthDate: '' })
@@ -93,7 +94,14 @@ export function AddParticipant({ eventId, buses }: { eventId: string; buses: { i
         </div>
         <div>
           <label className={labelCls}>Tipe Kamar</label>
-          <input value={form.roomType} onChange={(e) => set('roomType', e.target.value)} placeholder="Tipe Kamar" className={inputCls} />
+          <select value={form.roomType} onChange={(e) => set('roomType', e.target.value)} className={inputCls}>
+            <option value="">— Pilih tipe kamar —</option>
+            {roomTypes.map((rt) => (
+              <option key={rt.id} value={rt.name}>
+                {rt.name}
+              </option>
+            ))}
+          </select>
         </div>
         <div>
           <label className={labelCls}>No VW</label>

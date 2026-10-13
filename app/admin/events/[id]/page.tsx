@@ -23,6 +23,7 @@ import { LogEntry } from '@/components/admin/log-entry'
 import { HIDDEN_LOG_ACTIONS } from '@/lib/log-labels'
 import { armadasTanpaCrew, totalPesertaTanpaCrew } from '@/lib/crew-coverage'
 import { parsePanduanPreset, parseKursiPreset, type PanduanPresetOption, type KursiPresetOption } from '@/lib/preset'
+import type { RoomTypeOption } from '@/lib/room-types'
 import { TabBar, isEventTab, type EventTabId } from '@/components/admin/tab-bar'
 
 const MANAGEMENT_ACTIONS: string[] = ['scan.attended', 'scan.duplicate', ...HIDDEN_LOG_ACTIONS]
@@ -42,7 +43,7 @@ export default async function EventDetail({
   const { tab } = await searchParams
   const active: EventTabId = isEventTab(tab) ? tab : 'ringkasan'
 
-  const [event, totalByBus, attendedByBus, eventLogs, eventLogCount, allPresets] = await Promise.all([
+  const [event, totalByBus, attendedByBus, eventLogs, eventLogCount, allPresets, eventRoomTypes] = await Promise.all([
     prisma.event.findUnique({
       where: { id },
       include: {
@@ -66,9 +67,16 @@ export default async function EventDetail({
     }),
     prisma.activityLog.count({ where: { eventId: id, action: { notIn: MANAGEMENT_ACTIONS } } }),
     prisma.preset.findMany({ orderBy: [{ order: 'asc' }, { createdAt: 'asc' }] }),
+    prisma.roomType.findMany({
+      where: { eventId: id },
+      orderBy: [{ order: 'asc' }, { name: 'asc' }],
+      select: { id: true, name: true },
+    }),
   ])
 
   if (!event) notFound()
+
+  const roomTypes: RoomTypeOption[] = eventRoomTypes
 
   const panduanPresets: PanduanPresetOption[] = allPresets
     .filter((p) => p.kind === 'PANDUAN')
@@ -359,11 +367,12 @@ export default async function EventDetail({
                 {totalParticipants} peserta · cari, filter, dan kelola per peserta.
               </p>
             </div>
-            <AddParticipant eventId={event.id} buses={buses} />
+            <AddParticipant eventId={event.id} buses={buses} roomTypes={roomTypes} />
           </div>
           <PesertaTabs
             eventId={event.id}
             buses={buses}
+            roomTypes={roomTypes}
             totalParticipants={totalParticipants}
             totalAttended={totalAttended}
           />
