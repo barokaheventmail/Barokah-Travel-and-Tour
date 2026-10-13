@@ -3,8 +3,9 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type KeyboardEventHandler } from 'react'
-import { CalendarDays, Check, Clock, ExternalLink, Loader2, Pencil, Plus, Save, Trash2, X } from 'lucide-react'
+import { CalendarDays, Check, ChevronDown, ChevronUp, Clock, ExternalLink, Loader2, Pencil, Plus, Save, Trash2, X } from 'lucide-react'
 import { parseItineraryDoc, serializeItinerary, groupItineraryByDay, type ItineraryRow } from '@/lib/itinerary'
+import { DEFAULT_PANDUAN_RULES, parsePanduanRules, serializePanduanRules, type PanduanRule } from '@/lib/panduan-rules'
 import type { PanduanPresetOption } from '@/lib/preset'
 
 type DayRows = Pick<ItineraryRow, 'time' | 'agenda' | 'keterangan' | 'bold' | 'italic'>[]
@@ -158,6 +159,7 @@ export function PanduanEditor({
   eventTitle,
   presets,
   initialItinerary,
+  initialRules,
   initialCrewName,
   initialCrewPhone,
   initialCrewRole,
@@ -177,6 +179,7 @@ export function PanduanEditor({
   eventTitle: string
   presets: PanduanPresetOption[]
   initialItinerary: string
+  initialRules: string
   initialCrewName: string
   initialCrewPhone: string
   initialCrewRole: string
@@ -205,6 +208,7 @@ export function PanduanEditor({
   const [dayNotes, setDayNotes] = useState<string[]>(() => initialDayGroups.map((g) => g.note))
   const [daySideNotes, setDaySideNotes] = useState<string[]>(() => initialDayGroups.map((g) => g.sideNote))
   const [footerNote, setFooterNote] = useState<string>(() => parseItineraryDoc(initialItinerary).footerNote)
+  const [rules, setRules] = useState<PanduanRule[]>(() => (initialRules ? parsePanduanRules(initialRules) : DEFAULT_PANDUAN_RULES))
   const [crew, setCrew] = useState({ name: initialCrewName, phone: initialCrewPhone, role: initialCrewRole, photoUrl: initialCrewPhotoUrl })
   const [crewEditing, setCrewEditing] = useState(false)
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
@@ -275,6 +279,44 @@ export function PanduanEditor({
     setDaySideNotes((notes) => notes.map((note, i) => (i === b ? value : note)))
   }
 
+  function setRuleText(r: number, value: string) {
+    setRules((list) => list.map((rule, i) => (i === r ? { ...rule, text: value } : rule)))
+  }
+
+  function addRule() {
+    setRules((list) => [...list, { text: '', items: [] }])
+  }
+
+  function removeRule(r: number) {
+    setRules((list) => list.filter((_, i) => i !== r))
+  }
+
+  function moveRule(r: number, dir: -1 | 1) {
+    setRules((list) => {
+      const target = r + dir
+      if (target < 0 || target >= list.length) return list
+      const next = [...list]
+      ;[next[r], next[target]] = [next[target], next[r]]
+      return next
+    })
+  }
+
+  function setRuleItem(r: number, j: number, value: string) {
+    setRules((list) =>
+      list.map((rule, i) => (i === r ? { ...rule, items: (rule.items ?? []).map((item, k) => (k === j ? value : item)) } : rule)),
+    )
+  }
+
+  function addRuleItem(r: number) {
+    setRules((list) => list.map((rule, i) => (i === r ? { ...rule, items: [...(rule.items ?? []), ''] } : rule)))
+  }
+
+  function removeRuleItem(r: number, j: number) {
+    setRules((list) =>
+      list.map((rule, i) => (i === r ? { ...rule, items: (rule.items ?? []).filter((_, k) => k !== j) } : rule)),
+    )
+  }
+
   function dayRowEnter(b: number, r: number, col: number, e: KeyboardEvent<HTMLElement>) {
     if (e.key !== 'Enter') return
     e.preventDefault()
@@ -323,6 +365,7 @@ export function PanduanEditor({
             Object.fromEntries(daySideNotes.map((note, b) => [b + 1, note])),
             footerNote,
           ),
+          panduanRules: serializePanduanRules(rules),
           crewName: crew.name.trim() || null,
           crewPhone: crew.phone.trim() || null,
           crewRole: crew.role.trim() || null,
@@ -1055,6 +1098,79 @@ export function PanduanEditor({
           />
         </div>
 
+<div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h2 className="text-sm font-bold text-[#1b3555]">Tata Tertib</h2>
+              <p className="mt-0.5 text-xs text-[#657080]">
+                Aturan yang tampil di halaman panduan publik. Bisa ditambah, diubah, dihapus, dan diurutkan.
+              </p>
+            </div>
+            <button type="button" onClick={addRule} className={addBtnCls}>
+              <Plus size={12} /> Tambah Aturan
+            </button>
+          </div>
+
+          {rules.length === 0 ? (
+            <p className="mt-3 rounded-lg border border-dashed border-[#dfe4e8] px-4 py-3 text-xs text-[#9aa3af]">
+              Belum ada aturan. Tambah aturan baru untuk menyusun tata tertib.
+            </p>
+          ) : (
+            <div className="mt-4 space-y-3">
+              {rules.map((rule, r) => (
+                <div key={r} className="rounded-xl border border-[#e8ecf1] bg-[#fbfcfe] p-3">
+                  <div className="flex items-start gap-2">
+                    <span className="mt-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#eef4fb] text-[11px] font-bold text-[#1b4f9c]">
+                      {r + 1}
+                    </span>
+                    <textarea
+                      value={rule.text}
+                      onChange={(e) => setRuleText(r, e.target.value)}
+                      placeholder="Tulis isi aturan…"
+                      rows={2}
+                      className={`${rowCls} min-w-0 flex-1 resize-y`}
+                    />
+                    <div className="flex shrink-0 flex-col gap-1">
+                      <button type="button" onClick={() => moveRule(r, -1)} disabled={r === 0} aria-label="Naikkan aturan" className="rounded-lg p-1.5 text-[#657080] transition-colors hover:bg-[#eef4fb] hover:text-[#1b4f9c] disabled:opacity-30">
+                        <ChevronUp size={14} />
+                      </button>
+                      <button type="button" onClick={() => moveRule(r, 1)} disabled={r === rules.length - 1} aria-label="Turunkan aturan" className="rounded-lg p-1.5 text-[#657080] transition-colors hover:bg-[#eef4fb] hover:text-[#1b4f9c] disabled:opacity-30">
+                        <ChevronDown size={14} />
+                      </button>
+                      <button type="button" onClick={() => removeRule(r)} aria-label="Hapus aturan" className="rounded-lg p-1.5 text-[#657080] transition-colors hover:bg-red-50 hover:text-red-600">
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {(rule.items ?? []).length > 0 && (
+                    <div className="mt-2 space-y-2 pl-8">
+                      {(rule.items ?? []).map((item, j) => (
+                        <div key={j} className="flex items-center gap-2">
+                          <span className="shrink-0 font-bold text-[#9aa3af]">-</span>
+                          <input
+                            value={item}
+                            onChange={(e) => setRuleItem(r, j, e.target.value)}
+                            placeholder="Poin rincian (opsional)"
+                            className={`${rowCls} min-w-0 flex-1`}
+                          />
+                          <button type="button" onClick={() => removeRuleItem(r, j)} aria-label="Hapus poin" className="shrink-0 rounded-lg p-1.5 text-[#657080] transition-colors hover:bg-red-50 hover:text-red-600">
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <button type="button" onClick={() => addRuleItem(r)} className={`${addBtnCls} ml-8 mt-2`}>
+                    <Plus size={12} /> Tambah Poin Rincian
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         <section className="mt-5 rounded-xl border border-[#e8ecf1] bg-[#fbfcfe] p-4">
           <div className="flex items-center justify-between gap-2">
             <div className="flex min-w-0 items-center gap-2">
@@ -1364,13 +1480,6 @@ export function PanduanEditor({
           </div>
         )}
         </section>
-      </div>
-
-      <div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-bold text-[#1b3555]">Tata Tertib</h2>
-        <p className="mt-1 text-xs leading-relaxed text-[#657080]">
-          Tata tertib sudah ditetapkan dan tidak dapat diedit. Aturan tetap tampil di halaman panduan publik.
-        </p>
       </div>
 
       {status && (

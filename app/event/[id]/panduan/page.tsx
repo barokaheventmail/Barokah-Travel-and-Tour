@@ -5,6 +5,7 @@ import { Dancing_Script } from 'next/font/google'
 import { BookOpen, Clock3, Download, MapPin, Phone, QrCode } from 'lucide-react'
 import { prisma } from '@/lib/db'
 import { parseItineraryDoc, groupItineraryByDay } from '@/lib/itinerary'
+import { DEFAULT_PANDUAN_RULES, parsePanduanRules } from '@/lib/panduan-rules'
 import { qrDataUrl, encodeToken } from '@/lib/scan'
 import { Logo } from '@/components/site'
 import { EventNavbar } from '@/components/event-navbar'
@@ -25,32 +26,6 @@ const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
 const months = [
   'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
   'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
-]
-
-const FIXED_RULES: { text: string; items?: string[] }[] = [
-  { text: 'Bawalah selalu catatan ini agar sewaktu-waktu diperlukan, peserta dapat lebih mudah menyesuaikan selama perjalanan.' },
-  { text: 'Peserta wajib hadir tepat waktu di lokasi keberangkatan. Keterlambatan dapat mengganggu kenyamanan peserta lain dan berpotensi menyebabkan peserta tertinggal rombongan.' },
-  {
-    text: 'Peserta disarankan membawa tas kecil yang mudah diakses untuk menyimpan kebutuhan penting selama perjalanan tanpa membuka koper, seperti:',
-    items: [
-      'Dompet dan identitas pribadi',
-      'Obat-obatan pribadi',
-      'Peralatan ibadah',
-      'Payung lipat atau jas hujan',
-      'Snack ringan dan minuman pribadi',
-      'Plastik serbaguna',
-      'Pakaian ganti',
-      'Peralatan mandi',
-      'Jaket, syal, kupluk, sarung tangan, atau kaos kaki (antisipasi cuaca dingin)',
-      'Aksesoris tambahan: kacamata, topi, kipas portable',
-    ],
-  },
-  { text: 'Peserta wajib mematuhi jadwal, tata tertib, dan instruksi Tour Leader/Team Leader selama kegiatan berlangsung.' },
-  { text: 'Peserta disarankan dalam kondisi sehat sebelum mengikuti perjalanan.' },
-  { text: 'Peserta tidak diperkenankan meninggalkan rombongan tanpa izin dari Tour Leader/Team Leader.' },
-  { text: 'Barang bawaan pribadi menjadi tanggung jawab masing-masing peserta. Hindari membawa barang berharga atau perhiasan berlebihan.' },
-  { text: 'Peserta wajib menaati aturan yang berlaku dan menjaga kebersihan di setiap destinasi wisata maupun penginapan yang digunakan selama perjalanan.' },
-  { text: 'Apabila peserta memiliki riwayat penyakit tertentu, disarankan untuk menginformasikan kepada Tour Leader sebelum keberangkatan.' },
 ]
 
 function formatDate(date: Date): string {
@@ -469,16 +444,8 @@ export default async function EventPanduanPage({
               <h2 className="text-center text-2xl font-extrabold uppercase tracking-wide text-[#f5b915]">Tata Tertib</h2>
               <ol className="mt-4 space-y-3">
                 {(() => {
-                  const rules = event.panduanRules
-                    ? (() => {
-                        try {
-                          const parsed = JSON.parse(event.panduanRules)
-                          if (Array.isArray(parsed)) return parsed as { text: string; items?: string[] }[]
-                        } catch {}
-                        return null
-                      })()
-                    : null
-                  return (rules || FIXED_RULES).map((rule, i) => (
+                  const rules = event.panduanRules ? parsePanduanRules(event.panduanRules) : DEFAULT_PANDUAN_RULES
+                  return rules.map((rule, i) => (
                     <li key={i} className="flex gap-3 text-sm leading-relaxed text-[#f5b915]">
                       <span className="shrink-0 text-sm font-bold text-[#f5b915]">{i + 1}.</span>
                       <div className="min-w-0">
