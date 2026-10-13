@@ -3,6 +3,7 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { BedDouble, Car, ChevronLeft, ChevronRight, Loader2, SearchX } from 'lucide-react'
 import { PARTICIPANTS_CHANGED_EVENT, notifyParticipantsChanged } from '@/lib/events'
+import { UNASSIGNED_ROOM } from '@/lib/participant-groups'
 
 type Member = {
   id: string
@@ -109,6 +110,69 @@ function InlineEdit({
   )
 }
 
+function GroupRoomTypeEdit({ eventId, room, roomType }: { eventId: string; room: string; roomType: string | null }) {
+  const [val, setVal] = useState(roomType ?? '')
+  const [saving, setSaving] = useState(false)
+  const [failed, setFailed] = useState(false)
+
+  useEffect(() => {
+    setVal(roomType ?? '')
+    setFailed(false)
+  }, [roomType])
+
+  async function commit() {
+    if (saving) return
+    const next = val.trim()
+    if (next === (roomType ?? '').trim()) {
+      setVal(roomType ?? '')
+      return
+    }
+    setSaving(true)
+    setFailed(false)
+    try {
+      const res = await fetch(`/api/admin/events/${eventId}/rooms`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ room, roomType: next }),
+      })
+      const data = await res.json().catch(() => null)
+      if (!res.ok) throw new Error(data?.error ?? 'Gagal menyimpan.')
+      notifyParticipantsChanged()
+    } catch {
+      setFailed(true)
+      setVal(roomType ?? '')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <span className="relative flex items-center">
+      <input
+        value={val}
+        onChange={(e) => setVal(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault()
+            ;(e.target as HTMLInputElement).blur()
+          } else if (e.key === 'Escape') {
+            setVal(roomType ?? '')
+            ;(e.target as HTMLInputElement).blur()
+          }
+        }}
+        placeholder="Tipe kamar"
+        disabled={saving}
+        title={failed ? 'Gagal menyimpan, coba lagi' : undefined}
+        className={`w-full rounded-md border bg-transparent px-1.5 py-1 text-center text-[11px] font-bold text-[#1b3555] outline-none transition-colors placeholder:font-normal placeholder:text-[#b6bec8] hover:border-[#cdd8e2] focus:border-[#1b4f9c] focus:bg-white focus:ring-2 focus:ring-[#1b4f9c]/15 disabled:opacity-60 ${
+          failed ? 'border-red-300 bg-red-50' : 'border-transparent'
+        }`}
+      />
+      {saving && <Loader2 size={11} className="absolute right-1 animate-spin text-[#1b4f9c]" />}
+    </span>
+  )
+}
+
 export function ParticipantGroups({ eventId, mode }: { eventId: string; mode: 'room' | 'vw' }) {
   const [groups, setGroups] = useState<Group[] | null>(null)
   const [loading, setLoading] = useState(true)
@@ -183,7 +247,7 @@ export function ParticipantGroups({ eventId, mode }: { eventId: string; mode: 'r
         </h2>
         <p className="mt-0.5 text-xs text-[#657080]">
           {mode === 'room'
-            ? 'Kelompok peserta berdasarkan No Kamar. Klik No Kamar / Tipe Kamar lalu Enter untuk mengubah.'
+            ? 'Kelompok peserta berdasarkan No Kamar. No Kamar diubah per peserta; Tipe Kamar cukup diedit sekali dan berlaku untuk seluruh kamar.'
             : 'Kelompok peserta berdasarkan No VW. Klik No VW lalu Enter untuk mengubah.'}{' '}
           Peserta otomatis pindah grup ketika nilainya diubah.
         </p>
@@ -257,16 +321,18 @@ export function ParticipantGroups({ eventId, mode }: { eventId: string; mode: 'r
                                       center
                                     />
                                   </td>
-                                  <td className={`border border-[#cdd8e2] px-1.5 py-1 text-center align-middle${top}`}>
-                                    <InlineEdit
-                                      eventId={eventId}
-                                      participantId={member.id}
-                                      field="roomType"
-                                      value={member.roomType}
-                                      placeholder="Tipe kamar"
-                                      center
-                                    />
-                                  </td>
+                                  {j === 0 && (
+                                    <td
+                                      rowSpan={group.members.length}
+                                      className={`border border-[#cdd8e2] px-1.5 py-1 text-center align-middle${top}`}
+                                    >
+                                      {group.key === UNASSIGNED_ROOM ? (
+                                        <span className="text-[11px] font-semibold text-[#b6bec8]">—</span>
+                                      ) : (
+                                        <GroupRoomTypeEdit eventId={eventId} room={group.label} roomType={group.roomType} />
+                                      )}
+                                    </td>
+                                  )}
                                 </>
                               ) : (
                                 <td className={`border border-[#cdd8e2] px-1.5 py-1 text-center align-middle${top}`}>

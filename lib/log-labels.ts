@@ -49,6 +49,7 @@ const ACTION_GROUP: Record<string, LogGroup> = {
   'busCrew.photoRemove': 'Unit',
   'participant.create': 'Peserta',
   'participant.update': 'Peserta',
+  'participant.room.update': 'Peserta',
   'participant.delete': 'Peserta',
   'attendance.reset': 'Kehadiran',
   'attendance.set': 'Kehadiran',
@@ -122,6 +123,7 @@ export const LOG_ACTIONS: { group: LogGroup; actions: { value: string; label: st
     actions: [
       { value: 'participant.create', label: 'Tambah peserta' },
       { value: 'participant.update', label: 'Ubah peserta' },
+      { value: 'participant.room.update', label: 'Ubah tipe kamar (grup)' },
       { value: 'participant.delete', label: 'Hapus peserta' },
     ],
   },
@@ -356,6 +358,13 @@ export function formatLogDetail(action: string, detail: LogDetail): string {
     case 'participant.update': {
       const n = getValue(detail, 'name')
       return `Data peserta "${n ?? '???'}" diperbarui`
+    }
+    case 'participant.room.update': {
+      const room = getValue(detail, 'room')
+      const roomType = getValue(detail, 'roomType')
+      const count = detail && typeof detail.count === 'number' ? detail.count : null
+      const tipe = roomType ? `tipe ${roomType}` : 'tipe dikosongkan'
+      return `Kamar ${room ?? '???'} → ${tipe}${count !== null ? ` (${count.toLocaleString('id-ID')} peserta)` : ''}`
     }
     case 'participant.delete': {
       const n = getValue(detail, 'name')
