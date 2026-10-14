@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type Keyboard
 import { CalendarDays, Check, ChevronDown, ChevronUp, Clock, ExternalLink, Loader2, Pencil, Plus, Save, Trash2, X } from 'lucide-react'
 import { parseItineraryDoc, serializeItinerary, groupItineraryByDay, type ItineraryRow } from '@/lib/itinerary'
 import { DEFAULT_PANDUAN_RULES, parsePanduanRules, serializePanduanRules, type PanduanRule } from '@/lib/panduan-rules'
+import { MAX_CREW, parseCrewList, type CrewMember } from '@/lib/crew'
 import type { PanduanPresetOption } from '@/lib/preset'
 
 type DayRows = Pick<ItineraryRow, 'time' | 'agenda' | 'keterangan' | 'bold' | 'italic'>[]
@@ -164,6 +165,7 @@ export function PanduanEditor({
   initialCrewPhone,
   initialCrewRole,
   initialCrewPhotoUrl,
+  initialCrewList,
   initialDenahCrewName,
   initialDenahCrewRole,
   initialDenahCrewPhotoUrl,
@@ -181,6 +183,7 @@ export function PanduanEditor({
   initialCrewPhone: string
   initialCrewRole: string
   initialCrewPhotoUrl: string | null
+  initialCrewList: string | null
   initialDenahCrewName: string
   initialDenahCrewRole: string
   initialDenahCrewPhotoUrl: string | null
@@ -203,9 +206,13 @@ export function PanduanEditor({
   const [daySideNotes, setDaySideNotes] = useState<string[]>(() => initialDayGroups.map((g) => g.sideNote))
   const [footerNote, setFooterNote] = useState<string>(() => parseItineraryDoc(initialItinerary).footerNote)
   const [rules, setRules] = useState<PanduanRule[]>(() => (initialRules ? parsePanduanRules(initialRules) : DEFAULT_PANDUAN_RULES))
-  const [crew, setCrew] = useState({ name: initialCrewName, phone: initialCrewPhone, role: initialCrewRole, photoUrl: initialCrewPhotoUrl })
-  const [crewEditing, setCrewEditing] = useState(false)
-  const [uploadingPhoto, setUploadingPhoto] = useState(false)
+  const [crews, setCrews] = useState<CrewMember[]>(() => {
+    const parsed = parseCrewList(initialCrewList)
+    if (parsed.length > 0) return parsed
+    const legacy: CrewMember = { name: initialCrewName, role: initialCrewRole, photoUrl: initialCrewPhotoUrl }
+    return legacy.name || legacy.role || legacy.photoUrl ? [legacy] : []
+  })
+  const [uploadingCrewIdx, setUploadingCrewIdx] = useState<number | null>(null)
   const [crewBusy, setCrewBusy] = useState(false)
   const [denahCrew, setDenahCrew] = useState({ name: initialDenahCrewName, role: initialDenahCrewRole, photoUrl: initialDenahCrewPhotoUrl })
   const [denahCrewEditing, setDenahCrewEditing] = useState(false)
@@ -356,10 +363,6 @@ export function PanduanEditor({
             footerNote,
           ),
           panduanRules: serializePanduanRules(rules),
-          crewName: crew.name.trim() || null,
-          crewPhone: crew.phone.trim() || null,
-          crewRole: crew.role.trim() || null,
-          crewPhotoUrl: crew.photoUrl,
           panduanLogoLeft: logoLeft,
           panduanLogoRight: logoRight,
           panduanLogoTopRight: logoTopRight,
@@ -443,43 +446,54 @@ export function PanduanEditor({
     }
   }
 
-  async function uploadCrewPhoto(file: File) {
+  function updateCrew(index: number, patch: Partial<CrewMember>) {
+    setCrews((list) => list.map((member, i) => (i === index ? { ...member, ...patch } : member)))
+  }
+
+  function addCrew() {
+    setCrews((list) => (list.length >= MAX_CREW ? list : [...list, { name: '', role: '', photoUrl: null }]))
+  }
+
+  function removeCrew(index: number) {
+    const member = crews[index]
+    setCrews((list) => list.filter((_, i) => i !== index))
+    if (member?.photoUrl) {
+      fetch(`/api/admin/events/${eventId}/crew-photo?url=${encodeURIComponent(member.photoUrl)}`, {
+        method: 'DELETE',
+      }).catch(() => undefined)
+    }
+  }
+
+  async function removeCrewPhotoAt(index: number) {
+    const member = crews[index]
+    updateCrew(index, { photoUrl: null })
+    if (member?.photoUrl) {
+      fetch(`/api/admin/events/${eventId}/crew-photo?url=${encodeURIComponent(member.photoUrl)}`, {
+        method: 'DELETE',
+      }).catch(() => undefined)
+    }
+  }
+
+  async function uploadCrewPhotoAt(index: number, file: File) {
     if (!/^image\/(jpeg|png|webp)$/.test(file.type)) {
       setStatus({ kind: 'err', msg: 'Hanya mendukung gambar JPG, PNG, atau WebP.' })
       return
     }
-    setUploadingPhoto(true)
+    setUploadingCrewIdx(index)
     setStatus(null)
     try {
       const fd = new FormData()
       fd.append('file', file)
+      fd.append('slot', 'list')
       const res = await fetch(`/api/admin/events/${eventId}/crew-photo`, { method: 'POST', body: fd })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Gagal mengunggah foto.')
-      setCrew((c) => ({ ...c, photoUrl: data.url }))
-      setStatus({ kind: 'ok', msg: 'Foto crew diperbarui.' })
-      router.refresh()
+      updateCrew(index, { photoUrl: data.url as string })
+      setStatus({ kind: 'ok', msg: 'Foto crew diperbarui. Klik Simpan Crew untuk menyimpan.' })
     } catch (err) {
       setStatus({ kind: 'err', msg: err instanceof Error ? err.message : 'Gagal mengunggah foto.' })
     } finally {
-      setUploadingPhoto(false)
-    }
-  }
-
-  async function removeCrewPhoto() {
-    setCrewBusy(true)
-    setStatus(null)
-    try {
-      const res = await fetch(`/api/admin/events/${eventId}/crew-photo`, { method: 'DELETE' })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? 'Gagal menghapus foto.')
-      setCrew((c) => ({ ...c, photoUrl: null }))
-      setStatus({ kind: 'ok', msg: 'Foto crew dihapus.' })
-      router.refresh()
-    } catch (err) {
-      setStatus({ kind: 'err', msg: err instanceof Error ? err.message : 'Gagal menghapus foto.' })
-    } finally {
-      setCrewBusy(false)
+      setUploadingCrewIdx(null)
     }
   }
 
@@ -524,7 +538,7 @@ export function PanduanEditor({
     }
   }
 
-  async function saveCrew() {
+  async function saveCrews() {
     setCrewBusy(true)
     setStatus(null)
     try {
@@ -532,46 +546,19 @@ export function PanduanEditor({
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          crewName: crew.name.trim() || null,
-          crewPhone: crew.phone.trim() || null,
-          crewRole: crew.role.trim() || null,
-          crewPhotoUrl: crew.photoUrl,
+          crewList: crews.map((member) => ({
+            name: member.name.trim(),
+            role: member.role.trim(),
+            photoUrl: member.photoUrl,
+          })),
         }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Gagal menyimpan crew.')
-      setCrewEditing(false)
       setStatus({ kind: 'ok', msg: 'Crew on duty tersimpan.' })
       router.refresh()
     } catch (err) {
       setStatus({ kind: 'err', msg: err instanceof Error ? err.message : 'Gagal menyimpan crew.' })
-    } finally {
-      setCrewBusy(false)
-    }
-  }
-
-  async function clearCrew() {
-    setCrewBusy(true)
-    setStatus(null)
-    try {
-      if (crew.photoUrl) {
-        const res = await fetch(`/api/admin/events/${eventId}/crew-photo`, { method: 'DELETE' })
-        const data = await res.json()
-        if (!res.ok) throw new Error(data.error ?? 'Gagal menghapus foto.')
-      }
-      const res = await fetch(`/api/admin/events/${eventId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ crewName: null, crewPhone: null, crewRole: null, crewPhotoUrl: null }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? 'Gagal menghapus crew.')
-      setCrew({ name: '', phone: '', role: '', photoUrl: null })
-      setCrewEditing(false)
-      setStatus({ kind: 'ok', msg: 'Crew on duty dihapus.' })
-      router.refresh()
-    } catch (err) {
-      setStatus({ kind: 'err', msg: err instanceof Error ? err.message : 'Gagal menghapus crew.' })
     } finally {
       setCrewBusy(false)
     }
@@ -863,95 +850,97 @@ export function PanduanEditor({
         <div className="flex items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-2">
             <span className="shrink-0 rounded-full px-0 py-1 text-sm font-bold text-black">Crew on Duty — Tata Tertib</span>
-            <span className="truncate text-[11px] text-[#9aa3af]">Tampil di bawah Tata Tertib</span>
+            <span className="truncate text-[11px] text-[#9aa3af]">
+              Tampil di bawah Tata Tertib · {crews.length}/{MAX_CREW}
+            </span>
           </div>
-          {!crew.name && !crewEditing && (
-            <button type="button" onClick={() => setCrewEditing(true)} className={addBtnCls}>
-              <Plus size={12} /> Tambah Crew
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={addCrew}
+            disabled={crews.length >= MAX_CREW}
+            className={`${addBtnCls} disabled:cursor-not-allowed disabled:opacity-50`}
+          >
+            <Plus size={12} /> Tambah Crew
+          </button>
         </div>
 
-      {crew.name ? (
-        <div className="mt-3 flex items-center gap-3">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#dcebe0] text-base font-bold text-[#2ca84a]">
-            {crew.photoUrl ? (
-              <img src={crew.photoUrl} alt={crew.name} className="h-full w-full object-cover" />
-            ) : (
-              crew.name.slice(0, 2).toUpperCase()
-            )}
-          </div>
-          <div className="min-w-0">
-            <strong className="block text-sm text-[#1b3555]">{crew.name}</strong>
-            {crew.role && <span className="text-xs text-[#657080]">{crew.role}</span>}
-          </div>
-          <div className="ml-auto flex items-center gap-1">
-            <button type="button" onClick={() => setCrewEditing(true)} className="inline-flex items-center gap-1 rounded-full border border-[#dfe4e8] px-3 py-1.5 text-[11px] font-bold text-[#1b4f9c] transition-colors hover:bg-[#eef4fb]">
-              <Pencil size={11} /> Edit
-            </button>
-            <button type="button" onClick={clearCrew} disabled={crewBusy} className="inline-flex items-center gap-1 rounded-full border border-[#dfe4e8] px-3 py-1.5 text-[11px] font-bold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60">
-              <Trash2 size={11} /> Hapus
-            </button>
-          </div>
-        </div>
-      ) : (
-        <p className="mt-2 text-xs text-[#9aa3af]">Belum ada crew on duty untuk event ini.</p>
-      )}
+        {crews.length === 0 ? (
+          <p className="mt-2 text-xs text-[#9aa3af]">Belum ada crew on duty untuk event ini.</p>
+        ) : (
+          <div className="mt-3 space-y-2">
+            {crews.map((member, i) => (
+              <div key={i} className="flex flex-wrap items-center gap-3 rounded-lg border border-[#e8ecf1] bg-white p-3">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#dcebe0] text-lg font-bold text-[#2ca84a]">
+                  {member.photoUrl ? (
+                    <img src={member.photoUrl} alt={member.name || `Crew ${i + 1}`} className="h-full w-full object-cover" />
+                  ) : (
+                    member.name.slice(0, 2).toUpperCase() || 'CR'
+                  )}
+                </div>
 
-      {crewEditing && (
-        <div className="mt-4 space-y-3 border-t border-[#eef1f4] pt-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#dcebe0] text-xl font-bold text-[#2ca84a]">
-              {crew.photoUrl ? (
-                <img src={crew.photoUrl} alt={crew.name || 'Foto crew'} className="h-full w-full object-cover" />
-              ) : (
-                crew.name.slice(0, 2).toUpperCase() || 'CR'
-              )}
-            </div>
-            <label className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-[#dfe4e8] px-3 py-1.5 text-[11px] font-bold text-[#1b4f9c] transition-colors hover:bg-[#eef4fb] disabled:opacity-60">
-              {uploadingPhoto ? <Loader2 size={11} className="animate-spin" /> : null}
-              {uploadingPhoto ? 'Mengunggah…' : 'Unggah Foto'}
-              <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" disabled={uploadingPhoto || crewBusy} onChange={(e) => {
-                const file = e.target.files?.[0]
-                if (file) uploadCrewPhoto(file)
-                e.target.value = ''
-              }} />
-            </label>
-            {crew.photoUrl && (
-              <button type="button" onClick={removeCrewPhoto} disabled={uploadingPhoto || crewBusy} className="text-[11px] font-bold text-red-600 hover:underline disabled:opacity-60">
-                Hapus Foto
-              </button>
-            )}
+                <div className="grid min-w-[220px] flex-1 gap-2 sm:grid-cols-2">
+                  <input
+                    value={member.name}
+                    onChange={(e) => updateCrew(i, { name: e.target.value })}
+                    placeholder="Nama crew"
+                    maxLength={120}
+                    className={descRowCls}
+                  />
+                  <input
+                    value={member.role}
+                    onChange={(e) => updateCrew(i, { role: e.target.value })}
+                    placeholder="Jabatan / Peran (mis. Tour Leader)"
+                    maxLength={120}
+                    className={descRowCls}
+                  />
+                </div>
+
+                <div className="flex shrink-0 items-center gap-1">
+                  <label className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-[#dfe4e8] px-3 py-1.5 text-[11px] font-bold text-[#1b4f9c] transition-colors hover:bg-[#eef4fb]">
+                    {uploadingCrewIdx === i ? <Loader2 size={11} className="animate-spin" /> : null}
+                    {uploadingCrewIdx === i ? 'Mengunggah…' : member.photoUrl ? 'Ganti Foto' : 'Unggah Foto'}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      disabled={uploadingCrewIdx === i || crewBusy}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0]
+                        if (file) uploadCrewPhotoAt(i, file)
+                        e.target.value = ''
+                      }}
+                    />
+                  </label>
+                  {member.photoUrl && (
+                    <button
+                      type="button"
+                      onClick={() => removeCrewPhotoAt(i)}
+                      disabled={uploadingCrewIdx === i || crewBusy}
+                      className="text-[11px] font-bold text-red-600 hover:underline disabled:opacity-60"
+                    >
+                      Hapus Foto
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => removeCrew(i)}
+                    disabled={crewBusy}
+                    aria-label="Hapus crew"
+                    className="rounded-lg p-1.5 text-[#657080] transition-colors hover:bg-red-50 hover:text-red-600 disabled:opacity-60"
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
+        )}
 
-          <input
-            value={crew.name}
-            onChange={(e) => setCrew((c) => ({ ...c, name: e.target.value }))}
-            placeholder="Nama crew"
-            className={`${descRowCls} w-full`}
-          />
-          <input
-            value={crew.role}
-            onChange={(e) => setCrew((c) => ({ ...c, role: e.target.value }))}
-            placeholder="Jabatan / Peran (mis. Tour Leader)"
-            className={`${descRowCls} w-full`}
-          />
-
-          <div className="flex justify-end gap-2">
+        {crews.length > 0 && (
+          <div className="mt-3 flex justify-end">
             <button
               type="button"
-              onClick={() => {
-                setCrewEditing(false)
-                setCrew({ name: initialCrewName, phone: initialCrewPhone, role: initialCrewRole, photoUrl: initialCrewPhotoUrl })
-              }}
-              disabled={crewBusy}
-              className="rounded-full border border-[#dfe4e8] px-4 py-2 text-xs font-bold text-[#657080] transition-colors hover:bg-[#eef1f4] disabled:opacity-60"
-            >
-              Batal
-            </button>
-            <button
-              type="button"
-              onClick={saveCrew}
+              onClick={saveCrews}
               disabled={crewBusy}
               className="inline-flex items-center gap-1.5 rounded-full bg-[#1b4f9c] px-5 py-2 text-xs font-bold text-white transition-colors duration-200 hover:bg-[#143d79] active:scale-95 disabled:opacity-60"
             >
@@ -959,8 +948,7 @@ export function PanduanEditor({
               Simpan Crew
             </button>
           </div>
-        </div>
-      )}
+        )}
       </section>
 
       <div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">

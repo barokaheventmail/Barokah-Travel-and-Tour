@@ -16,8 +16,10 @@ const MAX_BYTES = 5 * 1024 * 1024
 
 // Tiga slot foto crew: section Tata Tertib, section Denah Kamar, dan section
 // Denah VW. Masing-masing punya kolom sendiri supaya bisa diedit terpisah.
-type CrewSlot = 'crew' | 'denah' | 'vw'
-const SLOT_COLUMN: Record<CrewSlot, 'crewPhotoUrl' | 'denahKamarCrewPhotoUrl' | 'denahVwCrewPhotoUrl'> = {
+// Slot `list` hanya mengunggah file dan mengembalikan URL-nya — dipakai foto
+// tiap crew pada daftar Crew on Duty (banyak), yang disimpan di Event.crewList.
+type CrewSlot = 'crew' | 'denah' | 'vw' | 'list'
+const SLOT_COLUMN: Record<Exclude<CrewSlot, 'list'>, 'crewPhotoUrl' | 'denahKamarCrewPhotoUrl' | 'denahVwCrewPhotoUrl'> = {
   crew: 'crewPhotoUrl',
   denah: 'denahKamarCrewPhotoUrl',
   vw: 'denahVwCrewPhotoUrl',
@@ -25,7 +27,7 @@ const SLOT_COLUMN: Record<CrewSlot, 'crewPhotoUrl' | 'denahKamarCrewPhotoUrl' | 
 const SLOT_SELECT = { id: true, crewPhotoUrl: true, denahKamarCrewPhotoUrl: true, denahVwCrewPhotoUrl: true } as const
 
 function parseSlot(value: unknown): CrewSlot {
-  return value === 'denah' ? 'denah' : value === 'vw' ? 'vw' : 'crew'
+  return value === 'list' ? 'list' : value === 'denah' ? 'denah' : value === 'vw' ? 'vw' : 'crew'
 }
 
 const UPLOAD_REL = join('uploads', 'crew-event')
@@ -62,7 +64,6 @@ export async function POST(request: NextRequest, { params }: Params) {
   }
 
   const slot = parseSlot(form.get('slot'))
-  const column = SLOT_COLUMN[slot]
 
   const file = form.get('file')
   if (!(file instanceof File) || file.size === 0) {
@@ -81,6 +82,15 @@ export async function POST(request: NextRequest, { params }: Params) {
   await writeFile(join(uploadPath(), filename), Buffer.from(await file.arrayBuffer()))
 
   const url = `${UPLOAD_URL_PREFIX}${filename}`
+
+  // Foto daftar crew: file saja, tanpa menyentuh kolom Event. URL disimpan
+  // dalam Event.crewList oleh pemanggil.
+  if (slot === 'list') {
+    logger.info('event crew list photo uploaded', { eventId: id, by: session.username })
+    return NextResponse.json({ url, photoUrl: url })
+  }
+
+  const column = SLOT_COLUMN[slot]
   const previous = event[column]
   const photoData =
     slot === 'denah'
@@ -118,7 +128,22 @@ export async function DELETE(request: NextRequest, { params }: Params) {
   const event = await prisma.event.findUnique({ where: { id }, select: SLOT_SELECT })
   if (!event) return NextResponse.json({ error: 'Event tidak ditemukan.' }, { status: 404 })
 
-  const slot = parseSlot(new URL(request.url).searchParams.get('slot'))
+  const search = new URL(request.url).searchParams
+
+  // Hapus satu file foto daftar crew lewat URL-nya (foto daftar tidak
+  // tersimpan di kolom Event, jadi tidak perlu tahu slot).
+  const urlParam = (search.get('url') ?? '').trim()
+  if (urlParam) {
+    if (!urlParam.startsWith(UPLOAD_URL_PREFIX)) {
+      return NextResponse.json({ error: 'URL foto tidak valid.' }, { status: 400 })
+    }
+    await rmPhoto(urlParam).catch(() => undefined)
+    logger.info('event crew list photo removed', { eventId: id, by: session.username })
+    return NextResponse.json({ ok: true })
+  }
+
+  const slot = parseSlot(search.get('slot'))
+  if (slot === 'list') return NextResponse.json({ ok: true })
   const column = SLOT_COLUMN[slot]
 
   const previous = event[column]

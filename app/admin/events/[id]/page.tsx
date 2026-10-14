@@ -328,6 +328,7 @@ export default async function EventDetail({
           initialCrewPhone={event.crewPhone ?? ''}
           initialCrewRole={event.crewRole ?? ''}
           initialCrewPhotoUrl={event.crewPhotoUrl ?? null}
+          initialCrewList={event.crewList ?? null}
           initialDenahCrewName={event.denahKamarCrewName ?? ''}
           initialDenahCrewRole={event.denahKamarCrewRole ?? ''}
           initialDenahCrewPhotoUrl={event.denahKamarCrewPhotoUrl ?? null}

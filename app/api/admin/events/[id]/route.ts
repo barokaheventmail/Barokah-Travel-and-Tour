@@ -4,6 +4,7 @@ import { canManage, requireAdminSession } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { logger } from '@/lib/logger'
 import { eventPatchSchema } from '@/lib/excel'
+import { serializeCrewList } from '@/lib/crew'
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -42,7 +43,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Data tidak valid' }, { status: 400 })
   }
 
-  const { title, date, location, status, note, panduanItinerary, panduanRules, crewName, crewPhone, crewRole, crewPhotoUrl, denahKamarCrewName, denahKamarCrewRole, denahKamarCrewPhotoUrl, denahVwCrewName, denahVwCrewRole, denahVwCrewPhotoUrl, panduanLogoLeft, panduanLogoRight, panduanLogoTopRight, panduanLogoTopRight2, vwName, vwTitle } = parsed.data
+  const { title, date, location, status, note, panduanItinerary, panduanRules, crewName, crewPhone, crewRole, crewPhotoUrl, crewList, denahKamarCrewName, denahKamarCrewRole, denahKamarCrewPhotoUrl, denahVwCrewName, denahVwCrewRole, denahVwCrewPhotoUrl, panduanLogoLeft, panduanLogoRight, panduanLogoTopRight, panduanLogoTopRight2, vwName, vwTitle } = parsed.data
 
   const data: Prisma.EventUpdateInput = {}
   if (title !== undefined) data.title = title
@@ -62,6 +63,15 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   if (crewPhone !== undefined) data.crewPhone = crewPhone || null
   if (crewRole !== undefined) data.crewRole = crewRole || null
   if (crewPhotoUrl !== undefined) data.crewPhotoUrl = crewPhotoUrl || null
+  if (crewList !== undefined) {
+    data.crewList = serializeCrewList(crewList ?? [])
+    // Daftar crew sudah jadi sumber utama — kosongkan kolom tunggal lama agar
+    // tidak muncul ganda / menyimpan sisa data.
+    data.crewName = null
+    data.crewPhone = null
+    data.crewRole = null
+    data.crewPhotoUrl = null
+  }
   if (denahKamarCrewName !== undefined) data.denahKamarCrewName = denahKamarCrewName || null
   if (denahKamarCrewRole !== undefined) data.denahKamarCrewRole = denahKamarCrewRole || null
   if (denahKamarCrewPhotoUrl !== undefined) data.denahKamarCrewPhotoUrl = denahKamarCrewPhotoUrl || null

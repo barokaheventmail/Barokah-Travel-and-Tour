@@ -7,6 +7,7 @@ import { prisma } from '@/lib/db'
 import { parseItineraryDoc, groupItineraryByDay } from '@/lib/itinerary'
 import { vehicleLabel, vehicleSectionTitle } from '@/lib/participant-groups'
 import { DEFAULT_PANDUAN_RULES, parsePanduanRules } from '@/lib/panduan-rules'
+import { effectiveCrewList } from '@/lib/crew'
 import { qrDataUrl, encodeToken } from '@/lib/scan'
 import { Logo } from '@/components/site'
 import { EventNavbar } from '@/components/event-navbar'
@@ -84,7 +85,7 @@ function SectionLogos({
 async function getEvent(id: string) {
   return prisma.event.findUnique({
     where: { id },
-    select: { id: true, title: true, date: true, location: true, vwName: true, vwTitle: true, panduanItinerary: true, panduanRules: true, crewName: true, crewPhone: true, crewRole: true, crewPhotoUrl: true, denahKamarCrewName: true, denahKamarCrewRole: true, denahKamarCrewPhotoUrl: true, denahVwCrewName: true, denahVwCrewRole: true, denahVwCrewPhotoUrl: true, panduanLogoLeft: true, panduanLogoRight: true, panduanLogoTopRight: true, panduanLogoTopRight2: true },
+    select: { id: true, title: true, date: true, location: true, vwName: true, vwTitle: true, panduanItinerary: true, panduanRules: true, crewName: true, crewPhone: true, crewRole: true, crewPhotoUrl: true, crewList: true, denahKamarCrewName: true, denahKamarCrewRole: true, denahKamarCrewPhotoUrl: true, denahVwCrewName: true, denahVwCrewRole: true, denahVwCrewPhotoUrl: true, panduanLogoLeft: true, panduanLogoRight: true, panduanLogoTopRight: true, panduanLogoTopRight2: true },
   })
 }
 
@@ -154,6 +155,7 @@ export default async function EventPanduanPage({
   const multiDay = dayGroups.length > 1
   const logoLeftUrl = event.panduanLogoLeft ?? '/Logo%20Asita.png'
   const logoRightUrl = event.panduanLogoRight ?? '/Logo%20siluet%20barokah%20tour.png'
+  const crews = effectiveCrewList(event)
 
   return (
     <main className="print-guide min-h-screen bg-[#f4f7fa] print:bg-white pb-12 print:min-h-0 print:pb-0">
@@ -511,30 +513,31 @@ export default async function EventPanduanPage({
                 })()}
               </ol>
 
-              {event.crewName && (
-                <div className="mt-8 flex flex-col items-center pt-6 text-center">
-                  <h3 className="text-center text-2xl font-extrabold uppercase tracking-wide text-[#f5b915]">Crew on Duty</h3>
-                  {event.crewPhotoUrl ? (
-                    <div className="relative -mb-2 mt-4 flex h-28 w-28 shrink-0 items-center justify-center">
-                      <span aria-hidden className="absolute -inset-4 rounded-full bg-white/70 blur-xl" />
-                      <div className="relative flex h-28 w-28 items-center justify-center overflow-hidden rounded-full">
-                        <img src={event.crewPhotoUrl} alt={event.crewName} className="h-full w-full object-cover" />
+              {crews.length > 0 && (
+                <div className="mt-6 border-t border-[#eef1f4] pt-4">
+                  <h3 className="text-center text-xl font-extrabold uppercase tracking-wide text-[#f5b915]">Crew on Duty</h3>
+                  <div className="mt-3 flex flex-wrap items-start justify-center gap-x-1 gap-y-3">
+                    {crews.map((crew, i) => (
+                      <div key={i} className="flex w-[18%] min-w-[84px] flex-col items-center text-center">
+                        {crew.photoUrl ? (
+                          <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={crew.photoUrl} alt={crew.name || 'Crew'} className="h-full w-full object-cover" />
+                          </div>
+                        ) : (
+                          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#f5b915]/15 text-lg font-bold text-[#b98a12]">
+                            {(crew.name || 'CR').slice(0, 2).toUpperCase()}
+                          </div>
+                        )}
+                        <strong className="mt-1.5 block max-w-full break-words text-[10px] font-extrabold uppercase leading-tight tracking-wide text-[#1b3555]">
+                          {crew.name || 'CREW'}
+                        </strong>
+                        <span className="mt-0.5 block max-w-full break-words text-[9px] font-bold uppercase leading-tight tracking-wide text-[#f5b915]">
+                          {crew.role || 'TOUR LEADER'}
+                        </span>
                       </div>
-                    </div>
-                  ) : (
-                    <div className="mt-4 flex h-28 w-28 shrink-0 items-center justify-center text-3xl font-bold text-[#f5b915]">
-                      {event.crewName.slice(0, 2).toUpperCase()}
-                    </div>
-                  )}
-                  <strong
-                    className="relative z-[1] mt-1 inline-block bg-[#f5b915] px-7 py-1.5 text-base font-extrabold uppercase tracking-wide text-white"
-                    style={{ clipPath: 'polygon(0 0, 100% 0, calc(100% - 14px) 50%, 100% 100%, 0 100%, 14px 50%)' }}
-                  >
-                    {event.crewName}
-                  </strong>
-                  <span className="mt-1 text-sm font-bold uppercase tracking-wide text-[#f5b915]">
-                    {event.crewRole || 'TOUR LEADER'}
-                  </span>
+                    ))}
+                  </div>
                 </div>
               )}
               </div>

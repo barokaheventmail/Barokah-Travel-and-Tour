@@ -63,6 +63,9 @@ model Event {
   crewPhone  String?
   crewRole   String?    @db.VarChar(500)
   crewPhotoUrl String?  @db.VarChar(500)
+  // Daftar crew on duty section Tata Tertib (JSON array {name, role, photoUrl}).
+  // Menggantikan kolom tunggal di atas; kolom lama tetap ada untuk kompatibilitas.
+  crewList   String?    @db.LongText
   denahKamarCrewName   String?    @db.VarChar(500)
   denahKamarCrewRole   String?    @db.VarChar(500)
   denahKamarCrewPhotoUrl String?  @db.VarChar(500)

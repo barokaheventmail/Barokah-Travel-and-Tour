@@ -1,5 +1,6 @@
 import * as XLSX from 'xlsx'
 import { z } from 'zod'
+import { MAX_CREW } from './crew'
 
 export type ExcelParticipant = {
   order: number
@@ -1110,6 +1111,16 @@ export const eventPatchSchema = z.object({
   crewPhone: z.string().trim().nullish(),
   crewRole: z.string().trim().nullish(),
   crewPhotoUrl: z.string().trim().nullish(),
+  crewList: z
+    .array(
+      z.object({
+        name: z.string().trim().max(120),
+        role: z.string().trim().max(120),
+        photoUrl: z.string().trim().max(500).nullable(),
+      }),
+    )
+    .max(MAX_CREW)
+    .nullish(),
   denahKamarCrewName: z.string().trim().nullish(),
   denahKamarCrewRole: z.string().trim().nullish(),
   denahKamarCrewPhotoUrl: z.string().trim().nullish(),
