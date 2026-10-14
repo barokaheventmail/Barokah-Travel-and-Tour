@@ -7,6 +7,8 @@ import { CalendarDays, Check, ChevronDown, ChevronUp, Clock, ExternalLink, Loade
 import { parseItineraryDoc, serializeItinerary, groupItineraryByDay, type ItineraryRow } from '@/lib/itinerary'
 import { DEFAULT_PANDUAN_RULES, parsePanduanRules, serializePanduanRules, type PanduanRule } from '@/lib/panduan-rules'
 import { MAX_CREW, parseCrewList, type CrewMember } from '@/lib/crew'
+import { parsePanduanSections, serializePanduanSections, type PanduanSectionItem } from '@/lib/panduan-sections'
+import { PanduanSectionsEditor } from '@/components/admin/panduan-sections-editor'
 import type { PanduanPresetOption } from '@/lib/preset'
 
 type DayRows = Pick<ItineraryRow, 'time' | 'agenda' | 'keterangan' | 'bold' | 'italic'>[]
@@ -161,6 +163,7 @@ export function PanduanEditor({
   presets,
   initialItinerary,
   initialRules,
+  initialSections,
   initialCrewName,
   initialCrewPhone,
   initialCrewRole,
@@ -179,6 +182,7 @@ export function PanduanEditor({
   presets: PanduanPresetOption[]
   initialItinerary: string
   initialRules: string
+  initialSections: string | null
   initialCrewName: string
   initialCrewPhone: string
   initialCrewRole: string
@@ -206,6 +210,7 @@ export function PanduanEditor({
   const [daySideNotes, setDaySideNotes] = useState<string[]>(() => initialDayGroups.map((g) => g.sideNote))
   const [footerNote, setFooterNote] = useState<string>(() => parseItineraryDoc(initialItinerary).footerNote)
   const [rules, setRules] = useState<PanduanRule[]>(() => (initialRules ? parsePanduanRules(initialRules) : DEFAULT_PANDUAN_RULES))
+  const [sections, setSections] = useState<PanduanSectionItem[]>(() => parsePanduanSections(initialSections))
   const [crews, setCrews] = useState<CrewMember[]>(() => {
     const parsed = parseCrewList(initialCrewList)
     if (parsed.length > 0) return parsed
@@ -363,6 +368,7 @@ export function PanduanEditor({
             footerNote,
           ),
           panduanRules: serializePanduanRules(rules),
+          panduanSections: serializePanduanSections(sections),
           panduanLogoLeft: logoLeft,
           panduanLogoRight: logoRight,
           panduanLogoTopRight: logoTopRight,
@@ -958,6 +964,8 @@ export function PanduanEditor({
           </div>
         )}
       </section>
+
+      <PanduanSectionsEditor sections={sections} onChange={setSections} disabled={loading} />
 
       <div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">
         <div>

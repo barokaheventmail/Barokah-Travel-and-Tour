@@ -59,6 +59,10 @@ model Event {
   // "Data too long for column".
   panduanItinerary String? @db.LongText
   panduanRules      String? @db.LongText
+  // Urutan halaman + section tambahan pada panduan peserta. JSON array berisi
+  // node { type: 'builtin', builtin } atau { type: 'custom', title, items, note }.
+  // Null = urutan bawaan (semua section bawaan tampil).
+  panduanSections   String? @db.LongText
   crewName   String?    @db.VarChar(500)
   crewPhone  String?
   crewRole   String?    @db.VarChar(500)

@@ -43,7 +43,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Data tidak valid' }, { status: 400 })
   }
 
-  const { title, date, location, status, note, panduanItinerary, panduanRules, crewName, crewPhone, crewRole, crewPhotoUrl, crewList, denahKamarCrewName, denahKamarCrewRole, denahKamarCrewPhotoUrl, denahVwCrewName, denahVwCrewRole, denahVwCrewPhotoUrl, panduanLogoLeft, panduanLogoRight, panduanLogoTopRight, panduanLogoTopRight2, vwName, vwTitle } = parsed.data
+  const { title, date, location, status, note, panduanItinerary, panduanRules, panduanSections, crewName, crewPhone, crewRole, crewPhotoUrl, crewList, denahKamarCrewName, denahKamarCrewRole, denahKamarCrewPhotoUrl, denahVwCrewName, denahVwCrewRole, denahVwCrewPhotoUrl, panduanLogoLeft, panduanLogoRight, panduanLogoTopRight, panduanLogoTopRight2, vwName, vwTitle } = parsed.data
 
   const data: Prisma.EventUpdateInput = {}
   if (title !== undefined) data.title = title
@@ -59,6 +59,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   if (note !== undefined) data.note = note || null
   if (panduanItinerary !== undefined) data.panduanItinerary = panduanItinerary || null
   if (panduanRules !== undefined) data.panduanRules = panduanRules || null
+  if (panduanSections !== undefined) data.panduanSections = panduanSections || null
   if (crewName !== undefined) data.crewName = crewName || null
   if (crewPhone !== undefined) data.crewPhone = crewPhone || null
   if (crewRole !== undefined) data.crewRole = crewRole || null

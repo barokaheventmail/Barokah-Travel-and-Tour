@@ -324,6 +324,7 @@ export default async function EventDetail({
           presets={panduanPresets}
           initialItinerary={event.panduanItinerary ?? '[]'}
           initialRules={event.panduanRules ?? ''}
+          initialSections={event.panduanSections ?? null}
           initialCrewName={event.crewName ?? ''}
           initialCrewPhone={event.crewPhone ?? ''}
           initialCrewRole={event.crewRole ?? ''}

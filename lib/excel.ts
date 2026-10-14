@@ -1107,6 +1107,7 @@ export const eventPatchSchema = z.object({
   note: z.string().trim().nullish(),
   panduanItinerary: z.string().trim().nullish(),
   panduanRules: z.string().trim().nullish(),
+  panduanSections: z.string().trim().nullish(),
   crewName: z.string().trim().nullish(),
   crewPhone: z.string().trim().nullish(),
   crewRole: z.string().trim().nullish(),
