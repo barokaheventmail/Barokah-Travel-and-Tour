@@ -531,34 +531,34 @@ export default async function EventPanduanPage({
                   topRight2={event.panduanLogoTopRight2}
                 />
                 <div data-a4-body className="flow-root">
-                <h3 className="mb-6 text-center text-xl font-extrabold uppercase tracking-wide text-[#00A3E0]">{event.title}</h3>
+                <h3 className="mb-4 text-center text-2xl font-extrabold uppercase tracking-wide text-[#00A3E0]">{event.title}</h3>
                 <PanduanHeading>Itinerary Perjalanan</PanduanHeading>
-                <div className="mt-6 space-y-6">
+                <div className="mt-4 space-y-4">
                   {dayGroups.map((group) => (
                     <div key={group.day}>
                       {(multiDay || group.sideNote) && (
-                        <div className="mb-1.5 flex items-start gap-3">
-                          <span className="shrink-0 text-xs font-bold uppercase text-[#00A3E0]">Day {group.day}</span>
-                          {group.sideNote && <span className="whitespace-pre-wrap text-xs font-bold text-[#00A3E0]">{group.sideNote}</span>}
+                        <div className="mb-1 flex items-start gap-3">
+                          <span className="shrink-0 text-sm font-bold uppercase text-[#00A3E0]">Day {group.day}</span>
+                          {group.sideNote && <span className="whitespace-pre-wrap text-sm font-bold text-[#00A3E0]">{group.sideNote}</span>}
                         </div>
                       )}
                       {group.note && (
-                        <p className="mb-2 whitespace-pre-wrap text-sm font-bold leading-relaxed text-[#00A3E0]">{group.note}</p>
+                        <p className="mb-1.5 whitespace-pre-wrap text-base font-bold leading-relaxed text-[#00A3E0]">{group.note}</p>
                       )}
                       {group.rows.length > 0 && (
                       <div className="overflow-hidden rounded-none border-2 border-[#dfe4e8]">
-                        <div className="grid grid-cols-[7rem_1fr] gap-0 bg-[#00A3E0] px-4 py-2 text-[11px] font-extrabold uppercase tracking-wider text-white">
-                          <span className="border-r-2 border-white/40 pr-4 text-center">Waktu</span>
-                          <span className="pl-4 text-center">Agenda</span>
+                        <div className="grid grid-cols-[7rem_1fr] gap-0 bg-[#00A3E0] px-3 py-1.5 text-xs font-extrabold uppercase tracking-wider text-white">
+                          <span className="border-r-2 border-white/40 pr-3 text-center">Waktu</span>
+                          <span className="pl-3 text-center">Agenda</span>
                         </div>
                         <div className="divide-y-2 divide-[#edf0f3]">
                           {group.rows.map((item, i) => (
                             <div
                               key={`${group.day}-${item.time}-${i}`}
-                              className="grid grid-cols-[7rem_1fr] gap-0 px-4 py-3 transition-colors hover:bg-[#f8fafc]"
+                              className="grid grid-cols-[7rem_1fr] gap-0 px-3 py-2 transition-colors hover:bg-[#f8fafc]"
                             >
-                              <span className="whitespace-nowrap border-r-2 border-[#dfe4e8] pr-4 text-xs font-medium tabular-nums text-[#1b4f9c]">{item.time}</span>
-                              <span className={`pl-4 text-[#1b3555] ${item.bold ? 'text-[0.85rem] font-bold' : 'text-xs font-normal'} ${item.italic ? 'italic' : ''}`}>{item.agenda}</span>
+                              <span className="whitespace-nowrap border-r-2 border-[#dfe4e8] pr-3 text-sm font-medium tabular-nums text-[#1b4f9c]">{item.time}</span>
+                              <span className={`pl-3 text-[#1b3555] ${item.bold ? 'text-[0.95rem] font-bold' : 'text-sm font-normal'} ${item.italic ? 'italic' : ''}`}>{item.agenda}</span>
                             </div>
                           ))}
                         </div>
@@ -568,7 +568,7 @@ export default async function EventPanduanPage({
                   ))}
                 </div>
                 {itineraryFooterNote && (
-                  <p className="mt-5 whitespace-pre-wrap text-xs font-bold italic text-black">{itineraryFooterNote}</p>
+                  <p className="mt-4 whitespace-pre-wrap text-sm font-bold italic text-black">{itineraryFooterNote}</p>
                 )}
                 </div>
               </section>
