@@ -7,7 +7,9 @@ import { useEffect, useRef, type ReactNode } from 'react'
  *
  * Mode `fit="content"` (default): seluruh isi section dikecilkan otomatis
  * dengan `transform: scale()` bila melebihi satu halaman — dipakai untuk
- * section teks (visi misi, doa, tata tertib, itinerary).
+ * section teks (visi misi, doa, tata tertib, itinerary). Bila isi section
+ * dibungkus `[data-a4-body]`, hanya bagian itu yang dikecilkan; kop/logo di
+ * atasnya (di luar wrapper) tetap ukuran asli agar sama besar di tiap section.
  *
  * Mode `fit="none"`: kotak tetap A4, tapi isi TIDAK di-scale di sini. Dipakai
  * section denah kamar/VW, yang hanya mengecilkan tabelnya saja (lewat
@@ -34,6 +36,33 @@ export function A4Section({
     const apply = () => {
       const available = box.clientHeight
       if (available <= 0) return
+
+      // Bila section menandai bagian isi dengan `[data-a4-body]`, hanya bagian
+      // itu yang dikecilkan — kop/logo di atasnya dibiarkan ukuran aslinya
+      // supaya tampil sama besar di semua section. Bila tidak ada, jatuh ke
+      // perilaku lama (seluruh isi dikecilkan).
+      const body = inner.querySelector<HTMLElement>('[data-a4-body]')
+      if (body) {
+        body.style.transform = 'none'
+        body.style.width = '100%'
+        const boxTop = box.getBoundingClientRect().top
+        const bodyTop = body.getBoundingClientRect().top - boxTop
+        const section = body.parentElement
+        const padBottom = section ? parseFloat(getComputedStyle(section).paddingBottom) || 0 : 0
+        const room = available - bodyTop - padBottom
+        const natural = body.scrollHeight
+        const scale = room > 0 && natural > room ? room / natural : 1
+        if (scale < 1) {
+          body.style.width = `${100 / scale}%`
+          body.style.transformOrigin = 'top left'
+          body.style.transform = `scale(${scale})`
+        } else {
+          body.style.width = ''
+          body.style.transform = ''
+        }
+        return
+      }
+
       // Ukur tinggi natural pada lebar penuh dulu.
       inner.style.transform = 'none'
       inner.style.width = '100%'
@@ -91,6 +120,15 @@ export function A4Section({
       <div ref={innerRef} className={fit === 'none' ? 'a4-scale h-full' : 'a4-scale'}>
         {children}
       </div>
+      {/* Banner info dekoratif di dasar tiap halaman (spasi-nya direservasi
+          lewat `padding-bottom` section di globals.css). */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/Info%20area%20bawah%20Section.png"
+        alt=""
+        aria-hidden
+        className="a4-footer"
+      />
     </div>
   )
 }

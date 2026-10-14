@@ -797,16 +797,16 @@ export function PanduanEditor({
         <div className="mt-4 rounded-xl border border-[#e8ecf1] bg-[#fbfcfe] p-4">
           <p className="text-xs font-bold text-[#1b3555]">Logo Kepala Itinerary</p>
           <p className="mt-0.5 text-[11px] text-[#657080]">
-            Logo Kiri &amp; Kanan tampil berdampingan di kiri atas bagian &quot;Itinerary Perjalanan&quot;. Logo Pojok
-            Kanan tampil di sudut kanan atas. Kosongkan (Reset) untuk memakai bawaan / tidak menampilkan.
+            Logo Asita tampil di kiri atas, sedangkan Logo Barokah Tour tampil di pojok paling kanan atas (didahului
+            Logo Partner 1 &amp; 2). Kosongkan (Reset) untuk memakai bawaan / tidak menampilkan.
           </p>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             {(
               [
-                { slot: 'left', label: 'Kiri', fallback: '/logo-barokah.png' },
-                { slot: 'right', label: 'Kanan', fallback: '/logo-barokah-event.png' },
-                { slot: 'topright', label: 'Pojok Kanan 1', fallback: null },
-                { slot: 'topright2', label: 'Pojok Kanan 2', fallback: null },
+                { slot: 'left', label: 'Asita', fallback: '/Logo%20Asita.png' },
+                { slot: 'right', label: 'Barokah Tour', fallback: '/Logo%20siluet%20barokah%20tour.png' },
+                { slot: 'topright', label: 'Partner 1', fallback: null },
+                { slot: 'topright2', label: 'Partner 2', fallback: null },
               ] as const
             ).map(({ slot, label, fallback }) => {
               const url =

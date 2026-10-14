@@ -62,22 +62,20 @@ function SectionLogos({
   topRight2: string | null
 }) {
   return (
-    <div className="mb-4 flex items-center justify-between gap-3">
-      <div className="flex items-center gap-3">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={logoLeft} alt="Logo Barokah" className="h-8 w-auto object-contain" />
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={logoRight} alt="Logo Barokah Event" className="h-8 w-auto object-contain" />
-      </div>
+    <div className="mb-4 flex items-start justify-between gap-3">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={logoLeft} alt="Logo Asita" className="h-20 w-auto object-contain" />
       <div className="flex items-center gap-3">
         {topRight && (
           /* eslint-disable-next-line @next/next/no-img-element */
-          <img src={topRight} alt="Logo" className="h-8 w-auto object-contain" />
+          <img src={topRight} alt="Logo" className="h-20 w-auto object-contain" />
         )}
         {topRight2 && (
           /* eslint-disable-next-line @next/next/no-img-element */
-          <img src={topRight2} alt="Logo" className="h-8 w-auto object-contain" />
+          <img src={topRight2} alt="Logo" className="h-20 w-auto object-contain" />
         )}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={logoRight} alt="Logo Siluet Barokah Tour" className="-mr-5 -mt-5 h-24 w-auto object-contain" />
       </div>
     </div>
   )
@@ -154,8 +152,8 @@ export default async function EventPanduanPage({
   const dayGroups = groupItineraryByDay(itinerary, itineraryNotes, itinerarySideNotes)
   const isEmpty = itinerary.length === 0 && Object.keys(itineraryNotes).length === 0 && Object.keys(itinerarySideNotes).length === 0
   const multiDay = dayGroups.length > 1
-  const logoLeftUrl = event.panduanLogoLeft ?? '/logo-barokah.png'
-  const logoRightUrl = event.panduanLogoRight ?? '/logo-barokah-event.png'
+  const logoLeftUrl = event.panduanLogoLeft ?? '/Logo%20Asita.png'
+  const logoRightUrl = event.panduanLogoRight ?? '/Logo%20siluet%20barokah%20tour.png'
 
   return (
     <main className="print-guide min-h-screen bg-[#f4f7fa] print:bg-white pb-12 print:min-h-0 print:pb-0">
@@ -254,26 +252,27 @@ export default async function EventPanduanPage({
 
 
             <A4Section>
-            <section className="tt-bg print-avoid-break bg-gradient-to-r from-[#071e3d] via-[#0d2850] to-[#163d78] p-5 print:break-after-page print:min-h-[272mm]">
+            <section className="print-avoid-break bg-white p-5 print:break-after-page print:min-h-[272mm]">
               <SectionLogos
                 logoLeft={logoLeftUrl}
                 logoRight={logoRightUrl}
                 topRight={event.panduanLogoTopRight}
                 topRight2={event.panduanLogoTopRight2}
               />
-              <h2 className="text-3xl font-extrabold uppercase tracking-wide text-[#f5b915]">Our Vision and Mission</h2>
+              <div data-a4-body className="flow-root">
+              <h2 className="text-3xl font-extrabold uppercase tracking-wide text-[#1b3555]">Our Vision and Mission</h2>
 
               <div className="mt-4 space-y-4">
                 <div>
                   <PanduanHeading>Our Vision</PanduanHeading>
-                  <p className="mt-2 text-sm leading-relaxed text-[#f5b915]">
+                  <p className="mt-2 text-sm leading-relaxed text-[#1d2733]">
                     Menjadi biro perjalanan terkemuka dengan menciptakan produk-produk berkualitas yang berbasis budaya dan pendidikan dalam rangka pengembangan pariwisata.
                   </p>
                 </div>
 
                 <div>
                   <PanduanHeading>Our Mission</PanduanHeading>
-                  <ul className="mt-2 space-y-2 text-sm leading-relaxed text-[#f5b915]">
+                  <ul className="mt-2 space-y-2 text-sm leading-relaxed text-[#1d2733]">
                     <li className="flex gap-2">
                       <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#2ca84a]" />
                       Ikut menjaga keajegan Pariwisata yang berlandaskan Budaya dengan mengemas paket-paket wisata yang berkualitas dengan penekanan pada pelayanan yang ramah, sopan dan jujur.
@@ -289,30 +288,32 @@ export default async function EventPanduanPage({
                   </ul>
                 </div>
 
-                <div className="border-t border-[#f5b915]/40 pt-4">
-                  <h3 className="text-3xl font-extrabold uppercase tracking-wide text-[#f5b915]">Ujung Tombak</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-[#f5b915]">
+                <div className="border-t border-[#dfe4e8] pt-4">
+                  <h3 className="text-3xl font-extrabold uppercase tracking-wide text-[#1b3555]">Ujung Tombak</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-[#1d2733]">
                     Tantangan terberat yang dihadapi adalah tantangan dalam memberikan pelayanan terbaik kepada setiap customer. Tanggung jawab terberat untuk memberikan pelayanan terbaik itu ada pada ujung tombak yang setiap hari berinteraksi dengan customer. Mereka ini dibekali dengan suatu pemahaman bahwa sebagai ujung tombak bagi perusahaan haruslah memiliki hati yang tulus dan pikiran yang jernih, karena hanya dengan ketulusan dan kejernihan kita dapat melayani dengan baik.
                   </p>
                 </div>
 
                 <div className="text-center">
-                  <p className={`${latinScript.className} text-3xl leading-tight text-[#f5b915]`}>
+                  <p className={`${latinScript.className} text-3xl leading-tight text-[#1b3555]`}>
                     &ldquo;Your Satisfaction Is Our Pride&rdquo;
                   </p>
                 </div>
+              </div>
               </div>
             </section>
             </A4Section>
 
             <A4Section>
-            <section className="print-avoid-break space-y-6 rounded-[0.8rem] border border-[#e0b200] bg-[#f5b915] p-5 print:break-after-page print:min-h-[272mm]">
+            <section className="print-avoid-break space-y-6 rounded-[0.8rem] border border-[#dfe4e8] bg-white p-5 print:break-after-page print:min-h-[272mm]">
               <SectionLogos
                 logoLeft={logoLeftUrl}
                 logoRight={logoRightUrl}
                 topRight={event.panduanLogoTopRight}
                 topRight2={event.panduanLogoTopRight2}
               />
+              <div data-a4-body className="space-y-6 flow-root">
               <h2 className="text-center text-2xl font-extrabold uppercase tracking-wide text-black">Doa Bepergian Jauh</h2>
               <div>
                 <p className="mt-3 font-bold text-right text-lg leading-loose text-black" dir="rtl" lang="ar">
@@ -388,17 +389,19 @@ export default async function EventPanduanPage({
                   fardu karena Allah Ta’aala.”
                 </p>
               </div>
+              </div>
             </section>
             </A4Section>
 
             <A4Section>
-            <section className="print-avoid-break space-y-6 rounded-[0.8rem] border border-[#e0b200] bg-[#f5b915] p-5 print:break-after-page print:min-h-[272mm]">
+            <section className="print-avoid-break space-y-6 rounded-[0.8rem] border border-[#dfe4e8] bg-white p-5 print:break-after-page print:min-h-[272mm]">
               <SectionLogos
                 logoLeft={logoLeftUrl}
                 logoRight={logoRightUrl}
                 topRight={event.panduanLogoTopRight}
                 topRight2={event.panduanLogoTopRight2}
               />
+              <div data-a4-body className="space-y-6 flow-root">
               <div>
                 <h2 className="text-center text-2xl font-extrabold uppercase tracking-wide text-black">Tata Cara Sholat Jamak Takdim dengan Qashar</h2>
 
@@ -470,31 +473,33 @@ export default async function EventPanduanPage({
                   karena Allah Ta’ala.”
                 </p>
               </div>
+              </div>
             </section>
             </A4Section>
 
             <A4Section>
-            <section className="tt-bg print-avoid-break bg-gradient-to-r from-[#071e3d] via-[#0d2850] to-[#163d78] p-5 print:break-after-page print:min-h-[272mm]">
+            <section className="print-avoid-break bg-white p-5 print:break-after-page print:min-h-[272mm]">
               <SectionLogos
                 logoLeft={logoLeftUrl}
                 logoRight={logoRightUrl}
                 topRight={event.panduanLogoTopRight}
                 topRight2={event.panduanLogoTopRight2}
               />
-              <h2 className="text-center text-2xl font-extrabold uppercase tracking-wide text-[#f5b915]">Tata Tertib</h2>
+              <div data-a4-body className="flow-root">
+              <h2 className="text-center text-2xl font-extrabold uppercase tracking-wide text-[#1b3555]">Tata Tertib</h2>
               <ol className="mt-4 space-y-3">
                 {(() => {
                   const rules = event.panduanRules ? parsePanduanRules(event.panduanRules) : DEFAULT_PANDUAN_RULES
                   return rules.map((rule, i) => (
-                    <li key={i} className="flex gap-3 text-sm leading-relaxed text-[#f5b915]">
-                      <span className="shrink-0 text-sm font-bold text-[#f5b915]">{i + 1}.</span>
+                    <li key={i} className="flex gap-3 text-sm leading-relaxed text-[#1d2733]">
+                      <span className="shrink-0 text-sm font-bold text-[#1d2733]">{i + 1}.</span>
                       <div className="min-w-0">
                         <p className="leading-relaxed">{rule.text}</p>
                         {rule.items && (
                           <ul className="mt-2 space-y-1.5">
                             {rule.items.map((item, j) => (
                               <li key={j} className="flex gap-2">
-                                <span className="shrink-0 font-bold text-[#f5b915]">{'-'}</span>
+                                <span className="shrink-0 font-bold text-[#1d2733]">{'-'}</span>
                                 {item}
                               </li>
                             ))}
@@ -532,6 +537,7 @@ export default async function EventPanduanPage({
                   </span>
                 </div>
               )}
+              </div>
             </section>
             </A4Section>
 
@@ -544,6 +550,7 @@ export default async function EventPanduanPage({
                   topRight={event.panduanLogoTopRight}
                   topRight2={event.panduanLogoTopRight2}
                 />
+                <div data-a4-body className="flow-root">
                 <h3 className="mb-6 text-center text-xl font-extrabold uppercase tracking-wide text-[#00A3E0]">{event.title}</h3>
                 <PanduanHeading>Itinerary Perjalanan</PanduanHeading>
                 <div className="mt-6 space-y-6">
@@ -583,6 +590,7 @@ export default async function EventPanduanPage({
                 {itineraryFooterNote && (
                   <p className="mt-5 whitespace-pre-wrap text-xs font-bold italic text-black">{itineraryFooterNote}</p>
                 )}
+                </div>
               </section>
               </A4Section>
             )}
@@ -596,6 +604,7 @@ export default async function EventPanduanPage({
                   topRight={event.panduanLogoTopRight}
                   topRight2={event.panduanLogoTopRight2}
                 />
+                <div data-a4-body className="flow-root">
                 <h2 className="mb-6 mt-12 text-center text-xl font-extrabold uppercase tracking-wide text-[#00A3E0]">Denah Duduk</h2>
                 <PublicSeatMap
                   eventId={id}
@@ -603,6 +612,7 @@ export default async function EventPanduanPage({
                   initialBusId={ownBus?.busId ?? null}
                   highlightSeat={ownBus?.seat ?? null}
                 />
+                </div>
               </section>
               </A4Section>
             )}

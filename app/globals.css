@@ -80,11 +80,27 @@ input[type='number'] { -moz-appearance:textfield; appearance:textfield; }
        setiap section tercetak UTUH sebagai SATU halaman: tidak terpotong dan
        tidak berpindah/terbagi ke halaman berikutnya. */
     .a4-page {
+      position: relative;
       width: 210mm;
       height: 297mm;
       overflow: hidden;
     }
-    .a4-page > .a4-scale > section { break-after: auto; page-break-after: auto; }
+    .a4-page > .a4-scale > section {
+      break-after: auto;
+      page-break-after: auto;
+      padding-bottom: calc(1.25rem + 18mm);
+      background-color: #fff !important;
+      background-image: none !important;
+    }
+    .a4-footer {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      height: auto;
+      display: block;
+    }
   /* Kredensial crew: modalnya dirender lewat portal ke <body>, jadi akar cetak
      bukan anak dari overlay `fixed`. Kalau masih jadi anak overlay, containing
      block-nya setinggi viewport dan baris lewat halaman pertama ikut terpotong
@@ -159,14 +175,36 @@ body.gallery-lightbox-open iframe { visibility: hidden !important; }
    penuh. Blok ajakan cetak (`print:hidden`) tidak dibungkus kotak ini. */
 @media screen {
   .a4-page {
+    position: relative;
     width: 210mm;
     height: 297mm;
     overflow: hidden;
   }
 
-  .a4-page > .a4-scale > section.tt-bg,
-  .a4-page > .a4-scale > section.itinerary-bg {
+  /* Setiap section selalu mengisi penuh satu halaman A4 (210 × 297 mm), apa
+     pun panjang isinya: background/border section ikut menutup penuh sampai
+     tepi kertas. Isi yang lebih panjang dari halaman tetap dikecilkan oleh
+     <A4Section> (lihat komponen) dan kelebihannya dipotong kotak `.a4-page`.
+     Padding-bawah ekstra menyediakan ruang untuk pita "Info area" di kaki
+     halaman (tinggi gambar 2400×206 ≈ 18mm pada lebar 210mm). */
+  .a4-page > .a4-scale > section {
     min-height: 297mm;
+    height: 297mm;
+    padding-bottom: calc(1.25rem + 18.5mm);
+    background-color: #fff !important;
+    background-image: none !important;
+  }
+
+  /* Pita info di kaki tiap halaman (`Info area bawah Section.png`). */
+  .a4-footer {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: auto;
+    display: block;
+    pointer-events: none;
   }
 }
 
@@ -198,6 +236,13 @@ body.gallery-lightbox-open iframe { visibility: hidden !important; }
   transform: none !important;
 }
 
+/* Isi yang dikecilkan kini ada di `[data-a4-body]` (kop/logo di atasnya tidak
+   ikut dikecilkan), jadi transform-nya juga dinetralkan di mode ini. */
+#panduan-isi.pdf-page-mode .a4-page:not(.a4-fit-none) [data-a4-body] {
+  width: auto !important;
+  transform: none !important;
+}
+
 #panduan-isi.pdf-page-mode .a4-page:not(.a4-fit-none) .a4-scale > section {
   min-height: 297mm;
 }
@@ -212,30 +257,10 @@ body.gallery-lightbox-open iframe { visibility: hidden !important; }
   padding: 0 !important;
 }
 
-/* Itinerary: background halaman memakai gambar dekoratif Bg-7-bagian-panduan.
-   Border/padding card dibuang saat PDF/print supaya gambar membentang penuh,
-   namun background image tetap dipertahankan (tidak di-strip seperti
-   `pdf-plain`). */
-.itinerary-bg {
-  background-image: url('/Bg-7-bagian-panduan.png');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-}
-
-.tt-bg {
-  background-image: url('/Bg-11-bagian-panduan.png');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-}
-
+/* Layout itinerary saat unduh PDF: border/padding card dibuang supaya isi
+   membentang penuh seperti tampilan layar penuh-halaman. Background gambar
+   sudah tidak dipakai lagi (section kini putih polos). */
 #panduan-isi.pdf-page-mode .itinerary-bg {
-  border: 0 !important;
-  padding: 0 !important;
-}
-
-#panduan-isi.pdf-page-mode .tt-bg {
   border: 0 !important;
   padding: 0 !important;
 }

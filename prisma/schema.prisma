@@ -74,7 +74,7 @@ model Event {
   // Judul bagian Denah VW (menimpa judul otomatis). Null/kosong = otomatis.
   vwTitle              String?    @db.VarChar(191)
   // Logo di kepala bagian "Itinerary Perjalanan" pada panduan. Null =
-  // memakai gambar bawaan (kiri: logo-barokah.png, kanan: logo-barokah-event.png).
+  // memakai gambar bawaan (kiri: Logo Asita.png, kanan: Logo siluet barokah tour.png).
   panduanLogoLeft  String? @db.VarChar(500)
   panduanLogoRight String? @db.VarChar(500)
   // Logo opsional di pojok kanan atas section (null = kosong/tidak tampil).
