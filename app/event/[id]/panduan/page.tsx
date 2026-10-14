@@ -550,8 +550,8 @@ export default async function EventPanduanPage({
                   topRight={event.panduanLogoTopRight}
                   topRight2={event.panduanLogoTopRight2}
                 />
+                <h3 className="mb-4 text-center text-2xl font-extrabold uppercase tracking-wide text-[#00A3E0]">Denah Duduk</h3>
                 <div data-a4-body className="flow-root">
-                <h2 className="mb-6 mt-12 text-center text-xl font-extrabold uppercase tracking-wide text-[#00A3E0]">Denah Duduk</h2>
                 <PublicSeatMap
                   eventId={id}
                   buses={buses}

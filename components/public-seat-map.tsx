@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Armchair, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Loader2, SearchX } from 'lucide-react'
+import { Armchair, ChevronLeft, ChevronRight, Loader2, SearchX } from 'lucide-react'
 import { SeatGrid, type SeatCell } from '@/components/seat-grid'
 import { FacilityIconBadge } from '@/components/facility-icon'
 import { unitImageStyle } from '@/lib/seat'
@@ -47,7 +47,6 @@ export function PublicSeatMap({
   const [data, setData] = useState<PublicBus | null>(null)
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState<Selected | null>(null)
-  const [rosterOpen, setRosterOpen] = useState(true)
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -209,47 +208,28 @@ export function PublicSeatMap({
         </div>
 
       {!loading && data && data.seats.length > 0 && (
-        <div className="min-w-0 flex-1 overflow-hidden rounded-none border border-[#edf0f3]">
-          <button
-            type="button"
-            onClick={() => setRosterOpen((o) => !o)}
-            aria-expanded={rosterOpen}
-            aria-label={rosterOpen ? 'Tutup daftar nama' : 'Buka daftar nama'}
-            className="flex w-full shrink-0 items-center justify-between gap-3 rounded-none bg-[#00A3E0] px-4 py-2 text-left transition-[filter] duration-150 hover:brightness-110 active:scale-[0.995]"
-          >
-            <p className="min-w-0 break-words text-sm font-bold text-white">Daftar Nama — {data.busName}</p>
-            <span className="flex shrink-0 items-center gap-2">
-              <span className="text-[11px] font-bold tabular-nums text-white">
-                {data.filled}/{data.total} hadir
-              </span>
-              {rosterOpen ? (
-                <ChevronUp size={14} className="text-white/90 print:hidden" />
-              ) : (
-                <ChevronDown size={14} className="text-white/90 print:hidden" />
-              )}
-            </span>
-          </button>
-          <div className={`roster-rows items-start divide-x divide-[#f0f3f6] ${rosterOpen ? 'flex' : 'hidden print:flex'}`}>
+        <div className="min-w-0 flex-1 overflow-hidden rounded-none border-2 border-[#dfe4e8]">
+          <div className="flex items-stretch divide-x-2 divide-[#dfe4e8]">
             {rosterColumns.map((column, ci) => (
               <div key={ci} className="min-w-0 flex-1">
-                <div className="flex items-stretch divide-x divide-[#f0f3f6] bg-[#f8fafc] text-[11px] font-bold uppercase tracking-wide text-[#9aa3af]">
-                  <span className="flex w-9 shrink-0 items-center justify-center px-1.5 py-1.5">No</span>
-                  <span className="min-w-0 flex-1 px-2.5 py-1.5">Nama</span>
+                <div className="grid grid-cols-[2.75rem_minmax(0,1fr)] bg-[#00A3E0] text-sm font-extrabold uppercase leading-tight tracking-wider text-white">
+                  <span className="border-r-2 border-white/40 px-[3px] py-[2px] text-center">No</span>
+                  <span className="px-[3px] py-[2px] text-center">Nama</span>
                 </div>
-                <div className="divide-y divide-[#f0f3f6]">
+                <div className="divide-y-2 divide-[#edf0f3]">
                   {column.map((s) => {
                     const isMine = mySeat != null && s.seat != null && s.seat === mySeat
                     return (
                       <div
                         key={s.order}
-                        className={`flex items-stretch divide-x divide-[#f0f3f6] ${isMine ? 'bg-[#bfdbfe]' : ''}`}
+                        className={`grid grid-cols-[2.75rem_minmax(0,1fr)] leading-tight ${isMine ? 'bg-[#bfdbfe]' : ''}`}
                       >
-                        <span className="flex w-9 shrink-0 items-center justify-center px-1.5 py-1.5 text-xs font-bold tabular-nums text-[#1b3555]">
+                        <span className="border-r-2 border-[#dfe4e8] px-[3px] py-[3px] text-lg font-bold tabular-nums text-[#1b3555]">
                           {s.seat ?? s.order}
                         </span>
-                        <p className="flex min-w-0 flex-1 items-center px-2.5 py-1.5 text-sm text-[#1b3555]">
-                          <span className={`min-w-0 break-words ${isMine ? 'font-bold' : ''}`}>{s.name}</span>
-                        </p>
+                        <span className={`break-words px-[3px] py-[3px] text-lg text-[#1b3555] ${isMine ? 'font-bold' : ''}`}>
+                          {s.name}
+                        </span>
                       </div>
                     )
                   })}
