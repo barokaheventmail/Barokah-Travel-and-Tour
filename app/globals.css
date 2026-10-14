@@ -208,17 +208,6 @@ body.gallery-lightbox-open iframe { visibility: hidden !important; }
   }
 }
 
-/* Daftar Nama denah duduk (PublicSeatMap): di web semua peserta ditampilkan
-   (daftarnya bisa di-scroll). Di PDF dibatasi 18 baris supaya section tidak
-   memanjang, tapi baris peserta yang ditandai (kursi sendiri) selalu ikut —
-   komponen menandai baris yang harus disembunyikan dengan `.roster-pdf-hide`.
-   Hanya berlaku saat cetak (`@media print`) dan saat html2canvas memotret
-   (downloader menambahkan `.pdf-capture` ke `.roster-rows`). */
-@media print {
-  .roster-pdf-hide { display: none !important; }
-}
-.roster-rows.pdf-capture .roster-pdf-hide { display: none !important; }
-
 /* Saat mengunduh PDF (`pdf-page-mode`): untuk section teks yang memakai
    <A4Section fit="content">, netralkan kotak A4 — tinggi mengikuti isi dan
    transform scale dibatalkan — supaya html2canvas memotret seluruh isi pada

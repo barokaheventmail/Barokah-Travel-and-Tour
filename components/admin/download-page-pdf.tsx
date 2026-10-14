@@ -91,13 +91,6 @@ export function DownloadPagePdf({
       const prevPdfOnly = pdfOnly.map((el) => el.style.display)
       for (const el of pdfOnly) el.style.display = 'block'
 
-      // Daftar Nama denah duduk: di web semua peserta tampil, tapi di PDF cukup
-      // 18 baris pertama (lihat aturan `.roster-rows.pdf-capture` di
-      // globals.css) supaya section tidak memanjang. Kelasnya dilepas lagi
-      // setelah pemotretan selesai.
-      const rosterRows = Array.from(target.querySelectorAll<HTMLElement>('.roster-rows'))
-      for (const el of rosterRows) el.classList.add('pdf-capture')
-
       // html2canvas mem-parse computed style dengan parser sendiri yang hanya
       // mengenal rgb/hsl/hex, sedangkan Tailwind v4 menulis warna sebagai
       // `oklab()`/`lab()`/`color-mix()`. Tanpa langkah ini html2canvas melempar
@@ -169,7 +162,6 @@ export function DownloadPagePdf({
         pdfOnly.forEach((el, i) => {
           el.style.display = prevPdfOnly[i]
         })
-        for (const el of rosterRows) el.classList.remove('pdf-capture')
         restoreColors()
       }
 

@@ -43,7 +43,7 @@ export function SeatGrid({
   const mine = (n: number) => highlightSeat != null && String(n) === String(highlightSeat)
 
   return (
-    <div className="mx-auto w-full max-w-xl overflow-hidden border-2 border-[#0d2850] p-1.5">
+    <div className="mx-auto w-full max-w-xl overflow-hidden rounded-none border-2 border-[#0d2850] p-1.5">
       <BusFront cols={layout.cols} front={front} bordered={false} />
       <div
         className="mt-1.5 grid w-full gap-[2px] sm:gap-[3px]"

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Armchair, BadgeCheck, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Loader2, SearchX } from 'lucide-react'
+import { Armchair, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Loader2, SearchX } from 'lucide-react'
 import { SeatGrid, type SeatCell } from '@/components/seat-grid'
 import { FacilityIconBadge } from '@/components/facility-icon'
 import { unitImageStyle } from '@/lib/seat'
@@ -57,15 +57,14 @@ export function PublicSeatMap({
   const isMyBus = initialBusId != null && selectedId === initialBusId
   const mySeat = isMyBus ? highlightSeat : null
 
-  // Di PDF daftar nama dibatasi 18 baris, tapi baris peserta yang ditandai
-  // (kursi sendiri) harus selalu ikut tampil. Kalau kursinya di luar 18 baris
-  // pertama, baris ke-18 dilepas supaya totalnya tetap 18.
-  const pdfRosterLimit = 18
-  const mineIdx =
-    mySeat != null && data ? data.seats.findIndex((s) => s.seat != null && s.seat === mySeat) : -1
-  const mineOutside = mineIdx >= pdfRosterLimit
   const index = buses.findIndex((b) => b.id === selectedId)
   const current = index >= 0 ? buses[index] : null
+
+  // Daftar nama dibagi dua kolom: separuh kiri, separuh kanan (mis. 50 peserta
+  // -> 25 kiri, 25 kanan). Tiap kolom hanya menampilkan No dan Nama.
+  const rosterSeats = data?.seats ?? []
+  const rosterHalf = Math.ceil(rosterSeats.length / 2)
+  const rosterColumns = [rosterSeats.slice(0, rosterHalf), rosterSeats.slice(rosterHalf)]
 
   function step(dir: 1 | -1) {
     if (buses.length === 0) return
@@ -164,8 +163,8 @@ export function PublicSeatMap({
       )}
 
       <div className="mt-3 overflow-x-auto print:overflow-visible">
-        <div className="flex min-w-[34rem] items-stretch gap-4 sm:gap-5 print:min-w-0">
-        <div className="print-avoid-break min-w-0 flex-1">
+        <div className="flex min-w-[34rem] items-start gap-4 sm:gap-6 print:min-w-0">
+        <div className="print-avoid-break w-64 shrink-0 sm:w-72">
         {loading ? (
           <div className="flex items-center justify-center gap-2 rounded-xl bg-[#f8fafc] py-8 text-xs font-semibold text-[#657080]">
             <Loader2 size={15} className="animate-spin" /> Memuat peta kursi…
@@ -210,14 +209,13 @@ export function PublicSeatMap({
         </div>
 
       {!loading && data && data.seats.length > 0 && (
-        <div className="relative w-72 shrink-0 self-stretch overflow-hidden border border-[#edf0f3] rounded-none print:static print:h-auto">
-          <div className="absolute inset-0 flex flex-col print:static print:h-auto">
+        <div className="min-w-0 flex-1 overflow-hidden rounded-none border border-[#edf0f3]">
           <button
             type="button"
             onClick={() => setRosterOpen((o) => !o)}
             aria-expanded={rosterOpen}
             aria-label={rosterOpen ? 'Tutup daftar nama' : 'Buka daftar nama'}
-            className="flex w-full shrink-0 items-center justify-between gap-3 bg-[#00A3E0] px-4 py-2.5 text-left transition-[filter] duration-150 hover:brightness-110 active:scale-[0.995]"
+            className="flex w-full shrink-0 items-center justify-between gap-3 rounded-none bg-[#00A3E0] px-4 py-2 text-left transition-[filter] duration-150 hover:brightness-110 active:scale-[0.995]"
           >
             <p className="min-w-0 break-words text-sm font-bold text-white">Daftar Nama — {data.busName}</p>
             <span className="flex shrink-0 items-center gap-2">
@@ -231,39 +229,33 @@ export function PublicSeatMap({
               )}
             </span>
           </button>
-          <div className={`roster-rows min-h-0 flex-1 overflow-y-auto print:max-h-none print:overflow-visible ${rosterOpen ? 'divide-y divide-[#f0f3f6]' : 'hidden divide-y divide-[#f0f3f6] print:block'}`}>
-            <div className="flex items-stretch divide-x divide-[#f0f3f6] bg-[#f8fafc] text-[10px] font-bold uppercase tracking-wide text-[#9aa3af]">
-              <span className="flex w-10 shrink-0 items-center justify-center px-2 py-2">No</span>
-              <span className="min-w-0 flex-1 px-3 py-2">Nama</span>
-              <span className="flex w-24 shrink-0 items-center justify-center px-2 py-2">Kehadiran</span>
-            </div>
-            {data.seats.map((s, i) => {
-              const isMine = mySeat != null && s.seat != null && s.seat === mySeat
-              const hideInPdf = mineOutside ? i !== mineIdx && i >= pdfRosterLimit - 1 : i >= pdfRosterLimit
-              return (
-                <div
-                  key={s.order}
-                  className={`flex items-stretch divide-x divide-[#f0f3f6] ${isMine ? 'bg-[#bfdbfe]' : ''} ${hideInPdf ? 'roster-pdf-hide' : ''}`}
-                >
-                  <span className="flex w-10 shrink-0 items-center justify-center px-2 py-2 text-[11px] font-bold tabular-nums text-[#1b3555]">
-                    {s.seat ?? s.order}
-                  </span>
-                  <p className="flex min-w-0 flex-1 items-center gap-1.5 px-3 py-2 text-[13px] font-normal text-[#1b3555]">
-                    <span className={`min-w-0 break-words ${isMine ? 'font-bold' : ''}`}>{s.name}</span>
-                  </p>
-                  <span className="flex w-24 shrink-0 items-center justify-center px-2 py-2 text-[10px] font-bold uppercase tracking-wide">
-                    {s.present ? (
-                      <span className="inline-flex items-center gap-1 text-[#059669]">
-                        <BadgeCheck size={11} /> Hadir
-                      </span>
-                    ) : (
-                      <span className="text-[#9aa3af]">Belum</span>
-                    )}
-                  </span>
+          <div className={`roster-rows items-start divide-x divide-[#f0f3f6] ${rosterOpen ? 'flex' : 'hidden print:flex'}`}>
+            {rosterColumns.map((column, ci) => (
+              <div key={ci} className="min-w-0 flex-1">
+                <div className="flex items-stretch divide-x divide-[#f0f3f6] bg-[#f8fafc] text-[11px] font-bold uppercase tracking-wide text-[#9aa3af]">
+                  <span className="flex w-9 shrink-0 items-center justify-center px-1.5 py-1.5">No</span>
+                  <span className="min-w-0 flex-1 px-2.5 py-1.5">Nama</span>
                 </div>
-              )
-            })}
-          </div>
+                <div className="divide-y divide-[#f0f3f6]">
+                  {column.map((s) => {
+                    const isMine = mySeat != null && s.seat != null && s.seat === mySeat
+                    return (
+                      <div
+                        key={s.order}
+                        className={`flex items-stretch divide-x divide-[#f0f3f6] ${isMine ? 'bg-[#bfdbfe]' : ''}`}
+                      >
+                        <span className="flex w-9 shrink-0 items-center justify-center px-1.5 py-1.5 text-xs font-bold tabular-nums text-[#1b3555]">
+                          {s.seat ?? s.order}
+                        </span>
+                        <p className="flex min-w-0 flex-1 items-center px-2.5 py-1.5 text-sm text-[#1b3555]">
+                          <span className={`min-w-0 break-words ${isMine ? 'font-bold' : ''}`}>{s.name}</span>
+                        </p>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}

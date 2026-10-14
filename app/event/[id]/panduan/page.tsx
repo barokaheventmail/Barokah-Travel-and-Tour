@@ -576,7 +576,7 @@ export default async function EventPanduanPage({
     ) : null,
     'seat-map': buses.length > 0 ? (
 <A4Section>
-              <section className="border border-[#dfe4e8] bg-white p-5 print:min-h-[272mm]">
+              <section className="rounded-none border border-[#dfe4e8] bg-white p-5 print:min-h-[272mm]">
                 <SectionLogos
                   logoLeft={logoLeftUrl}
                   logoRight={logoRightUrl}
