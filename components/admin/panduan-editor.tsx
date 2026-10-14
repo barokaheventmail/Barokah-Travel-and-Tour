@@ -1086,6 +1086,7 @@ export function PanduanEditor({
                     <div className="mt-3 hidden items-center gap-2 text-[11px] font-bold uppercase tracking-wide text-[#657080] sm:flex">
                       <span className="w-full sm:w-56 sm:shrink-0 sm:pl-1">Waktu</span>
                       <span className="w-full sm:min-w-0 sm:flex-1 sm:pl-1">Agenda</span>
+                      <span className="w-full sm:min-w-0 sm:flex-1 sm:pl-1">Keterangan</span>
                     </div>
                     <div className="mt-2 space-y-2 sm:mt-3">
                       {rows.map((row, r) => (
@@ -1119,6 +1120,16 @@ export function PanduanEditor({
                             onChange={(e) => setDayRow(b, r, { agenda: e.target.value })}
                             onKeyDown={(e) => dayRowEnter(b, r, 2, e)}
                             placeholder="Agenda kegiatan"
+                            className={`${rowCls} w-full sm:min-w-0 sm:flex-1`}
+                          />
+                          <input
+                            ref={(el) => {
+                              rowRefs.current[`${b}:${r}:3`] = el
+                            }}
+                            value={row.keterangan}
+                            onChange={(e) => setDayRow(b, r, { keterangan: e.target.value })}
+                            onKeyDown={(e) => dayRowEnter(b, r, 3, e)}
+                            placeholder="Keterangan (opsional)"
                             className={`${rowCls} w-full sm:min-w-0 sm:flex-1`}
                           />
                           <div className="flex shrink-0 items-center gap-1 self-end sm:self-auto">

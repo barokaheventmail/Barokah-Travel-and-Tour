@@ -15,6 +15,7 @@ import { EventNavbar } from '@/components/event-navbar'
 import { PublicSeatMap } from '@/components/public-seat-map'
 import { PublicRoomMap } from '@/components/public-room-map'
 import { PublicVwMap } from '@/components/public-vw-map'
+import { PublicItinerary } from '@/components/public-itinerary'
 import { PrintButton } from '@/components/admin/print-button'
 import { BackToTop } from '@/components/back-to-top'
 import { A4Section } from '@/components/a4-section'
@@ -213,7 +214,6 @@ export default async function EventPanduanPage({
     Object.keys(itineraryNotes).length === 0 &&
     Object.keys(itinerarySideNotes).length === 0 &&
     !hasCustomContent
-  const multiDay = dayGroups.length > 1
   const logoLeftUrl = event.panduanLogoLeft ?? '/Logo%20Asita.png'
   const logoRightUrl = event.panduanLogoRight ?? '/Logo%20siluet%20barokah%20tour.png'
   const crews = effectiveCrewList(event)
@@ -522,57 +522,24 @@ export default async function EventPanduanPage({
             </A4Section>
     ),
     'itinerary': dayGroups.length > 0 ? (
-<A4Section>
-              <section className="itinerary-bg print-avoid-break relative rounded-none border border-[#dfe4e8] bg-white p-5 print:break-after-page print:min-h-[272mm] print:border-0 print:p-0">
-                <SectionLogos
-                  logoLeft={logoLeftUrl}
-                  logoRight={logoRightUrl}
-                  topRight={event.panduanLogoTopRight}
-                  topRight2={event.panduanLogoTopRight2}
-                />
-                <div data-a4-body className="flow-root">
-                <h3 className="mb-4 text-center text-2xl font-extrabold uppercase tracking-wide text-[#00A3E0]">{event.title}</h3>
-                <PanduanHeading>Itinerary Perjalanan</PanduanHeading>
-                <div className="mt-4 space-y-4">
-                  {dayGroups.map((group) => (
-                    <div key={group.day}>
-                      {(multiDay || group.sideNote) && (
-                        <div className="mb-1 flex items-start gap-3">
-                          <span className="shrink-0 text-sm font-bold uppercase text-[#00A3E0]">Day {group.day}</span>
-                          {group.sideNote && <span className="whitespace-pre-wrap text-sm font-bold text-[#00A3E0]">{group.sideNote}</span>}
-                        </div>
-                      )}
-                      {group.note && (
-                        <p className="mb-1.5 whitespace-pre-wrap text-base font-bold leading-relaxed text-[#00A3E0]">{group.note}</p>
-                      )}
-                      {group.rows.length > 0 && (
-                      <div className="overflow-hidden rounded-none border-2 border-[#dfe4e8]">
-                        <div className="grid grid-cols-[7rem_1fr] gap-0 bg-[#00A3E0] px-3 py-1.5 text-xs font-extrabold uppercase tracking-wider text-white">
-                          <span className="border-r-2 border-white/40 pr-3 text-center">Waktu</span>
-                          <span className="pl-3 text-center">Agenda</span>
-                        </div>
-                        <div className="divide-y-2 divide-[#edf0f3]">
-                          {group.rows.map((item, i) => (
-                            <div
-                              key={`${group.day}-${item.time}-${i}`}
-                              className="grid grid-cols-[7rem_1fr] gap-0 px-3 py-2 transition-colors hover:bg-[#f8fafc]"
-                            >
-                              <span className="whitespace-nowrap border-r-2 border-[#dfe4e8] pr-3 text-sm font-medium tabular-nums text-[#1b4f9c]">{item.time}</span>
-                              <span className={`pl-3 text-[#1b3555] ${item.bold ? 'text-[0.95rem] font-bold' : 'text-sm font-normal'} ${item.italic ? 'italic' : ''}`}>{item.agenda}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      )}
+              <PublicItinerary
+                dayGroups={dayGroups}
+                footerNote={itineraryFooterNote}
+                header={
+                  <>
+                    <SectionLogos
+                      logoLeft={logoLeftUrl}
+                      logoRight={logoRightUrl}
+                      topRight={event.panduanLogoTopRight}
+                      topRight2={event.panduanLogoTopRight2}
+                    />
+                    <h3 className="mb-4 text-center text-2xl font-extrabold uppercase tracking-wide text-[#00A3E0]">{event.title}</h3>
+                    <div className="mx-6">
+                      <PanduanHeading>Itinerary</PanduanHeading>
                     </div>
-                  ))}
-                </div>
-                {itineraryFooterNote && (
-                  <p className="mt-4 whitespace-pre-wrap text-sm font-bold italic text-black">{itineraryFooterNote}</p>
-                )}
-                </div>
-              </section>
-              </A4Section>
+                  </>
+                }
+              />
     ) : null,
     'seat-map': buses.length > 0 ? (
 <A4Section>
