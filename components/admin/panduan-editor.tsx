@@ -787,6 +787,183 @@ export function PanduanEditor({
       </div>
 
       <div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <h2 className="text-sm font-bold text-[#1b3555]">Tata Tertib</h2>
+                    <p className="mt-0.5 text-xs text-[#657080]">
+                      Aturan yang tampil di halaman panduan publik. Bisa ditambah, diubah, dihapus, dan diurutkan.
+                    </p>
+                  </div>
+                  <button type="button" onClick={addRule} className={addBtnCls}>
+                    <Plus size={12} /> Tambah Aturan
+                  </button>
+                </div>
+
+                {rules.length === 0 ? (
+                  <p className="mt-3 rounded-lg border border-dashed border-[#dfe4e8] px-4 py-3 text-xs text-[#9aa3af]">
+                    Belum ada aturan. Tambah aturan baru untuk menyusun tata tertib.
+                  </p>
+                ) : (
+                  <div className="mt-4 space-y-3">
+                    {rules.map((rule, r) => (
+                      <div key={r} className="rounded-xl border border-[#e8ecf1] bg-[#fbfcfe] p-3">
+                        <div className="flex items-start gap-2">
+                          <span className="mt-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#eef4fb] text-[11px] font-bold text-[#1b4f9c]">
+                            {r + 1}
+                          </span>
+                          <textarea
+                            value={rule.text}
+                            onChange={(e) => setRuleText(r, e.target.value)}
+                            placeholder="Tulis isi aturan…"
+                            rows={2}
+                            className={`${ruleRowCls} min-w-0 flex-1 resize-y`}
+                          />
+                          <div className="flex shrink-0 flex-col gap-1">
+                            <button type="button" onClick={() => moveRule(r, -1)} disabled={r === 0} aria-label="Naikkan aturan" className="rounded-lg p-1.5 text-[#657080] transition-colors hover:bg-[#eef4fb] hover:text-[#1b4f9c] disabled:opacity-30">
+                              <ChevronUp size={14} />
+                            </button>
+                            <button type="button" onClick={() => moveRule(r, 1)} disabled={r === rules.length - 1} aria-label="Turunkan aturan" className="rounded-lg p-1.5 text-[#657080] transition-colors hover:bg-[#eef4fb] hover:text-[#1b4f9c] disabled:opacity-30">
+                              <ChevronDown size={14} />
+                            </button>
+                            <button type="button" onClick={() => removeRule(r)} aria-label="Hapus aturan" className="rounded-lg p-1.5 text-[#657080] transition-colors hover:bg-red-50 hover:text-red-600">
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </div>
+
+                        {(rule.items ?? []).length > 0 && (
+                          <div className="mt-2 space-y-2 pl-8">
+                            {(rule.items ?? []).map((item, j) => (
+                              <div key={j} className="flex items-center gap-2">
+                                <span className="shrink-0 font-bold text-[#9aa3af]">-</span>
+                                <input
+                                  value={item}
+                                  onChange={(e) => setRuleItem(r, j, e.target.value)}
+                                  placeholder="Poin rincian (opsional)"
+                                  className={`${ruleRowCls} min-w-0 flex-1`}
+                                />
+                                <button type="button" onClick={() => removeRuleItem(r, j)} aria-label="Hapus poin" className="shrink-0 rounded-lg p-1.5 text-[#657080] transition-colors hover:bg-red-50 hover:text-red-600">
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        <button type="button" onClick={() => addRuleItem(r)} className={`${addBtnCls} ml-8 mt-2`}>
+                          <Plus size={12} /> Tambah Poin Rincian
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+      <section className="rounded-xl border border-[#e8ecf1] bg-[#fbfcfe] p-4">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="shrink-0 rounded-full px-0 py-1 text-sm font-bold text-black">Crew on Duty — Tata Tertib</span>
+            <span className="truncate text-[11px] text-[#9aa3af]">Tampil di bawah Tata Tertib</span>
+          </div>
+          {!crew.name && !crewEditing && (
+            <button type="button" onClick={() => setCrewEditing(true)} className={addBtnCls}>
+              <Plus size={12} /> Tambah Crew
+            </button>
+          )}
+        </div>
+
+      {crew.name ? (
+        <div className="mt-3 flex items-center gap-3">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#dcebe0] text-base font-bold text-[#2ca84a]">
+            {crew.photoUrl ? (
+              <img src={crew.photoUrl} alt={crew.name} className="h-full w-full object-cover" />
+            ) : (
+              crew.name.slice(0, 2).toUpperCase()
+            )}
+          </div>
+          <div className="min-w-0">
+            <strong className="block text-sm text-[#1b3555]">{crew.name}</strong>
+            {crew.role && <span className="text-xs text-[#657080]">{crew.role}</span>}
+          </div>
+          <div className="ml-auto flex items-center gap-1">
+            <button type="button" onClick={() => setCrewEditing(true)} className="inline-flex items-center gap-1 rounded-full border border-[#dfe4e8] px-3 py-1.5 text-[11px] font-bold text-[#1b4f9c] transition-colors hover:bg-[#eef4fb]">
+              <Pencil size={11} /> Edit
+            </button>
+            <button type="button" onClick={clearCrew} disabled={crewBusy} className="inline-flex items-center gap-1 rounded-full border border-[#dfe4e8] px-3 py-1.5 text-[11px] font-bold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60">
+              <Trash2 size={11} /> Hapus
+            </button>
+          </div>
+        </div>
+      ) : (
+        <p className="mt-2 text-xs text-[#9aa3af]">Belum ada crew on duty untuk event ini.</p>
+      )}
+
+      {crewEditing && (
+        <div className="mt-4 space-y-3 border-t border-[#eef1f4] pt-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#dcebe0] text-xl font-bold text-[#2ca84a]">
+              {crew.photoUrl ? (
+                <img src={crew.photoUrl} alt={crew.name || 'Foto crew'} className="h-full w-full object-cover" />
+              ) : (
+                crew.name.slice(0, 2).toUpperCase() || 'CR'
+              )}
+            </div>
+            <label className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-[#dfe4e8] px-3 py-1.5 text-[11px] font-bold text-[#1b4f9c] transition-colors hover:bg-[#eef4fb] disabled:opacity-60">
+              {uploadingPhoto ? <Loader2 size={11} className="animate-spin" /> : null}
+              {uploadingPhoto ? 'Mengunggah…' : 'Unggah Foto'}
+              <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" disabled={uploadingPhoto || crewBusy} onChange={(e) => {
+                const file = e.target.files?.[0]
+                if (file) uploadCrewPhoto(file)
+                e.target.value = ''
+              }} />
+            </label>
+            {crew.photoUrl && (
+              <button type="button" onClick={removeCrewPhoto} disabled={uploadingPhoto || crewBusy} className="text-[11px] font-bold text-red-600 hover:underline disabled:opacity-60">
+                Hapus Foto
+              </button>
+            )}
+          </div>
+
+          <input
+            value={crew.name}
+            onChange={(e) => setCrew((c) => ({ ...c, name: e.target.value }))}
+            placeholder="Nama crew"
+            className={`${descRowCls} w-full`}
+          />
+          <input
+            value={crew.role}
+            onChange={(e) => setCrew((c) => ({ ...c, role: e.target.value }))}
+            placeholder="Jabatan / Peran (mis. Tour Leader)"
+            className={`${descRowCls} w-full`}
+          />
+
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setCrewEditing(false)
+                setCrew({ name: initialCrewName, phone: initialCrewPhone, role: initialCrewRole, photoUrl: initialCrewPhotoUrl })
+              }}
+              disabled={crewBusy}
+              className="rounded-full border border-[#dfe4e8] px-4 py-2 text-xs font-bold text-[#657080] transition-colors hover:bg-[#eef1f4] disabled:opacity-60"
+            >
+              Batal
+            </button>
+            <button
+              type="button"
+              onClick={saveCrew}
+              disabled={crewBusy}
+              className="inline-flex items-center gap-1.5 rounded-full bg-[#1b4f9c] px-5 py-2 text-xs font-bold text-white transition-colors duration-200 hover:bg-[#143d79] active:scale-95 disabled:opacity-60"
+            >
+              {crewBusy ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
+              Simpan Crew
+            </button>
+          </div>
+        </div>
+      )}
+      </section>
+
+      <div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">
         <div>
           <h2 className="text-sm font-bold text-[#1b3555]">Itinerary Perjalanan</h2>
           <p className="mt-0.5 text-xs text-[#657080]">
@@ -996,183 +1173,6 @@ export function PanduanEditor({
             className={`${rowCls} w-full resize-y`}
           />
         </div>
-
-<div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <h2 className="text-sm font-bold text-[#1b3555]">Tata Tertib</h2>
-              <p className="mt-0.5 text-xs text-[#657080]">
-                Aturan yang tampil di halaman panduan publik. Bisa ditambah, diubah, dihapus, dan diurutkan.
-              </p>
-            </div>
-            <button type="button" onClick={addRule} className={addBtnCls}>
-              <Plus size={12} /> Tambah Aturan
-            </button>
-          </div>
-
-          {rules.length === 0 ? (
-            <p className="mt-3 rounded-lg border border-dashed border-[#dfe4e8] px-4 py-3 text-xs text-[#9aa3af]">
-              Belum ada aturan. Tambah aturan baru untuk menyusun tata tertib.
-            </p>
-          ) : (
-            <div className="mt-4 space-y-3">
-              {rules.map((rule, r) => (
-                <div key={r} className="rounded-xl border border-[#e8ecf1] bg-[#fbfcfe] p-3">
-                  <div className="flex items-start gap-2">
-                    <span className="mt-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#eef4fb] text-[11px] font-bold text-[#1b4f9c]">
-                      {r + 1}
-                    </span>
-                    <textarea
-                      value={rule.text}
-                      onChange={(e) => setRuleText(r, e.target.value)}
-                      placeholder="Tulis isi aturan…"
-                      rows={2}
-                      className={`${ruleRowCls} min-w-0 flex-1 resize-y`}
-                    />
-                    <div className="flex shrink-0 flex-col gap-1">
-                      <button type="button" onClick={() => moveRule(r, -1)} disabled={r === 0} aria-label="Naikkan aturan" className="rounded-lg p-1.5 text-[#657080] transition-colors hover:bg-[#eef4fb] hover:text-[#1b4f9c] disabled:opacity-30">
-                        <ChevronUp size={14} />
-                      </button>
-                      <button type="button" onClick={() => moveRule(r, 1)} disabled={r === rules.length - 1} aria-label="Turunkan aturan" className="rounded-lg p-1.5 text-[#657080] transition-colors hover:bg-[#eef4fb] hover:text-[#1b4f9c] disabled:opacity-30">
-                        <ChevronDown size={14} />
-                      </button>
-                      <button type="button" onClick={() => removeRule(r)} aria-label="Hapus aturan" className="rounded-lg p-1.5 text-[#657080] transition-colors hover:bg-red-50 hover:text-red-600">
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  </div>
-
-                  {(rule.items ?? []).length > 0 && (
-                    <div className="mt-2 space-y-2 pl-8">
-                      {(rule.items ?? []).map((item, j) => (
-                        <div key={j} className="flex items-center gap-2">
-                          <span className="shrink-0 font-bold text-[#9aa3af]">-</span>
-                          <input
-                            value={item}
-                            onChange={(e) => setRuleItem(r, j, e.target.value)}
-                            placeholder="Poin rincian (opsional)"
-                            className={`${ruleRowCls} min-w-0 flex-1`}
-                          />
-                          <button type="button" onClick={() => removeRuleItem(r, j)} aria-label="Hapus poin" className="shrink-0 rounded-lg p-1.5 text-[#657080] transition-colors hover:bg-red-50 hover:text-red-600">
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  <button type="button" onClick={() => addRuleItem(r)} className={`${addBtnCls} ml-8 mt-2`}>
-                    <Plus size={12} /> Tambah Poin Rincian
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <section className="mt-5 rounded-xl border border-[#e8ecf1] bg-[#fbfcfe] p-4">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex min-w-0 items-center gap-2">
-              <span className="shrink-0 rounded-full px-0 py-1 text-sm font-bold text-black">Crew on Duty — Tata Tertib</span>
-              <span className="truncate text-[11px] text-[#9aa3af]">Tampil di bawah Tata Tertib</span>
-            </div>
-            {!crew.name && !crewEditing && (
-              <button type="button" onClick={() => setCrewEditing(true)} className={addBtnCls}>
-                <Plus size={12} /> Tambah Crew
-              </button>
-            )}
-          </div>
-
-        {crew.name ? (
-          <div className="mt-3 flex items-center gap-3">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#dcebe0] text-base font-bold text-[#2ca84a]">
-              {crew.photoUrl ? (
-                <img src={crew.photoUrl} alt={crew.name} className="h-full w-full object-cover" />
-              ) : (
-                crew.name.slice(0, 2).toUpperCase()
-              )}
-            </div>
-            <div className="min-w-0">
-              <strong className="block text-sm text-[#1b3555]">{crew.name}</strong>
-              {crew.role && <span className="text-xs text-[#657080]">{crew.role}</span>}
-            </div>
-            <div className="ml-auto flex items-center gap-1">
-              <button type="button" onClick={() => setCrewEditing(true)} className="inline-flex items-center gap-1 rounded-full border border-[#dfe4e8] px-3 py-1.5 text-[11px] font-bold text-[#1b4f9c] transition-colors hover:bg-[#eef4fb]">
-                <Pencil size={11} /> Edit
-              </button>
-              <button type="button" onClick={clearCrew} disabled={crewBusy} className="inline-flex items-center gap-1 rounded-full border border-[#dfe4e8] px-3 py-1.5 text-[11px] font-bold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60">
-                <Trash2 size={11} /> Hapus
-              </button>
-            </div>
-          </div>
-        ) : (
-          <p className="mt-2 text-xs text-[#9aa3af]">Belum ada crew on duty untuk event ini.</p>
-        )}
-
-        {crewEditing && (
-          <div className="mt-4 space-y-3 border-t border-[#eef1f4] pt-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#dcebe0] text-xl font-bold text-[#2ca84a]">
-                {crew.photoUrl ? (
-                  <img src={crew.photoUrl} alt={crew.name || 'Foto crew'} className="h-full w-full object-cover" />
-                ) : (
-                  crew.name.slice(0, 2).toUpperCase() || 'CR'
-                )}
-              </div>
-              <label className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-[#dfe4e8] px-3 py-1.5 text-[11px] font-bold text-[#1b4f9c] transition-colors hover:bg-[#eef4fb] disabled:opacity-60">
-                {uploadingPhoto ? <Loader2 size={11} className="animate-spin" /> : null}
-                {uploadingPhoto ? 'Mengunggah…' : 'Unggah Foto'}
-                <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" disabled={uploadingPhoto || crewBusy} onChange={(e) => {
-                  const file = e.target.files?.[0]
-                  if (file) uploadCrewPhoto(file)
-                  e.target.value = ''
-                }} />
-              </label>
-              {crew.photoUrl && (
-                <button type="button" onClick={removeCrewPhoto} disabled={uploadingPhoto || crewBusy} className="text-[11px] font-bold text-red-600 hover:underline disabled:opacity-60">
-                  Hapus Foto
-                </button>
-              )}
-            </div>
-
-            <input
-              value={crew.name}
-              onChange={(e) => setCrew((c) => ({ ...c, name: e.target.value }))}
-              placeholder="Nama crew"
-              className={`${descRowCls} w-full`}
-            />
-            <input
-              value={crew.role}
-              onChange={(e) => setCrew((c) => ({ ...c, role: e.target.value }))}
-              placeholder="Jabatan / Peran (mis. Tour Leader)"
-              className={`${descRowCls} w-full`}
-            />
-
-            <div className="flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setCrewEditing(false)
-                  setCrew({ name: initialCrewName, phone: initialCrewPhone, role: initialCrewRole, photoUrl: initialCrewPhotoUrl })
-                }}
-                disabled={crewBusy}
-                className="rounded-full border border-[#dfe4e8] px-4 py-2 text-xs font-bold text-[#657080] transition-colors hover:bg-[#eef1f4] disabled:opacity-60"
-              >
-                Batal
-              </button>
-              <button
-                type="button"
-                onClick={saveCrew}
-                disabled={crewBusy}
-                className="inline-flex items-center gap-1.5 rounded-full bg-[#1b4f9c] px-5 py-2 text-xs font-bold text-white transition-colors duration-200 hover:bg-[#143d79] active:scale-95 disabled:opacity-60"
-              >
-                {crewBusy ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
-                Simpan Crew
-              </button>
-            </div>
-          </div>
-        )}
-        </section>
       </div>
 
       <div className="rounded-2xl border border-[#dfe4e8] bg-white shadow-sm">
