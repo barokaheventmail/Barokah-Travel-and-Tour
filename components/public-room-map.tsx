@@ -1,6 +1,6 @@
 'use client'
 
-import { Fragment, useEffect, useRef, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { BedDouble, ChevronLeft, ChevronRight, Loader2, SearchX } from 'lucide-react'
 import { ScaleToFit } from '@/components/scale-to-fit'
 
@@ -8,9 +8,94 @@ type Member = { name: string; busName: string }
 type Room = { room: string; roomType: string | null; members: Member[] }
 
 const REFRESH_MS = 10000
-// 10 pengelompokan (kamar) per halaman supaya tabel tidak terlalu banyak baris
-// dan tidak perlu dikecilkan terlalu jauh saat dipasang di lembar A4.
-const PAGE_SIZE = 10
+// Tinggi tiap kolom dibatasi jumlah baris nama (bukan jumlah kamar) supaya
+// tabel tidak perlu dikecilkan berlebihan saat dipasang di lembar A4. Satu
+// halaman memuat 2 kolom berdampingan; sisanya mengalir ke halaman berikutnya
+// (ke kanan dulu, baru ke bawah).
+const ROWS_PER_COLUMN = 18
+const COLUMNS_PER_PAGE = 2
+
+/** Bagi daftar kamar jadi beberapa kolom, tiap kolom maksimal `rowsPerColumn`
+ *  baris nama. Satu kamar tidak pernah dipecah antar kolom. */
+function packColumns(rooms: Room[], rowsPerColumn: number): Room[][] {
+  const columns: Room[][] = []
+  let current: Room[] = []
+  let rows = 0
+  for (const room of rooms) {
+    const roomRows = Math.max(1, room.members.length)
+    if (current.length > 0 && rows + roomRows > rowsPerColumn) {
+      columns.push(current)
+      current = []
+      rows = 0
+    }
+    current.push(room)
+    rows += roomRows
+  }
+  if (current.length > 0) columns.push(current)
+  return columns
+}
+
+function RoomColumn({
+  rooms,
+  highlightRoom,
+  highlightName,
+}: {
+  rooms: Room[]
+  highlightRoom?: string | null
+  highlightName?: string | null
+}) {
+  return (
+    <table className="w-full table-fixed border-collapse border border-[#b9c6d2] text-sm sm:text-[15px]">
+      <thead>
+        <tr className="bg-[#00A3E0] text-[11px] font-bold uppercase tracking-wide text-white sm:text-xs">
+          <th className="w-[15%] border border-[#7fc7e8] px-1.5 py-1.5">No</th>
+          <th className="w-[55%] border border-[#7fc7e8] px-2 py-1.5 text-center">Nama</th>
+          <th className="w-[30%] border border-[#7fc7e8] px-1.5 py-1.5 text-center">Tipe Kamar</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rooms.map((group, i) => {
+          const isMine = highlightRoom != null && group.room === highlightRoom
+          const groupBase = isMine ? 'bg-[#eef4fb]' : i % 2 === 1 ? 'bg-[#f8fafc]' : 'bg-white'
+          const members = group.members.length > 0 ? group.members : [{ name: '—', busName: '' }]
+          return (
+            <Fragment key={group.room}>
+              {members.map((member, j) => {
+                const isMyName = isMine && highlightName != null && member.name === highlightName
+                const top = j === 0 ? ' border-t-2 border-t-[#8a99a8]' : ''
+                return (
+                  <tr key={`${group.room}-${j}`} className={groupBase}>
+                    {j === 0 && (
+                      <td
+                        rowSpan={members.length}
+                        className="border border-[#cdd8e2] border-t-2 border-t-[#8a99a8] px-1 py-1 text-center align-middle font-bold tabular-nums text-[#1b3555]"
+                      >
+                        {group.room}
+                      </td>
+                    )}
+                    <td
+                      className={`border border-[#cdd8e2] px-2 py-1 text-left align-middle font-normal text-[#1b3555]${top} ${isMyName ? 'bg-[#bfdbfe]' : ''}`}
+                    >
+                      <span className={isMyName ? 'font-bold' : ''}>{member.name}</span>
+                    </td>
+                    {j === 0 && (
+                      <td
+                        rowSpan={members.length}
+                        className="border border-[#cdd8e2] border-t-2 border-t-[#8a99a8] px-1 py-1 text-center align-middle font-bold text-[#657080]"
+                      >
+                        {group.roomType ?? '—'}
+                      </td>
+                    )}
+                  </tr>
+                )
+              })}
+            </Fragment>
+          )
+        })}
+      </tbody>
+    </table>
+  )
+}
 
 export function PublicRoomMap({
   eventId,
@@ -69,22 +154,23 @@ export function PublicRoomMap({
     jumpedRef.current = null
   }, [highlightRoom, highlightName])
 
+  const rooms = data ?? []
+  const columns = useMemo(() => packColumns(rooms, ROWS_PER_COLUMN), [rooms])
+  const pageCount = Math.max(1, Math.ceil(columns.length / COLUMNS_PER_PAGE))
+  const safePage = Math.min(page, pageCount - 1)
+  const startCol = safePage * COLUMNS_PER_PAGE
+  const pageColumns = columns.slice(startCol, startCol + COLUMNS_PER_PAGE)
+
   // Peserta (dari QR): lompat ke halaman yang memuat kamarnya.
   useEffect(() => {
     if (!highlightRoom || !data) return
     if (jumpedRef.current === highlightRoom) return
-    const idx = data.findIndex((room) => room.room === highlightRoom)
-    if (idx >= 0) {
-      setPage(Math.floor(idx / PAGE_SIZE))
+    const colIdx = columns.findIndex((col) => col.some((room) => room.room === highlightRoom))
+    if (colIdx >= 0) {
+      setPage(Math.floor(colIdx / COLUMNS_PER_PAGE))
       jumpedRef.current = highlightRoom
     }
-  }, [data, highlightRoom])
-
-  const rooms = data ?? []
-  const pageCount = Math.max(1, Math.ceil(rooms.length / PAGE_SIZE))
-  const safePage = Math.min(page, pageCount - 1)
-  const start = safePage * PAGE_SIZE
-  const pageRooms = rooms.slice(start, start + PAGE_SIZE)
+  }, [data, columns, highlightRoom])
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -103,73 +189,18 @@ export function PublicRoomMap({
             <BedDouble size={14} className="text-[#00A3E0]" /> Denah Kamar — Semua Bus
           </p>
           <ScaleToFit className="min-h-0 flex-1">
-          <table className="w-full table-fixed border-collapse border border-[#b9c6d2] text-[11px] sm:text-[13px]">
-            <thead>
-              <tr className="bg-[#00A3E0] text-[9px] font-bold uppercase tracking-wide text-white sm:text-[10px]">
-                <th className="w-[5%] border border-[#7fc7e8] px-1 py-2 sm:px-2">No</th>
-                <th className="w-[39%] border border-[#7fc7e8] px-2 py-2 text-center sm:px-3">Nama</th>
-                <th className="w-[17%] border border-[#7fc7e8] px-1 py-2 sm:px-2">Bus</th>
-                <th className="w-[20%] border border-[#7fc7e8] px-1 py-2 sm:px-2">No Kamar</th>
-                <th className="w-[19%] border border-[#7fc7e8] px-1 py-2 sm:px-2">Tipe Kamar</th>
-              </tr>
-            </thead>
-            <tbody>
-              {pageRooms.map((group, i) => {
-                const isMine = highlightRoom != null && group.room === highlightRoom
-                const groupNo = start + i + 1
-                const groupBase = isMine ? 'bg-[#eef4fb]' : i % 2 === 1 ? 'bg-[#f8fafc]' : 'bg-white'
+            <div className="flex items-start gap-4">
+              {[0, 1].map((ci) => {
+                const column = pageColumns[ci]
                 return (
-                  <Fragment key={group.room}>
-                    {group.members.map((member, j) => {
-                      const isMyName = isMine && highlightName != null && member.name === highlightName
-                      const top = j === 0 ? ' border-t-2 border-t-[#8a99a8]' : ''
-                      return (
-                        <tr
-                          key={`${group.room}-${j}`}
-                          className={groupBase}
-                        >
-                          {j === 0 && (
-                            <td
-                              rowSpan={group.members.length}
-                              className="border border-[#cdd8e2] border-t-2 border-t-[#8a99a8] px-1 py-1.5 text-center align-middle text-[10px] font-bold tabular-nums text-[#1b3555] sm:px-2 sm:py-2 sm:text-[11px]"
-                            >
-                              {groupNo}
-                            </td>
-                          )}
-                          <td
-                            className={`border border-[#cdd8e2] px-2 py-1.5 text-left align-middle font-normal text-[#1b3555] sm:px-3 sm:py-2${top} ${isMyName ? 'bg-[#bfdbfe]' : ''}`}
-                          >
-                            <span className={isMyName ? 'font-bold' : ''}>{member.name}</span>
-                          </td>
-                          <td
-                            className={`border border-[#cdd8e2] px-1 py-1.5 text-center align-middle text-[10px] font-bold text-[#1b3555] sm:px-2 sm:py-2 sm:text-[11px]${top}`}
-                          >
-                            {member.busName}
-                          </td>
-                          {j === 0 && (
-                            <>
-                              <td
-                                rowSpan={group.members.length}
-                              className="border border-[#cdd8e2] border-t-2 border-t-[#8a99a8] px-1 py-1.5 text-center align-middle text-[10px] font-bold tabular-nums text-[#1b3555] sm:px-2 sm:py-2 sm:text-[11px]"
-                              >
-                                {group.room}
-                              </td>
-                              <td
-                                rowSpan={group.members.length}
-                                className="border border-[#cdd8e2] border-t-2 border-t-[#8a99a8] px-1 py-1.5 text-center align-middle text-[10px] font-bold text-[#657080] sm:px-2 sm:py-2 sm:text-[11px]"
-                              >
-                                {group.roomType ?? '—'}
-                              </td>
-                            </>
-                          )}
-                        </tr>
-                      )
-                    })}
-                  </Fragment>
+                  <div key={ci} className="min-w-0 flex-1">
+                    {column && (
+                      <RoomColumn rooms={column} highlightRoom={highlightRoom} highlightName={highlightName} />
+                    )}
+                  </div>
                 )
               })}
-            </tbody>
-          </table>
+            </div>
           </ScaleToFit>
 
           {pageCount > 1 && (
