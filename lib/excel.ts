@@ -1116,6 +1116,7 @@ export const eventPatchSchema = z.object({
       z.object({
         name: z.string().trim().max(120),
         role: z.string().trim().max(120),
+        phone: z.string().trim().max(40).optional().default(''),
         photoUrl: z.string().trim().max(500).nullable(),
       }),
     )

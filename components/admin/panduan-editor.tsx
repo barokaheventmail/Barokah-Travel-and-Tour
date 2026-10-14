@@ -209,8 +209,8 @@ export function PanduanEditor({
   const [crews, setCrews] = useState<CrewMember[]>(() => {
     const parsed = parseCrewList(initialCrewList)
     if (parsed.length > 0) return parsed
-    const legacy: CrewMember = { name: initialCrewName, role: initialCrewRole, photoUrl: initialCrewPhotoUrl }
-    return legacy.name || legacy.role || legacy.photoUrl ? [legacy] : []
+    const legacy: CrewMember = { name: initialCrewName, role: initialCrewRole, phone: initialCrewPhone, photoUrl: initialCrewPhotoUrl }
+    return legacy.name || legacy.role || legacy.phone || legacy.photoUrl ? [legacy] : []
   })
   const [uploadingCrewIdx, setUploadingCrewIdx] = useState<number | null>(null)
   const [crewBusy, setCrewBusy] = useState(false)
@@ -451,7 +451,7 @@ export function PanduanEditor({
   }
 
   function addCrew() {
-    setCrews((list) => (list.length >= MAX_CREW ? list : [...list, { name: '', role: '', photoUrl: null }]))
+    setCrews((list) => (list.length >= MAX_CREW ? list : [...list, { name: '', role: '', phone: '', photoUrl: null }]))
   }
 
   function removeCrew(index: number) {
@@ -549,6 +549,7 @@ export function PanduanEditor({
           crewList: crews.map((member) => ({
             name: member.name.trim(),
             role: member.role.trim(),
+            phone: member.phone.trim(),
             photoUrl: member.photoUrl,
           })),
         }),
@@ -878,7 +879,7 @@ export function PanduanEditor({
                   )}
                 </div>
 
-                <div className="grid min-w-[220px] flex-1 gap-2 sm:grid-cols-2">
+                <div className="grid min-w-[220px] flex-1 gap-2 sm:grid-cols-3">
                   <input
                     value={member.name}
                     onChange={(e) => updateCrew(i, { name: e.target.value })}
@@ -891,6 +892,13 @@ export function PanduanEditor({
                     onChange={(e) => updateCrew(i, { role: e.target.value })}
                     placeholder="Jabatan / Peran (mis. Tour Leader)"
                     maxLength={120}
+                    className={descRowCls}
+                  />
+                  <input
+                    value={member.phone}
+                    onChange={(e) => updateCrew(i, { phone: e.target.value })}
+                    placeholder="Nomor (No. HP / WhatsApp)"
+                    maxLength={40}
                     className={descRowCls}
                   />
                 </div>

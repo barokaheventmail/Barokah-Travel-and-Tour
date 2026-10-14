@@ -11,11 +11,13 @@ export const MAX_CREW = 10
 
 const NAME_MAX = 120
 const ROLE_MAX = 120
+const PHONE_MAX = 40
 const URL_MAX = 500
 
 export type CrewMember = {
   name: string
   role: string
+  phone: string
   photoUrl: string | null
 }
 
@@ -30,9 +32,10 @@ export function normalizeCrewMember(value: unknown): CrewMember | null {
   if (!isRecord(value)) return null
   const name = toText(value.name, NAME_MAX)
   const role = toText(value.role, ROLE_MAX)
+  const phone = toText(value.phone, PHONE_MAX)
   const photoUrl = toText(value.photoUrl, URL_MAX) || null
-  if (!name && !role && !photoUrl) return null
-  return { name, role, photoUrl }
+  if (!name && !role && !phone && !photoUrl) return null
+  return { name, role, phone, photoUrl }
 }
 
 /** Baca `Event.crewList` (JSON) menjadi daftar crew yang tervalidasi. */
@@ -68,6 +71,7 @@ export function effectiveCrewList(event: {
   crewList?: string | null
   crewName?: string | null
   crewRole?: string | null
+  crewPhone?: string | null
   crewPhotoUrl?: string | null
 }): CrewMember[] {
   const list = parseCrewList(event.crewList)
@@ -75,7 +79,8 @@ export function effectiveCrewList(event: {
   const legacy: CrewMember = {
     name: (event.crewName ?? '').trim(),
     role: (event.crewRole ?? '').trim(),
+    phone: (event.crewPhone ?? '').trim(),
     photoUrl: event.crewPhotoUrl ?? null,
   }
-  return legacy.name || legacy.role || legacy.photoUrl ? [legacy] : []
+  return legacy.name || legacy.role || legacy.phone || legacy.photoUrl ? [legacy] : []
 }

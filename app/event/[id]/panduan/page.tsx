@@ -518,7 +518,7 @@ export default async function EventPanduanPage({
                   <h3 className="text-center text-xl font-extrabold uppercase tracking-wide text-[#f5b915]">Crew on Duty</h3>
                   <div className="mt-3 flex flex-wrap items-start justify-center gap-x-1 gap-y-3">
                     {crews.map((crew, i) => (
-                      <div key={i} className="flex w-[18%] min-w-[84px] flex-col items-center text-center">
+                      <div key={i} className="flex w-[18%] min-w-[92px] flex-col items-center text-center">
                         {crew.photoUrl ? (
                           <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -529,9 +529,17 @@ export default async function EventPanduanPage({
                             {(crew.name || 'CR').slice(0, 2).toUpperCase()}
                           </div>
                         )}
-                        <strong className="mt-1.5 block max-w-full break-words text-[10px] font-extrabold uppercase leading-tight tracking-wide text-[#1b3555]">
+                        <strong
+                          className="relative z-[1] mt-1.5 inline-block max-w-full break-words bg-[#f5b915] px-3 py-0.5 text-[10px] font-extrabold uppercase leading-tight tracking-wide text-white"
+                          style={{ clipPath: 'polygon(0 0, 100% 0, calc(100% - 7px) 50%, 100% 100%, 0 100%, 7px 50%)' }}
+                        >
                           {crew.name || 'CREW'}
                         </strong>
+                        {crew.phone && (
+                          <span className="mt-1 block max-w-full break-words text-[9px] font-bold tabular-nums leading-tight text-[#657080]">
+                            {crew.phone}
+                          </span>
+                        )}
                         <span className="mt-0.5 block max-w-full break-words text-[9px] font-bold uppercase leading-tight tracking-wide text-[#f5b915]">
                           {crew.role || 'TOUR LEADER'}
                         </span>
