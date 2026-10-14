@@ -60,14 +60,31 @@ input[type='number'] { -moz-appearance:textfield; appearance:textfield; }
   .print-guide .print-avoid-break, .print-guide li, .print-guide tr { break-inside:avoid; page-break-inside:avoid; }
   .print-guide .overflow-x-auto { overflow:visible; }
   .print-guide img { max-height:220px; }
-   @page panduan { size: A4 portrait; margin: 12mm 10mm 13mm 10mm; }
+   /* Tanpa margin printer: tiap section mengisi PENUH satu halaman A4
+      (210 × 297 mm). Padding di dalam section sendiri tetap ada, sehingga
+      konten tidak menempel ke tepi kertas. */
+   @page panduan { size: A4 portrait; margin: 0; }
    .print-guide { page: panduan; }
-   /* Logo kini diletakkan in-flow di puncak tiap section (bukan header `fixed`,
-      karena html2canvas tidak ikut memotret elemen fixed). Tiap section
-      dibuat selebar & setinggi satu halaman A4 penuh; `break-after` ditaruh per
-      section lewat kelas `print:break-after-page` di JSX. Jarak antar section
-      dari `space-y-4` (layar) di-nol-kan supaya halaman berikutnya mulai rapi. */
-   #panduan-isi > * + * { margin-top: 0 !important; }
+    /* Logo kini diletakkan in-flow di puncak tiap section (bukan header `fixed`,
+       karena html2canvas tidak ikut memotret elemen fixed). Jarak antar section
+       dari `space-y-2` (layar) di-nol-kan supaya halaman berikutnya mulai rapi. */
+    #panduan-isi > * {
+      width: 210mm;
+      margin-top: 0 !important;
+      break-after: page;
+      page-break-after: always;
+    }
+     #panduan-isi > *:last-child { break-after: auto; page-break-after: auto; }
+    /* Tiap `<A4Section>` tetap berupa kotak A4 (210 × 297 mm) PERSIS seperti di
+       layar — isinya yang kepanjangan sudah dikecilkan `transform: scale`. Jadi
+       setiap section tercetak UTUH sebagai SATU halaman: tidak terpotong dan
+       tidak berpindah/terbagi ke halaman berikutnya. */
+    .a4-page {
+      width: 210mm;
+      height: 297mm;
+      overflow: hidden;
+    }
+    .a4-page > .a4-scale > section { break-after: auto; page-break-after: auto; }
   /* Kredensial crew: modalnya dirender lewat portal ke <body>, jadi akar cetak
      bukan anak dari overlay `fixed`. Kalau masih jadi anak overlay, containing
      block-nya setinggi viewport dan baris lewat halaman pertama ikut terpotong
@@ -134,23 +151,62 @@ input[type='number'] { -moz-appearance:textfield; appearance:textfield; }
    agar tidak menembus overlay karena iframe punya layer komposit sendiri. */
 body.gallery-lightbox-open iframe { visibility: hidden !important; }
 
-/* Sangat penting untuk `Unduh Panduan (PDF)`: html2canvas memotret isi layar
-   (media screen), jadi `print:min-h-...` tidak berlaku di sana. Saat unduh,
-   downloader menambah class `pdf-page-mode` pada #panduan-isi sementara supaya
-   tiap section dikur selebar dan setinggi area cetak A4 (194x281mm) — rasio
-   sama dengan kertas, sehingga html2canvas + contain menghasilkan satu halaman
-   penuh tanpa margin putih dan tanpa distorsi. */
-#panduan-isi.pdf-page-mode > section,
-#panduan-isi.pdf-page-mode > [data-pdf-only] {
-  width: 194mm;
-  min-height: 281mm;
+/* Tampilan web panduan peserta: tiap section dibungkus kotak kertas A4
+   (210 × 297 mm) oleh komponen <A4Section>. Kalau isi section lebih panjang
+   dari satu halaman, seluruh isi dikecilkan otomatis (`transform: scale`) agar
+   muat penuh dalam kotak — tanpa scroll dan tanpa terpotong. Section dengan
+   background gambar dibuat minimal setinggi kertas supaya gambarnya menutup
+   penuh. Blok ajakan cetak (`print:hidden`) tidak dibungkus kotak ini. */
+@media screen {
+  .a4-page {
+    width: 210mm;
+    height: 297mm;
+    overflow: hidden;
+  }
+
+  .a4-page > .a4-scale > section.tt-bg,
+  .a4-page > .a4-scale > section.itinerary-bg {
+    min-height: 297mm;
+  }
+}
+
+/* Daftar Nama denah duduk (PublicSeatMap): di web semua peserta ditampilkan
+   (daftarnya bisa di-scroll). Di PDF dibatasi 18 baris supaya section tidak
+   memanjang, tapi baris peserta yang ditandai (kursi sendiri) selalu ikut —
+   komponen menandai baris yang harus disembunyikan dengan `.roster-pdf-hide`.
+   Hanya berlaku saat cetak (`@media print`) dan saat html2canvas memotret
+   (downloader menambahkan `.pdf-capture` ke `.roster-rows`). */
+@media print {
+  .roster-pdf-hide { display: none !important; }
+}
+.roster-rows.pdf-capture .roster-pdf-hide { display: none !important; }
+
+/* Saat mengunduh PDF (`pdf-page-mode`): untuk section teks yang memakai
+   <A4Section fit="content">, netralkan kotak A4 — tinggi mengikuti isi dan
+   transform scale dibatalkan — supaya html2canvas memotret seluruh isi pada
+   ukuran aslinya (tidak bergantung pada dukungan transform html2canvas),
+   lalu downloader menempel gambar memenuhi satu halaman A4. Section denah
+   (`a4-fit-none`) sengaja TIDAK dinetralkan: tampilannya persis seperti layar
+   (kotak A4 + tabel yang sudah dikecilkan) agar PDF sama dengan yang dilihat. */
+#panduan-isi.pdf-page-mode .a4-page:not(.a4-fit-none) {
+  height: auto !important;
+  overflow: visible !important;
+}
+
+#panduan-isi.pdf-page-mode .a4-page:not(.a4-fit-none) > .a4-scale {
+  width: auto !important;
+  transform: none !important;
+}
+
+#panduan-isi.pdf-page-mode .a4-page:not(.a4-fit-none) .a4-scale > section {
+  min-height: 297mm;
 }
 
 /* Section yang harus tampil "bersih" tanpa card di PDF (dipakai html2canvas
    yang bekerja di media layar → kelas `print:border-0` tidak berlaku di sana).
    Section bertanda `pdf-plain` dihilangkan border/background/padding-nya
    selama mode unduh aktif, saat tampilan layar normal tidak berpengaruh. */
-#panduan-isi.pdf-page-mode > section.pdf-plain {
+#panduan-isi.pdf-page-mode .pdf-plain {
   border: 0 !important;
   background: transparent !important;
   padding: 0 !important;
@@ -174,12 +230,12 @@ body.gallery-lightbox-open iframe { visibility: hidden !important; }
   background-repeat: no-repeat;
 }
 
-#panduan-isi.pdf-page-mode > section.itinerary-bg {
+#panduan-isi.pdf-page-mode .itinerary-bg {
   border: 0 !important;
   padding: 0 !important;
 }
 
-#panduan-isi.pdf-page-mode > section.tt-bg {
+#panduan-isi.pdf-page-mode .tt-bg {
   border: 0 !important;
   padding: 0 !important;
 }

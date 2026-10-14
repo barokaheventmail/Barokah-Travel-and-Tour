@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Armchair, BadgeCheck, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Loader2, SearchX } from 'lucide-react'
 import { SeatGrid, type SeatCell } from '@/components/seat-grid'
 import { FacilityIconBadge } from '@/components/facility-icon'
@@ -47,9 +48,22 @@ export function PublicSeatMap({
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState<Selected | null>(null)
   const [rosterOpen, setRosterOpen] = useState(true)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const isMyBus = initialBusId != null && selectedId === initialBusId
   const mySeat = isMyBus ? highlightSeat : null
+
+  // Di PDF daftar nama dibatasi 18 baris, tapi baris peserta yang ditandai
+  // (kursi sendiri) harus selalu ikut tampil. Kalau kursinya di luar 18 baris
+  // pertama, baris ke-18 dilepas supaya totalnya tetap 18.
+  const pdfRosterLimit = 18
+  const mineIdx =
+    mySeat != null && data ? data.seats.findIndex((s) => s.seat != null && s.seat === mySeat) : -1
+  const mineOutside = mineIdx >= pdfRosterLimit
   const index = buses.findIndex((b) => b.id === selectedId)
   const current = index >= 0 ? buses[index] : null
 
@@ -217,18 +231,19 @@ export function PublicSeatMap({
               )}
             </span>
           </button>
-          <div className={`min-h-0 flex-1 overflow-y-auto print:max-h-none print:overflow-visible ${rosterOpen ? 'divide-y divide-[#f0f3f6]' : 'hidden divide-y divide-[#f0f3f6] print:block'}`}>
+          <div className={`roster-rows min-h-0 flex-1 overflow-y-auto print:max-h-none print:overflow-visible ${rosterOpen ? 'divide-y divide-[#f0f3f6]' : 'hidden divide-y divide-[#f0f3f6] print:block'}`}>
             <div className="flex items-stretch divide-x divide-[#f0f3f6] bg-[#f8fafc] text-[10px] font-bold uppercase tracking-wide text-[#9aa3af]">
               <span className="flex w-10 shrink-0 items-center justify-center px-2 py-2">No</span>
               <span className="min-w-0 flex-1 px-3 py-2">Nama</span>
               <span className="flex w-24 shrink-0 items-center justify-center px-2 py-2">Kehadiran</span>
             </div>
-            {data.seats.map((s) => {
+            {data.seats.map((s, i) => {
               const isMine = mySeat != null && s.seat != null && s.seat === mySeat
+              const hideInPdf = mineOutside ? i !== mineIdx && i >= pdfRosterLimit - 1 : i >= pdfRosterLimit
               return (
                 <div
                   key={s.order}
-                  className={`flex items-stretch divide-x divide-[#f0f3f6] ${isMine ? 'bg-[#bfdbfe]' : ''}`}
+                  className={`flex items-stretch divide-x divide-[#f0f3f6] ${isMine ? 'bg-[#bfdbfe]' : ''} ${hideInPdf ? 'roster-pdf-hide' : ''}`}
                 >
                   <span className="flex w-10 shrink-0 items-center justify-center px-2 py-2 text-[11px] font-bold tabular-nums text-[#1b3555]">
                     {s.seat ?? s.order}
@@ -279,7 +294,7 @@ export function PublicSeatMap({
             )}
 
             {data.unitImageUrl && (
-              <div className="flex shrink-0 flex-col items-center pr-0 sm:pr-16">
+              <div className="ml-auto flex shrink-0 flex-col items-end pr-8">
                 <div className="relative flex h-32 w-32 shrink-0 items-center justify-center">
                   <span
                     aria-hidden
@@ -313,7 +328,10 @@ export function PublicSeatMap({
           </div>
         )}
 
-      {selected && (
+      {/* Dirender lewat portal ke <body> supaya `fixed inset-0` tetap menempel
+          ke viewport — bukan ke ancestor yang punya `transform: scale()` di
+          komponen <A4Section>, yang akan membuat modal ikut mengecil. */}
+      {selected && mounted && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-5 backdrop-blur-sm print:hidden">
           <div className="animate-fade-up w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
             <div className="flex items-start justify-between gap-3">
@@ -344,7 +362,8 @@ export function PublicSeatMap({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   )

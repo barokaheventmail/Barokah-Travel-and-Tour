@@ -2,12 +2,15 @@
 
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { Car, ChevronLeft, ChevronRight, Loader2, SearchX } from 'lucide-react'
+import { ScaleToFit } from '@/components/scale-to-fit'
 
 type Member = { name: string; busName: string }
 type Group = { vehicle: string; rank: number; members: Member[] }
 
 const REFRESH_MS = 10000
-const PAGE_SIZE = 25
+// 4 pengelompokan (kendaraan) per halaman supaya tabel tidak terlalu banyak
+// baris dan tidak perlu dikecilkan terlalu jauh saat dipasang di lembar A4.
+const PAGE_SIZE = 4
 
 export function PublicVwMap({
   eventId,
@@ -84,7 +87,7 @@ export function PublicVwMap({
   const pageGroups = groups.slice(start, start + PAGE_SIZE)
 
   return (
-    <div className="mt-4">
+    <div className="flex h-full min-h-0 flex-col">
       {loading ? (
         <div className="flex items-center justify-center gap-2 rounded-xl bg-[#f8fafc] py-8 text-xs font-semibold text-[#657080]">
           <Loader2 size={15} className="animate-spin" /> Memuat denah VW…
@@ -96,10 +99,11 @@ export function PublicVwMap({
         </div>
       ) : (
         <>
-          <p className="mb-2 flex items-center gap-1.5 text-xs font-bold text-[#1b3555]">
+          <p className="mb-2 flex shrink-0 items-center gap-1.5 text-xs font-bold text-[#1b3555]">
             <Car size={14} className="text-[#00A3E0]" /> Denah Kendaraan — Semua Bus
           </p>
-          <table className="w-full table-fixed border-collapse border border-[#b9c6d2] text-[13px]">
+          <ScaleToFit className="min-h-0 flex-1">
+          <table className="mx-auto w-[70%] table-fixed border-collapse border border-[#b9c6d2] text-[13px]">
             <thead>
               <tr className="bg-[#00A3E0] text-[10px] font-bold uppercase tracking-wide text-white">
                 <th className="w-24 border border-[#7fc7e8] px-2 py-2">{vehicleHeader}</th>
@@ -129,7 +133,7 @@ export function PublicVwMap({
                             </td>
                           )}
                           <td
-                            className={`border border-[#cdd8e2] px-3 py-2 text-left align-middle font-normal text-[#1b3555]${top} ${isMyName ? 'bg-[#bfdbfe]' : ''}`}
+                            className={`border border-[#cdd8e2] py-2 pl-6 pr-3 text-left align-middle font-normal text-[#1b3555]${top} ${isMyName ? 'bg-[#bfdbfe]' : ''}`}
                           >
                             <span className={isMyName ? 'font-bold' : ''}>{member.name}</span>
                           </td>
@@ -141,9 +145,10 @@ export function PublicVwMap({
               })}
             </tbody>
           </table>
+          </ScaleToFit>
 
           {pageCount > 1 && (
-            <div className="mt-3 flex items-center justify-center gap-3 print:hidden">
+            <div className="mt-3 flex shrink-0 items-center justify-center gap-3 print:hidden">
               <button
                 type="button"
                 onClick={() => setPage((p) => Math.max(0, p - 1))}

@@ -64,10 +64,11 @@ export function DownloadPagePdf({
       const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' })
       const pageW = pdf.internal.pageSize.getWidth()
       const pageH = pdf.internal.pageSize.getHeight()
-      // Sisakan 8mm supaya printer rumah tangga tidak memotong tepi.
-      const margin = 8
-      const printW = pageW - margin * 2
-      const printH = pageH - margin * 2
+      // Tanpa margin: tiap section mengisi PENUH halaman A4 (210 × 297 mm),
+      // sesuai ukuran section yang diatur `pdf-page-mode` di globals.css.
+      const margin = 0
+      const printW = pageW
+      const printH = pageH
 
       // `windowWidth`/`windowHeight` dikunci supaya layout tiap potret sama,
       // apa pun posisi scroll pengguna saat menekan tombol.
@@ -90,6 +91,13 @@ export function DownloadPagePdf({
       const prevPdfOnly = pdfOnly.map((el) => el.style.display)
       for (const el of pdfOnly) el.style.display = 'block'
 
+      // Daftar Nama denah duduk: di web semua peserta tampil, tapi di PDF cukup
+      // 18 baris pertama (lihat aturan `.roster-rows.pdf-capture` di
+      // globals.css) supaya section tidak memanjang. Kelasnya dilepas lagi
+      // setelah pemotretan selesai.
+      const rosterRows = Array.from(target.querySelectorAll<HTMLElement>('.roster-rows'))
+      for (const el of rosterRows) el.classList.add('pdf-capture')
+
       // html2canvas mem-parse computed style dengan parser sendiri yang hanya
       // mengenal rgb/hsl/hex, sedangkan Tailwind v4 menulis warna sebagai
       // `oklab()`/`lab()`/`color-mix()`. Tanpa langkah ini html2canvas melempar
@@ -99,34 +107,40 @@ export function DownloadPagePdf({
       // berkedip.
       const restoreColors = normalizeModernColors(target)
 
-      // Paginasi satu halaman per section: tiap <section> (plus kop sampul
-      // `data-pdf-only`) jadi satu halaman A4 utuh, diskalakan agar pas muat
-      // (contain) di tengah halaman — tidak ada section yang terpotong atau
-      // bertumpuk. Elemen `print:hidden` & tombol sudah disembunyikan di atas,
-      // jadi tidak ikut terhitung.
+      // Paginasi satu halaman per section: tiap <A4Section> (`data-pdf-page`)
+      // dan kop sampul (`data-pdf-only`) jadi satu halaman A4 utuh. Elemen
+      // `print:hidden` (mis. blok ajakan cetak) & tombol sudah disembunyikan di
+      // atas; di sini mereka juga dibuang dari daftar supaya tidak menghasilkan
+      // halaman kosong.
+      const hiddenSet = new Set(hidden)
       const pageEls = (Array.from(target.children) as HTMLElement[]).filter(
-        (el) => el.tagName === 'SECTION' || el.hasAttribute('data-pdf-only'),
+        (el) =>
+          (el.tagName === 'SECTION' ||
+            el.hasAttribute('data-pdf-only') ||
+            el.hasAttribute('data-pdf-page')) &&
+          !hiddenSet.has(el) &&
+          el.style.display !== 'none',
       )
 
-      // Elegant? No — pemotretan terjadi di media layar, padahal setiap section
-      // seharusnya sebesar satu halaman A4 utuh. Class `pdf-page-mode`
-      // (globals.css) memberi tahu CSS untuk membesarkan tiap section ke rasio
-      // area cetak A4 (194x281mm) SELAMA unduh saja, lalu dikembalikan.
-      const hadPageMode = target.classList.contains('pdf-page-mode')
-      if (!hadPageMode) target.classList.add('pdf-page-mode')
+      // WYSIWYG: setiap <A4Section> adalah kotak kertas A4 (210 × 297 mm) yang
+      // sudah menata isinya persis seperti tampilan layar (isi yang kepanjangan
+      // dikecilkan dengan `transform: scale`). Kotak itu difoto APA ADANYA —
+      // termasuk transform-nya, yang didukung html2canvas 1.4 (section denah
+      // sudah memakai cara ini) — lalu ditempel penuh ke satu halaman A4.
+      // Karena kotak sudah seukuran A4, hasilnya sama dengan yang dilihat di web.
 
       try {
         for (let i = 0; i < pageEls.length; i += 1) {
           setProgress(Math.round(((i + 1) / pageEls.length) * 100))
           const el = pageEls[i]
-          // Ukur section seutuhnya lebih dulu; html2canvas default memotret
-          // sebatas viewport jika tidak diberi width/height eksplisit, sehingga
-          // section panjang (mis. itinerary dengan banyak day) bisa terpotong /
-          // pecah. Dengan `width`/`height` + `windowHeight` = tinggi penuh
-          // elemen, seluruh isi section selalu masuk SATU canvas → ditempel di
-          // SATU halaman A4, berapa pun panjangnya (mengecil, tidak terbagi).
-          const elW = el.scrollWidth
-          const elH = el.scrollHeight
+          // html2canvas default memotret sebatas viewport bila tidak diberi
+          // width/height eksplisit. Kotak A4 (`data-pdf-page`) difoto sebatas
+          // area yang terlihat (clientWidth/Height = 210 × 297 mm) — persis
+          // seperti di layar — sehingga isi yang sudah dikecilkan tidak melar.
+          // Elemen lain (mis. kop sampul) difoto seukuran isinya.
+          const isA4Page = el.hasAttribute('data-pdf-page')
+          const elW = isA4Page ? el.clientWidth : el.scrollWidth
+          const elH = isA4Page ? el.clientHeight : el.scrollHeight
           const canvas = await html2canvas(el, {
             scale: 2,
             useCORS: true,
@@ -142,13 +156,9 @@ export function DownloadPagePdf({
           const imgW = canvas.width
           const imgH = canvas.height
           if (imgW === 0 || imgH === 0) continue
-          // Selalu isi PENUH satu halaman A4: lebar dibuat selebar area cetak,
-          // tinggi menyesuaikan. Dengan `pdf-page-mode` tiap section sudah
-          // diukur setinggi/kelebar area cetak, jadi untuk section normal ini
-          // = identik (tidak ada margin putih). Kalau content-nya membengkak
-          // (mis. itinerary ditambah day sehingga lebih tinggi dari satu
-          // halaman), otomatis terkompres mengecil agar tetap satu halaman —
-          // lebarnya tetap sama, tidak menyisakan margin kiri/kanan.
+          // Isi PENUH satu halaman A4 (210 × 297 mm). Kotak A4 aspeknya sama
+          // dengan halaman, jadi gambar identik dengan tampilan layar (tanpa
+          // distorsi, tanpa margin tepi).
           if (i > 0) pdf.addPage()
           pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', margin, margin, printW, printH)
         }
@@ -159,7 +169,7 @@ export function DownloadPagePdf({
         pdfOnly.forEach((el, i) => {
           el.style.display = prevPdfOnly[i]
         })
-        if (!hadPageMode) target.classList.remove('pdf-page-mode')
+        for (const el of rosterRows) el.classList.remove('pdf-capture')
         restoreColors()
       }
 

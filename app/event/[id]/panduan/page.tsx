@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import type { ReactNode } from 'react'
 import { Dancing_Script } from 'next/font/google'
 import { BookOpen, Clock3, Download, MapPin, Phone, QrCode } from 'lucide-react'
@@ -15,6 +15,7 @@ import { PublicRoomMap } from '@/components/public-room-map'
 import { PublicVwMap } from '@/components/public-vw-map'
 import { PrintButton } from '@/components/admin/print-button'
 import { BackToTop } from '@/components/back-to-top'
+import { A4Section } from '@/components/a4-section'
 
 export const dynamic = 'force-dynamic'
 
@@ -95,6 +96,16 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   return { title: `Panduan Peserta – ${event?.title ?? 'Event'} | Barokah Tour and Travel`, robots: { index: false } }
 }
 
+// Panduan berukuran tetap (tiap section = kertas A4, 210 mm ≈ 794 px). Di HP
+// konten ini lebih lebar dari layar sehingga bisa digeser-geser. Kunci viewport
+// ke lebar dokumen (plus sedikit margin) supaya browser menampilkan seluruh
+// panduan mengecil pas layar — tampilannya sama seperti di desktop, tanpa
+// geser horizontal.
+export const viewport: Viewport = {
+  width: 834,
+  initialScale: undefined,
+}
+
 export default async function EventPanduanPage({
   params,
   searchParams,
@@ -147,7 +158,7 @@ export default async function EventPanduanPage({
   const logoRightUrl = event.panduanLogoRight ?? '/logo-barokah-event.png'
 
   return (
-    <main className="print-guide min-h-screen bg-[#f4f7fa] print:bg-white pb-12">
+    <main className="print-guide min-h-screen bg-[#f4f7fa] print:bg-white pb-12 print:min-h-0 print:pb-0">
       <BackToTop />
       <div className="print:hidden">
         <EventNavbar eventId={event.id} variant="panduan" />
@@ -181,7 +192,8 @@ export default async function EventPanduanPage({
             </div>
           </div>
 
-          <div id="panduan-isi" className="mx-auto max-w-2xl space-y-4 px-4 py-7">
+          <div className="overflow-x-auto">
+            <div id="panduan-isi" className="mx-auto w-[210mm] space-y-2 py-7">
             {/* Kop dokumen. `hidden print:block` = tak terlihat di layar tapi
                 ikut tercetak lewat Print; `data-pdf-only` = downloader
                 menghidupkannya lagi supaya ikut jadi sampul PDF. */}
@@ -241,6 +253,7 @@ export default async function EventPanduanPage({
             </div>
 
 
+            <A4Section>
             <section className="tt-bg print-avoid-break bg-gradient-to-r from-[#071e3d] via-[#0d2850] to-[#163d78] p-5 print:break-after-page print:min-h-[272mm]">
               <SectionLogos
                 logoLeft={logoLeftUrl}
@@ -290,7 +303,9 @@ export default async function EventPanduanPage({
                 </div>
               </div>
             </section>
+            </A4Section>
 
+            <A4Section>
             <section className="print-avoid-break space-y-6 rounded-[0.8rem] border border-[#e0b200] bg-[#f5b915] p-5 print:break-after-page print:min-h-[272mm]">
               <SectionLogos
                 logoLeft={logoLeftUrl}
@@ -374,7 +389,9 @@ export default async function EventPanduanPage({
                 </p>
               </div>
             </section>
+            </A4Section>
 
+            <A4Section>
             <section className="print-avoid-break space-y-6 rounded-[0.8rem] border border-[#e0b200] bg-[#f5b915] p-5 print:break-after-page print:min-h-[272mm]">
               <SectionLogos
                 logoLeft={logoLeftUrl}
@@ -454,7 +471,9 @@ export default async function EventPanduanPage({
                 </p>
               </div>
             </section>
+            </A4Section>
 
+            <A4Section>
             <section className="tt-bg print-avoid-break bg-gradient-to-r from-[#071e3d] via-[#0d2850] to-[#163d78] p-5 print:break-after-page print:min-h-[272mm]">
               <SectionLogos
                 logoLeft={logoLeftUrl}
@@ -514,8 +533,10 @@ export default async function EventPanduanPage({
                 </div>
               )}
             </section>
+            </A4Section>
 
             {dayGroups.length > 0 && (
+              <A4Section>
               <section className="itinerary-bg print-avoid-break relative rounded-none border border-[#dfe4e8] bg-white p-5 print:break-after-page print:min-h-[272mm] print:border-0 print:p-0">
                 <SectionLogos
                   logoLeft={logoLeftUrl}
@@ -563,9 +584,11 @@ export default async function EventPanduanPage({
                   <p className="mt-5 whitespace-pre-wrap text-xs font-bold italic text-black">{itineraryFooterNote}</p>
                 )}
               </section>
+              </A4Section>
             )}
 
             {buses.length > 0 && (
+              <A4Section>
               <section className="border border-[#dfe4e8] bg-white p-5 print:min-h-[272mm]">
                 <SectionLogos
                   logoLeft={logoLeftUrl}
@@ -581,18 +604,22 @@ export default async function EventPanduanPage({
                   highlightSeat={ownBus?.seat ?? null}
                 />
               </section>
+              </A4Section>
             )}
 
             {buses.length > 0 && (
-              <section className="border border-[#dfe4e8] bg-white p-5 print:min-h-[272mm]">
+              <A4Section fit="none">
+              <section className="guide-fit-table flex h-full flex-col border border-[#dfe4e8] bg-white p-5 print:min-h-[272mm]">
                 <SectionLogos
                   logoLeft={logoLeftUrl}
                   logoRight={logoRightUrl}
                   topRight={event.panduanLogoTopRight}
                   topRight2={event.panduanLogoTopRight2}
                 />
-                <h2 className="mb-6 mt-12 text-center text-xl font-extrabold uppercase tracking-wide text-[#00A3E0]">Denah Kamar</h2>
-                <PublicRoomMap eventId={id} highlightRoom={ownBus?.room ?? null} highlightName={ownBus?.name ?? null} />
+                <h2 className="mb-6 mt-12 shrink-0 text-center text-xl font-extrabold uppercase tracking-wide text-[#00A3E0]">Denah Kamar</h2>
+                <div className="flex min-h-0 flex-1 flex-col">
+                  <PublicRoomMap eventId={id} highlightRoom={ownBus?.room ?? null} highlightName={ownBus?.name ?? null} />
+                </div>
                 {(event.denahKamarCrewName || event.denahKamarCrewPhotoUrl) && (
                   <div className="mt-6 flex flex-col items-end pr-8 pt-4 text-center">
                     {event.denahKamarCrewPhotoUrl ? (
@@ -616,18 +643,22 @@ export default async function EventPanduanPage({
                   </div>
                 )}
               </section>
+              </A4Section>
             )}
 
             {hasVehicles && (
-              <section className="border border-[#dfe4e8] bg-white p-5 print:min-h-[272mm]">
+              <A4Section fit="none">
+              <section className="guide-fit-table flex h-full flex-col border border-[#dfe4e8] bg-white p-5 print:min-h-[272mm]">
                 <SectionLogos
                   logoLeft={logoLeftUrl}
                   logoRight={logoRightUrl}
                   topRight={event.panduanLogoTopRight}
                   topRight2={event.panduanLogoTopRight2}
                 />
-                <h2 className="mb-6 mt-12 text-center text-xl font-extrabold uppercase tracking-wide text-[#00A3E0]">{vehicleTitle}</h2>
-                <PublicVwMap eventId={id} highlightVehicle={ownVehicle} highlightName={ownBus?.name ?? null} />
+                <h2 className="mb-6 mt-12 shrink-0 text-center text-xl font-extrabold uppercase tracking-wide text-[#00A3E0]">{vehicleTitle}</h2>
+                <div className="flex min-h-0 flex-1 flex-col">
+                  <PublicVwMap eventId={id} highlightVehicle={ownVehicle} highlightName={ownBus?.name ?? null} />
+                </div>
                 {(event.denahVwCrewName || event.denahVwCrewPhotoUrl) && (
                   <div className="mt-6 flex flex-col items-end pr-8 pt-4 text-center">
                     {event.denahVwCrewPhotoUrl ? (
@@ -651,6 +682,7 @@ export default async function EventPanduanPage({
                   </div>
                 )}
               </section>
+              </A4Section>
             )}
 
             <section className="print:hidden">
@@ -668,9 +700,9 @@ export default async function EventPanduanPage({
                   <PrintButton />
                 </div>
                 <p className="mx-auto mt-3 max-w-sm text-[11px] leading-relaxed text-[#9aa3af]">
-                  Lewat tombol cetak: pilih{' '}
-                  <strong className="text-[#657080]">Save as PDF / Simpan sebagai PDF</strong>,
-                  kertas <strong className="text-[#657080]">A4</strong> tanpa margin tambahan.{' '}
+                  Lewat tombol cetak: pilih <strong className="text-[#657080]">Save as PDF / Simpan sebagai PDF</strong>,
+                  kertas <strong className="text-[#657080]">A4</strong> tanpa margin tambahan — tiap section jadi satu
+                  halaman penuh (210 × 297 mm).{' '}
                   {ownBus ? 'QR absensi di kop halaman juga ikut tercetak.' : ''}
                 </p>
                 <p className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[11px] text-[#9aa3af]">
@@ -686,6 +718,7 @@ export default async function EventPanduanPage({
                 </p>
               </div>
             </section>
+            </div>
           </div>
         </>
       )}
