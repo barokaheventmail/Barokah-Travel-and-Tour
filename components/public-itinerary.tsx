@@ -17,14 +17,14 @@ const A4_MM_PX = 96 / 25.4 // 1mm ≈ 3.7795px
 const SIDE_PAD_PX = 32 // px-8
 const TOP_PAD_PX = 20 // py-5
 const FOOTER_RESERVE_MM = 18.5 // pita "Info area" di kaki halaman
-const DAY_GAP_PX = 16 // space-y-4
+const DAY_GAP_PX = 8 // space-y-2
 const SAFETY_PX = 6
 
 function DayBlock({ group, multiDay }: { group: ItineraryDay; multiDay: boolean }) {
   return (
     <div className="mx-6">
       {(multiDay || group.sideNote) && (
-        <div className="mb-1 flex items-start gap-3">
+        <div className="mb-0.5 flex items-start gap-3">
           <span className="shrink-0 text-sm font-bold uppercase text-[#00A3E0]">Day {group.day}</span>
           {group.sideNote && (
             <span className="whitespace-pre-wrap text-sm font-bold text-[#00A3E0]">{group.sideNote}</span>
@@ -32,32 +32,32 @@ function DayBlock({ group, multiDay }: { group: ItineraryDay; multiDay: boolean 
         </div>
       )}
       {group.note && (
-        <p className="mb-1.5 whitespace-pre-wrap text-base font-bold leading-relaxed text-[#00A3E0]">{group.note}</p>
+        <p className="mb-1 whitespace-pre-wrap text-base font-bold leading-snug text-[#00A3E0]">{group.note}</p>
       )}
       {group.rows.length > 0 && (
-        <div className="overflow-hidden rounded-none border-2 border-[#dfe4e8]">
+        <div className="overflow-hidden rounded-none border border-[#dfe4e8]">
           <div className="grid grid-cols-[7.5rem_minmax(0,1.5fr)_minmax(0,1fr)] bg-[#00A3E0] text-xs font-extrabold uppercase leading-tight tracking-wider text-white">
-            <span className="border-r-2 border-white/40 p-[2px] text-center">Waktu</span>
-            <span className="border-r-2 border-white/40 p-[2px] text-center">Agenda</span>
-            <span className="p-[2px] text-center">Keterangan</span>
+            <span className="border-r-2 border-white/40 px-[3px] py-px text-center">Waktu</span>
+            <span className="border-r-2 border-white/40 px-[3px] py-px text-center">Agenda</span>
+            <span className="px-[3px] py-px text-center">Keterangan</span>
           </div>
-          <div className="divide-y-2 divide-[#edf0f3]">
+          <div className="divide-y divide-[#edf0f3]">
             {group.rows.map((item, i) => (
               <div
                 key={`${group.day}-${item.time}-${i}`}
                 className="grid grid-cols-[7.5rem_minmax(0,1.5fr)_minmax(0,1fr)] leading-tight transition-colors hover:bg-[#f8fafc]"
               >
-                <span className="whitespace-nowrap border-r-2 border-[#dfe4e8] p-[2px] text-sm font-medium tabular-nums text-[#1b4f9c]">
+                <span className="whitespace-nowrap border-r-2 border-[#dfe4e8] px-[3px] py-px text-sm font-medium tabular-nums text-[#1b4f9c]">
                   {item.time}
                 </span>
                 <span
-                  className={`break-words border-r-2 border-[#dfe4e8] p-[2px] text-[#1b3555] ${
+                  className={`break-words border-r-2 border-[#dfe4e8] px-[3px] py-px text-[#1b3555] ${
                     item.bold ? 'text-[0.95rem] font-bold' : 'text-sm font-normal'
                   } ${item.italic ? 'italic' : ''}`}
                 >
                   {item.agenda}
                 </span>
-                <span className="break-words p-[2px] text-sm text-[#657080]">{item.keterangan}</span>
+                <span className="break-words px-[3px] py-px text-sm text-[#657080]">{item.keterangan}</span>
               </div>
             ))}
           </div>
@@ -83,7 +83,7 @@ function ItineraryPage({
       <section className="itinerary-bg print-avoid-break relative rounded-none border border-[#dfe4e8] bg-white px-8 py-5 print:break-after-page print:min-h-[272mm] print:border-0 print:p-0">
         {header}
         <div data-a4-body className="flow-root">
-          <div className="mt-4 space-y-4">
+          <div className="mt-3 space-y-2">
             {days.map((group) => (
               <DayBlock key={group.day} group={group} multiDay={multiDay} />
             ))}
@@ -195,7 +195,7 @@ export function PublicItinerary({
       >
         <div ref={bodyRef} className="relative flow-root">
           {header}
-          <div ref={daysRef} className="mt-4 space-y-4">
+          <div ref={daysRef} className="mt-3 space-y-2">
             {dayGroups.map((group, i) => (
               <div
                 key={group.day}
