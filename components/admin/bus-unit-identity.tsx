@@ -11,6 +11,7 @@ import {
   UNIT_IMAGE_ZOOM_MIN,
   UNIT_IMAGE_ZOOM_STEP,
 } from '@/lib/seat'
+import { UnitTargetPicker, type TargetMode } from '@/components/admin/unit-target-picker'
 
 const FIELD =
   'w-full rounded-xl border border-[#dfe4e8] bg-white px-3 py-2 text-xs font-semibold text-[#1b3555] outline-none transition-colors placeholder:font-normal placeholder:text-[#9aa3af] focus:border-[#1b4f9c] focus:ring-2 focus:ring-[#eef4fb]'
@@ -24,6 +25,7 @@ export function BusUnitIdentity({
   eventId,
   busId,
   busName,
+  buses,
   initialImageUrl,
   initialLabel,
   initialPosX,
@@ -33,6 +35,7 @@ export function BusUnitIdentity({
   eventId: string
   busId: string
   busName: string
+  buses: { id: string; name: string }[]
   initialImageUrl: string | null
   initialLabel: string | null
   initialPosX: number
@@ -48,14 +51,21 @@ export function BusUnitIdentity({
   const [posX, setPosX] = useState(clampPos(initialPosX))
   const [posY, setPosY] = useState(clampPos(initialPosY))
   const [zoom, setZoom] = useState(clampUnitImageZoom(initialZoom))
+  const [scope, setScope] = useState<{ mode: TargetMode; ids: string[] }>({ mode: 'one', ids: [busId] })
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [savingCrop, setSavingCrop] = useState(false)
   const [dragging, setDragging] = useState(false)
   const [status, setStatus] = useState<{ kind: 'ok' | 'err'; msg: string } | null>(null)
 
   const shownName = label.trim() || busName
   const imageStyle = unitImageStyle(posX, posY, zoom)
+  const allSelected = scope.mode === 'all'
+  const noTarget = scope.mode === 'some' && scope.ids.length === 0
+  const targets = scope.ids
+  const scopeQuery = () =>
+    allSelected ? 'applyToAll=true' : `busIds=${encodeURIComponent(JSON.stringify(targets))}`
+  const scopeText = allSelected ? `semua unit (${buses.length})` : `${targets.length} unit`
+  const handleScopeChange = (ids: string[], mode: TargetMode) => setScope({ mode, ids })
 
   function onPointerDown(e: PointerEvent<HTMLDivElement>) {
     if (!imageUrl) return
@@ -79,16 +89,23 @@ export function BusUnitIdentity({
   }
 
   async function upload(file: File) {
+    if (noTarget) {
+      setStatus({ kind: 'err', msg: 'Pilih minimal satu unit tujuan.' })
+      return
+    }
     setUploading(true)
     setStatus(null)
     try {
       const form = new FormData()
       form.append('file', file)
+      if (allSelected) form.append('applyToAll', 'true')
+      else form.append('busIds', JSON.stringify(targets))
       const res = await fetch(`/api/admin/events/${eventId}/bus/${busId}/image`, { method: 'POST', body: form })
       const data = await res.json().catch(() => null)
       if (!res.ok) throw new Error(data?.error ?? 'Gagal mengunggah gambar.')
       setImageUrl(data.unitImageUrl ?? data.url ?? null)
-      setStatus({ kind: 'ok', msg: `Gambar unit ${busName} tersimpan.` })
+      setStatus({ kind: 'ok', msg: `Gambar unit tersimpan ke ${scopeText}.` })
+      setScope({ mode: 'one', ids: [busId] })
       router.refresh()
     } catch (err) {
       setStatus({ kind: 'err', msg: err instanceof Error ? err.message : 'Gagal mengunggah gambar.' })
@@ -99,14 +116,19 @@ export function BusUnitIdentity({
   }
 
   async function removeImage() {
+    if (noTarget) {
+      setStatus({ kind: 'err', msg: 'Pilih minimal satu unit tujuan.' })
+      return
+    }
     setUploading(true)
     setStatus(null)
     try {
-      const res = await fetch(`/api/admin/events/${eventId}/bus/${busId}/image`, { method: 'DELETE' })
+      const res = await fetch(`/api/admin/events/${eventId}/bus/${busId}/image?${scopeQuery()}`, { method: 'DELETE' })
       const data = await res.json().catch(() => null)
       if (!res.ok) throw new Error(data?.error ?? 'Gagal menghapus gambar.')
       setImageUrl(null)
-      setStatus({ kind: 'ok', msg: 'Gambar unit dihapus.' })
+      setStatus({ kind: 'ok', msg: `Gambar unit dihapus dari ${scopeText}.` })
+      setScope({ mode: 'one', ids: [busId] })
       router.refresh()
     } catch (err) {
       setStatus({ kind: 'err', msg: err instanceof Error ? err.message : 'Gagal menghapus gambar.' })
@@ -115,47 +137,41 @@ export function BusUnitIdentity({
     }
   }
 
-  async function saveLabel() {
+  async function saveAll() {
+    if (noTarget) {
+      setStatus({ kind: 'err', msg: 'Pilih minimal satu unit tujuan.' })
+      return
+    }
     setSaving(true)
     setStatus(null)
     try {
+      const body: Record<string, unknown> = { unitLabel: label.trim() }
+      if (imageUrl) {
+        body.unitImagePosX = posX
+        body.unitImagePosY = posY
+        body.unitImageZoom = zoom
+        body.applyImage = true
+      }
+      if (allSelected) body.applyToAll = true
+      else body.busIds = targets
       const res = await fetch(`/api/admin/events/${eventId}/bus/${busId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ unitLabel: label.trim() }),
+        body: JSON.stringify(body),
       })
       const data = await res.json().catch(() => null)
-      if (!res.ok) throw new Error(data?.error ?? 'Gagal menyimpan nama unit.')
-      setStatus({ kind: 'ok', msg: 'Nama unit tersimpan.' })
+      if (!res.ok) throw new Error(data?.error ?? 'Gagal menyimpan gambar & nama unit.')
+      setStatus({ kind: 'ok', msg: `Gambar & nama unit tersimpan ke ${scopeText}.` })
+      setScope({ mode: 'one', ids: [busId] })
       router.refresh()
     } catch (err) {
-      setStatus({ kind: 'err', msg: err instanceof Error ? err.message : 'Gagal menyimpan nama unit.' })
+      setStatus({ kind: 'err', msg: err instanceof Error ? err.message : 'Gagal menyimpan gambar & nama unit.' })
     } finally {
       setSaving(false)
     }
   }
 
-  async function saveCrop() {
-    setSavingCrop(true)
-    setStatus(null)
-    try {
-      const res = await fetch(`/api/admin/events/${eventId}/bus/${busId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ unitImagePosX: posX, unitImagePosY: posY, unitImageZoom: zoom }),
-      })
-      const data = await res.json().catch(() => null)
-      if (!res.ok) throw new Error(data?.error ?? 'Gagal menyimpan posisi gambar.')
-      setStatus({ kind: 'ok', msg: 'Posisi & zoom gambar tersimpan.' })
-      router.refresh()
-    } catch (err) {
-      setStatus({ kind: 'err', msg: err instanceof Error ? err.message : 'Gagal menyimpan posisi gambar.' })
-    } finally {
-      setSavingCrop(false)
-    }
-  }
-
-  const busy = uploading || saving || savingCrop
+  const busy = uploading || saving
 
   return (
     <div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">
@@ -167,8 +183,21 @@ export function BusUnitIdentity({
       <p className="mt-1 text-xs leading-relaxed text-[#657080]">
         Muncul di panduan peserta, tepat di bawah Peta Kursi &amp; Daftar Nama. Gambar unit ditampilkan bulat, lalu nama unit
         di bawahnya dengan pita kuning. <strong className="text-[#657080]">Geser gambar langsung</strong> untuk atur bagian
-        yang tampil, atur <strong className="text-[#657080]">zoom</strong> bila perlu. JPG / PNG / WebP, maks 5 MB.
+        yang tampil, atur <strong className="text-[#657080]">zoom</strong> bila perlu. Tombol{' '}
+        <strong className="text-[#657080]">Simpan</strong> menerapkan gambar, nama, dan posisi ke unit tujuan yang dipilih
+        (termasuk &ldquo;Semua Unit&rdquo;). JPG / PNG / WebP, maks 5 MB.
       </p>
+
+      <div className="mt-4">
+        <UnitTargetPicker
+          buses={buses}
+          currentId={busId}
+          mode={scope.mode}
+          targets={scope.ids}
+          onChange={handleScopeChange}
+          disabled={busy}
+        />
+      </div>
 
       <div className="mt-4 grid gap-5 sm:grid-cols-2">
         <div>
@@ -226,12 +255,6 @@ export function BusUnitIdentity({
           <p className="mt-1.5 text-[11px] text-[#9aa3af]">
             Diketik manual. Kalau dikosongkan, dipakai nama unit bawaan: <strong className="text-[#657080]">{busName}</strong>.
           </p>
-          <div className="mt-3">
-            <button type="button" onClick={saveLabel} disabled={busy} className={BTN_PRIMARY}>
-              {saving ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
-              Simpan Nama
-            </button>
-          </div>
 
           <div className="mt-4 rounded-xl bg-[#f8fafc] p-3">
             <p className="text-[10px] font-bold uppercase tracking-wide text-[#9aa3af]">
@@ -309,10 +332,6 @@ export function BusUnitIdentity({
             </div>
 
             <div className="mt-3 flex flex-wrap items-center gap-1.5">
-              <button type="button" onClick={saveCrop} disabled={busy || !imageUrl} className={BTN_PRIMARY}>
-                {savingCrop ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
-                Simpan Posisi
-              </button>
               <button
                 type="button"
                 onClick={() => {
@@ -328,6 +347,13 @@ export function BusUnitIdentity({
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="mt-4">
+        <button type="button" onClick={saveAll} disabled={busy || noTarget} className={BTN_PRIMARY}>
+          {saving ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
+          Simpan
+        </button>
       </div>
 
       {status && (

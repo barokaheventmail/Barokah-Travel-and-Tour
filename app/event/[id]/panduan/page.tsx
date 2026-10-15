@@ -182,7 +182,7 @@ export default async function EventPanduanPage({
 
   const buses = await prisma.bus.findMany({
     where: { eventId: id },
-    select: { id: true, name: true },
+    select: { id: true, name: true, denahDudukKeterangan: true, denahDudukKeterangan2: true },
     orderBy: { order: 'asc' },
   })
 
@@ -542,25 +542,42 @@ export default async function EventPanduanPage({
               />
     ) : null,
     'seat-map': buses.length > 0 ? (
-<A4Section>
-              <section className="rounded-none border border-[#dfe4e8] bg-white p-5 print:min-h-[272mm]">
-                <SectionLogos
-                  logoLeft={logoLeftUrl}
-                  logoRight={logoRightUrl}
-                  topRight={event.panduanLogoTopRight}
-                  topRight2={event.panduanLogoTopRight2}
-                />
-                <h3 className="mb-4 text-center text-2xl font-extrabold uppercase tracking-wide text-[#00A3E0]">Denah Duduk</h3>
-                <div data-a4-body className="flow-root">
+      <>
+        {buses.map((bus) => (
+          <A4Section key={bus.id}>
+            <section className="rounded-none border border-[#dfe4e8] bg-white p-5 print:min-h-[272mm]">
+              <SectionLogos
+                logoLeft={logoLeftUrl}
+                logoRight={logoRightUrl}
+                topRight={event.panduanLogoTopRight}
+                topRight2={event.panduanLogoTopRight2}
+              />
+              <div data-a4-body className="flow-root">
+                <div className="mb-6 mt-6 flex items-center justify-center gap-4">
+                  <h2 className="text-center text-4xl font-extrabold uppercase tracking-wide text-[#00A3E0]">Denah Duduk</h2>
+                  {(bus.denahDudukKeterangan || bus.denahDudukKeterangan2) && (
+                    <div className="flex items-center gap-3">
+                      <span aria-hidden className="h-9 w-0.5 shrink-0 bg-[#00A3E0]" />
+                      <div className="flex flex-col text-left leading-tight">
+                        {bus.denahDudukKeterangan && (
+                          <p className="text-2xl font-bold uppercase tracking-wide text-[#e8830c]">{bus.denahDudukKeterangan}</p>
+                        )}
+                        <p className="text-2xl font-bold uppercase tracking-wide text-[#2ca84a]">{bus.denahDudukKeterangan2 || bus.name}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
                 <PublicSeatMap
                   eventId={id}
-                  buses={buses}
-                  initialBusId={ownBus?.busId ?? null}
-                  highlightSeat={ownBus?.seat ?? null}
+                  buses={[bus]}
+                  initialBusId={bus.id}
+                  highlightSeat={ownBus?.busId === bus.id ? ownBus.seat : null}
                 />
-                </div>
-              </section>
-              </A4Section>
+              </div>
+            </section>
+          </A4Section>
+        ))}
+      </>
     ) : null,
     'room-map': buses.length > 0 ? (
 <A4Section fit="none">

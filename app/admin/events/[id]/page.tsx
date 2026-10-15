@@ -161,6 +161,8 @@ export default async function EventDetail({
     unitImagePosX: b.unitImagePosX,
     unitImagePosY: b.unitImagePosY,
     unitImageZoom: b.unitImageZoom,
+    denahDudukKeterangan: b.denahDudukKeterangan,
+    denahDudukKeterangan2: b.denahDudukKeterangan2,
   }))
 
   const uniqueCrewCount = new Set(event.buses.flatMap((b) => b.workers.map((w) => w.user.id))).size

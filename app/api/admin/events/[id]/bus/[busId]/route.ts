@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { rm } from 'fs/promises'
+import { join, resolve } from 'path'
 import { Prisma } from '@prisma/client'
 import { canManage, requireAdminSession } from '@/lib/auth'
 import { prisma } from '@/lib/db'
@@ -15,8 +17,25 @@ import {
 } from '@/lib/seat'
 import { serializeFrontLayout, validateFrontLayout } from '@/lib/front'
 import { serializeFacilities, validateFacilities } from '@/lib/facilities'
+import { resolveScope } from '@/lib/target-scope'
 
 type Params = { params: Promise<{ id: string; busId: string }> }
+
+const UPLOAD_URL_PREFIX = '/uploads/units/'
+
+async function rmUploadUrl(url: string): Promise<void> {
+  if (!url.startsWith(UPLOAD_URL_PREFIX)) return
+  const filename = url.slice(UPLOAD_URL_PREFIX.length)
+  if (!filename || filename.includes('/') || filename.includes('..')) return
+  await rm(resolve(process.cwd(), join('uploads', 'units', filename)), { force: true })
+}
+
+async function cleanupOrphanUrls(urls: string[]): Promise<void> {
+  for (const url of new Set(urls)) {
+    const remaining = await prisma.bus.count({ where: { unitImageUrl: url } })
+    if (remaining === 0) await rmUploadUrl(url).catch(() => undefined)
+  }
+}
 
 export async function PATCH(request: NextRequest, { params }: Params) {
   const session = await requireAdminSession()
@@ -164,60 +183,129 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     }
   }
 
-  if (body.unitLabel !== undefined) {
-    const raw = typeof body.unitLabel === 'string' ? body.unitLabel.trim() : ''
-    const value = raw ? raw.slice(0, 60) : null
-    if (value === existing.unitLabel) return NextResponse.json({ bus: existing })
+  const hasLabelField = body.unitLabel !== undefined
+  const hasCropFields =
+    body.unitImagePosX !== undefined || body.unitImagePosY !== undefined || body.unitImageZoom !== undefined
+  const applyImage = body.applyImage === true
+
+  if (hasLabelField || hasCropFields || applyImage) {
+    const data: Prisma.BusUpdateInput = {}
+
+    if (hasLabelField) {
+      const raw = typeof body.unitLabel === 'string' ? body.unitLabel.trim() : ''
+      data.unitLabel = raw ? raw.slice(0, 60) : null
+    }
+
+    if (hasCropFields) {
+      const read = (key: string, fallback: number, min: number, max: number): number | null => {
+        const raw = body[key]
+        if (raw === undefined) return fallback
+        const n = typeof raw === 'number' ? raw : Number(raw)
+        if (!Number.isFinite(n)) return null
+        return Math.min(max, Math.max(min, Math.round(n)))
+      }
+      const posX = read('unitImagePosX', existing.unitImagePosX, UNIT_IMAGE_POS_MIN, UNIT_IMAGE_POS_MAX)
+      const posY = read('unitImagePosY', existing.unitImagePosY, UNIT_IMAGE_POS_MIN, UNIT_IMAGE_POS_MAX)
+      const zoom = read('unitImageZoom', existing.unitImageZoom, UNIT_IMAGE_ZOOM_MIN, UNIT_IMAGE_ZOOM_MAX)
+      if (posX === null || posY === null || zoom === null) {
+        return NextResponse.json({ error: 'Nilai posisi/zoom tidak valid.' }, { status: 400 })
+      }
+      data.unitImagePosX = posX
+      data.unitImagePosY = posY
+      data.unitImageZoom = zoom
+    }
+
+    const applyToAll = body.applyToAll === true
+    const requested = Array.isArray(body.busIds)
+      ? body.busIds.filter((x): x is string => typeof x === 'string').slice(0, 2000)
+      : []
+    const { targetIds, scope: scopeLabel } = resolveScope(applyToAll, requested, busId)
+    const where: Prisma.BusWhereInput = targetIds ? { eventId: id, id: { in: targetIds } } : { eventId: id }
+
+    let staleUrls: string[] = []
+    if (applyImage && existing.unitImageUrl) {
+      data.unitImageUrl = existing.unitImageUrl
+      const targets = await prisma.bus.findMany({ where, select: { unitImageUrl: true } })
+      staleUrls = targets
+        .map((t) => t.unitImageUrl)
+        .filter((u): u is string => !!u && u !== existing.unitImageUrl)
+    }
+
     try {
-      const bus = await prisma.$transaction(async (tx) => {
-        const updated = await tx.bus.update({ where: { id: busId }, data: { unitLabel: value } })
+      const applied = await prisma.$transaction(async (tx) => {
+        const result = await tx.bus.updateMany({ where, data })
         await tx.activityLog.create({
-          data: { eventId: id, userId: session.sub, action: 'bus.unitLabel', detail: { name: existing.name, label: value } },
+          data: {
+            eventId: id,
+            userId: session.sub,
+            action: 'bus.unitIdentity',
+            detail: { name: existing.name, scope: scopeLabel, count: result.count, fields: Object.keys(data) },
+          },
         })
-        return updated
+        return result.count
       })
-      logger.info('bus unit label updated', { eventId: id, by: session.username, busId, hasLabel: value !== null })
-      return NextResponse.json({ bus })
+      await cleanupOrphanUrls(staleUrls)
+      const bus = await prisma.bus.findUnique({ where: { id: busId } })
+      logger.info('bus unit identity updated', {
+        eventId: id,
+        by: session.username,
+        busId,
+        fields: Object.keys(data),
+        applied,
+      })
+      return NextResponse.json({ bus, applied })
     } catch (err) {
-      return NextResponse.json({ error: 'Gagal menyimpan nama unit.' }, { status: 500 })
+      return NextResponse.json({ error: 'Gagal menyimpan gambar & nama unit.' }, { status: 500 })
     }
   }
 
-  const hasCropFields =
-    body.unitImagePosX !== undefined || body.unitImagePosY !== undefined || body.unitImageZoom !== undefined
+  if (body.denahDudukKeterangan !== undefined || body.denahDudukKeterangan2 !== undefined) {
+    const data: Prisma.BusUpdateInput = {}
+    if (body.denahDudukKeterangan !== undefined) {
+      const raw = typeof body.denahDudukKeterangan === 'string' ? body.denahDudukKeterangan.trim() : ''
+      data.denahDudukKeterangan = raw ? raw.slice(0, 200) : null
+    }
+    if (body.denahDudukKeterangan2 !== undefined) {
+      const raw = typeof body.denahDudukKeterangan2 === 'string' ? body.denahDudukKeterangan2.trim() : ''
+      data.denahDudukKeterangan2 = raw ? raw.slice(0, 200) : null
+    }
+    if (Object.keys(data).length === 0) {
+      return NextResponse.json({ error: 'Tidak ada keterangan yang diubah.' }, { status: 400 })
+    }
 
-  if (hasCropFields) {
-    const read = (key: string, fallback: number, min: number, max: number): number | null => {
-      const raw = body[key]
-      if (raw === undefined) return fallback
-      const n = typeof raw === 'number' ? raw : Number(raw)
-      if (!Number.isFinite(n)) return null
-      return Math.min(max, Math.max(min, Math.round(n)))
-    }
-    const posX = read('unitImagePosX', existing.unitImagePosX, UNIT_IMAGE_POS_MIN, UNIT_IMAGE_POS_MAX)
-    const posY = read('unitImagePosY', existing.unitImagePosY, UNIT_IMAGE_POS_MIN, UNIT_IMAGE_POS_MAX)
-    const zoom = read('unitImageZoom', existing.unitImageZoom, UNIT_IMAGE_ZOOM_MIN, UNIT_IMAGE_ZOOM_MAX)
-    if (posX === null || posY === null || zoom === null) {
-      return NextResponse.json({ error: 'Nilai posisi/zoom tidak valid.' }, { status: 400 })
-    }
-    if (posX === existing.unitImagePosX && posY === existing.unitImagePosY && zoom === existing.unitImageZoom) {
-      return NextResponse.json({ bus: existing })
-    }
+    const applyToAll = body.applyToAll === true
+    const requested = Array.isArray(body.busIds)
+      ? body.busIds.filter((x): x is string => typeof x === 'string').slice(0, 2000)
+      : []
+    const { targetIds } = resolveScope(applyToAll, requested, busId)
+
     try {
-      const bus = await prisma.$transaction(async (tx) => {
-        const updated = await tx.bus.update({
-          where: { id: busId },
-          data: { unitImagePosX: posX, unitImagePosY: posY, unitImageZoom: zoom },
+      const applied = await prisma.$transaction(async (tx) => {
+        const result = await tx.bus.updateMany({
+          where: targetIds ? { eventId: id, id: { in: targetIds } } : { eventId: id },
+          data,
         })
         await tx.activityLog.create({
-          data: { eventId: id, userId: session.sub, action: 'bus.unitImageCrop', detail: { name: existing.name, posX, posY, zoom } },
+          data: {
+            eventId: id,
+            userId: session.sub,
+            action: 'bus.denahDudukKeterangan',
+            detail: applyToAll ? { scope: 'all', count: result.count } : { scope: 'selected', count: result.count },
+          },
         })
-        return updated
+        return result.count
       })
-      logger.info('bus unit image crop updated', { eventId: id, by: session.username, busId, posX, posY, zoom })
-      return NextResponse.json({ bus })
+      const bus = await prisma.bus.findUnique({ where: { id: busId } })
+      logger.info('bus denah duduk captions updated', {
+        eventId: id,
+        by: session.username,
+        busId,
+        applyToAll,
+        applied,
+      })
+      return NextResponse.json({ bus, applied })
     } catch (err) {
-      return NextResponse.json({ error: 'Gagal menyimpan posisi gambar.' }, { status: 500 })
+      return NextResponse.json({ error: 'Gagal menyimpan keterangan denah duduk.' }, { status: 500 })
     }
   }
 

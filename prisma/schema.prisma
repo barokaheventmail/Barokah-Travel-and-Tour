@@ -160,6 +160,11 @@ model Bus {
   unitImagePosX Int    @default(50)
   unitImagePosY Int    @default(50)
   unitImageZoom Int    @default(0)
+  // Keterangan di sebelah kanan judul "Denah Duduk" pada panduan peserta.
+  // Diatur per unit. Keterangan tampil orange, keterangan 2 tampil hijau di
+  // bawahnya (default = nama bus bila dikosongkan). Null/kosong = tanpa teks.
+  denahDudukKeterangan  String? @db.VarChar(200)
+  denahDudukKeterangan2 String? @db.VarChar(200)
   createdAt DateTime @default(now())
 
   event        Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)

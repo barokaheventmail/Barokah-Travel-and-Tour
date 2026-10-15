@@ -25,10 +25,12 @@ export function SeatGrid({
   bus,
   highlightSeat,
   onSelect,
+  showAttendance = true,
 }: {
   bus: SeatGridBus
   highlightSeat?: string | null
   onSelect?: (s: { seat: string; name: string }) => void
+  showAttendance?: boolean
 }) {
   const layout = parseSeatLayout({ seatRows: bus.seatRows, seatCols: bus.seatCols, seatLayout: bus.seatLayout })
   if (layout.rows === 0 || layout.cols === 0) return null
@@ -65,21 +67,28 @@ export function SeatGrid({
             }
             const s = byNumber.get(n)
             const isMine = mine(n)
+            // Tanpa mode kehadiran, kursi tetap bisa diklik selama ada peserta
+            // yang menempatinya (fokus ke nomor kursi + nama).
+            const selectable = showAttendance ? !!s?.present : !!s
             return (
               <button
                 key={`${r}-${c}`}
                 type="button"
-                disabled={!s?.present && !isMine}
-                onClick={() => s?.present && onSelect?.({ seat: String(n), name: s.name })}
-                title={s?.present ? s.name : undefined}
+                disabled={!selectable && !isMine}
+                onClick={() => selectable && onSelect?.({ seat: String(n), name: s!.name })}
+                title={selectable ? s?.name : undefined}
                 aria-label={`Kursi ${n}`}
                 style={{ aspectRatio: `${cell.w} / ${cell.h}` }}
                 className={`flex w-full min-w-0 items-center justify-center overflow-hidden text-xs font-normal tabular-nums leading-none transition-colors duration-150 ${
                   isMine
                     ? 'bg-[#1b4f9c] text-white ring-1 ring-[#e8c54a] ring-offset-1'
-                    : s?.present
-                      ? 'bg-[#2ca84a] text-white hover:bg-[#219b42] active:scale-95'
-                      : 'bg-[#eef1f4] text-[#9aa3af]'
+                    : !showAttendance
+                      ? selectable
+                        ? 'bg-[#eef4fb] text-[#1b3555] hover:bg-[#dbe8f7] active:scale-95'
+                        : 'bg-[#eef1f4] text-[#9aa3af]'
+                      : s?.present
+                        ? 'bg-[#2ca84a] text-white hover:bg-[#219b42] active:scale-95'
+                        : 'bg-[#eef1f4] text-[#9aa3af]'
                 }`}
               >
                 {n}

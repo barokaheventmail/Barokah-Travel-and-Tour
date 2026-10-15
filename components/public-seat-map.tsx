@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Armchair, ChevronLeft, ChevronRight, Loader2, SearchX } from 'lucide-react'
 import { SeatGrid, type SeatCell } from '@/components/seat-grid'
-import { FacilityIconBadge } from '@/components/facility-icon'
 import { unitImageStyle } from '@/lib/seat'
 import type { Facility } from '@/lib/facilities'
 
@@ -59,11 +58,14 @@ export function PublicSeatMap({
   const index = buses.findIndex((b) => b.id === selectedId)
   const current = index >= 0 ? buses[index] : null
 
-  // Daftar nama dibagi dua kolom: separuh kiri, separuh kanan (mis. 50 peserta
-  // -> 25 kiri, 25 kanan). Tiap kolom hanya menampilkan No dan Nama.
+  // Daftar nama dipecah per kolom, maksimal 25 kursi per kolom. Bila lebih dari
+  // 25, kolom berikutnya diletakkan di sampingnya (1–25, 26–50, dst.).
+  const ROSTER_COLUMN_SIZE = 25
   const rosterSeats = data?.seats ?? []
-  const rosterHalf = Math.ceil(rosterSeats.length / 2)
-  const rosterColumns = [rosterSeats.slice(0, rosterHalf), rosterSeats.slice(rosterHalf)]
+  const rosterColumns: typeof rosterSeats[] = []
+  for (let i = 0; i < rosterSeats.length; i += ROSTER_COLUMN_SIZE) {
+    rosterColumns.push(rosterSeats.slice(i, i + ROSTER_COLUMN_SIZE))
+  }
 
   function step(dir: 1 | -1) {
     if (buses.length === 0) return
@@ -122,18 +124,6 @@ export function PublicSeatMap({
 
   return (
     <div className="mt-4">
-      <div className="flex flex-wrap items-center gap-2">
-        {!loading && data && (
-          <span
-            className={`ml-auto text-[11px] font-bold ${
-              data.filled === data.total ? 'text-[#2ca84a]' : 'text-[#1b4f9c]'
-            }`}
-          >
-            {data.filled}/{data.total} terisi
-          </span>
-        )}
-      </div>
-
       {buses.length > 1 && (
         <div className="mt-3 flex items-center gap-2 print:hidden">
           <button
@@ -179,24 +169,9 @@ export function PublicSeatMap({
             <SeatGrid
               bus={data}
               highlightSeat={mySeat}
+              showAttendance={false}
               onSelect={(s) => setSelected({ seat: s.seat, name: s.name, busName: data.busName })}
             />
-            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] font-semibold text-[#657080]">
-              <span className="flex items-center gap-1.5">
-                <span className="inline-block h-3 w-3 bg-[#2ca84a]" /> Terisi{' '}
-                <span className="font-black text-[#2ca84a]">{data.filled}</span>
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="inline-block h-3 w-3 bg-[#eef1f4]" /> Kosong{' '}
-                <span className="font-black text-[#657080]">{data.total - data.filled}</span>
-              </span>
-              {mySeat && (
-                <span className="flex items-center gap-1.5">
-                  <span className="inline-block h-3 w-3 bg-[#1b4f9c] ring-2 ring-[#e8c54a] ring-offset-1" />
-                </span>
-              )}
-              <span className="ml-auto text-[11px] text-[#9aa3af] print:hidden">Ketuk kursi hijau untuk lihat nama</span>
-            </div>
           </>
         ) : (
           <div className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-[#dfe4e8] px-4 py-8 text-center">
@@ -249,16 +224,11 @@ export function PublicSeatMap({
             {data.facilities && data.facilities.length > 0 && (
               <div className="relative -top-6 min-w-0 flex-1">
                 <p className="text-xs font-bold text-[#1b3555]">Fasilitas Unit — {data.busName}</p>
-                <ul className="mt-1 flex flex-col gap-0.5">
+                <ul className="mt-1 grid grid-flow-col grid-rows-3 gap-x-6 gap-y-0.5">
                   {data.facilities.map((f, i) => (
-                    <li key={`${f.name}-${i}`} className="flex items-center gap-2">
-                      <span className="shrink-0 text-[#1b4f9c]">
-                        <FacilityIconBadge icon={f.icon} />
-                      </span>
-                      <p className="min-w-0 text-[11px] font-semibold text-[#1b3555]">
-                        {f.name}
-                        {f.note && <span className="ml-1 font-normal text-[#657080]">— {f.note}</span>}
-                      </p>
+                    <li key={`${f.name}-${i}`} className="flex items-center gap-1.5">
+                      <span className="shrink-0 text-[#1b3555]">•</span>
+                      <p className="min-w-0 text-[11px] font-semibold text-[#1b3555]">{f.name}</p>
                     </li>
                   ))}
                 </ul>
@@ -308,10 +278,10 @@ export function PublicSeatMap({
           <div className="animate-fade-up w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-[11px] font-bold uppercase tracking-wide text-[#9aa3af]">Kursi terisi</p>
+                <p className="text-[11px] font-bold uppercase tracking-wide text-[#9aa3af]">Nomor kursi</p>
                 <h3 className="mt-0.5 text-lg font-black text-[#1b3555]">Kursi {selected.seat}</h3>
               </div>
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#e6f4ea] text-[#2ca84a]">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#eef3fb] text-[#1b4f9c]">
                 <Armchair size={20} />
               </span>
             </div>

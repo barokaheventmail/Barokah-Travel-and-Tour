@@ -5,6 +5,7 @@ import { Fragment, useCallback, useState } from 'react'
 import { Armchair, Check, ChevronDown, Eraser, Loader2, Minus, Plus, RotateCcw, Save, ShipWheel, Trash2, Users, UsersRound, X } from 'lucide-react'
 import { BusFacilitiesEditor } from '@/components/admin/bus-facilities-editor'
 import { BusUnitIdentity } from '@/components/admin/bus-unit-identity'
+import { DenahDudukCaptions } from '@/components/admin/denah-duduk-captions'
 import { BusFront } from '@/components/bus-front'
 import { ConfirmBulkDialog } from '@/components/admin/confirm-bulk-dialog'
 import type { KursiPresetOption } from '@/lib/preset'
@@ -47,6 +48,8 @@ export type SeatBus = {
   unitImagePosX: number
   unitImagePosY: number
   unitImageZoom: number
+  denahDudukKeterangan: string | null
+  denahDudukKeterangan2: string | null
 }
 
 const MIN = 1
@@ -494,6 +497,33 @@ export function SeatLayoutEditor({ eventId, buses, presets }: { eventId: string;
           </div>
 
           {selected && (
+            <BusUnitIdentity
+              key={`${selected.id}-identity`}
+              eventId={eventId}
+              busId={selected.id}
+              busName={selected.name}
+              buses={buses.map((b) => ({ id: b.id, name: b.name }))}
+              initialImageUrl={selected.unitImageUrl}
+              initialLabel={selected.unitLabel}
+              initialPosX={selected.unitImagePosX}
+              initialPosY={selected.unitImagePosY}
+              initialZoom={selected.unitImageZoom}
+            />
+          )}
+
+          {selected && (
+            <DenahDudukCaptions
+              key={`${selected.id}-captions`}
+              eventId={eventId}
+              busId={selected.id}
+              busName={selected.name}
+              buses={buses.map((b) => ({ id: b.id, name: b.name }))}
+              initialKeterangan={selected.denahDudukKeterangan ?? ''}
+              initialKeterangan2={selected.denahDudukKeterangan2 ?? ''}
+            />
+          )}
+
+          {selected && (
             <>
               <div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">
                 <div className="flex flex-wrap items-center justify-between gap-3">
@@ -696,20 +726,6 @@ export function SeatLayoutEditor({ eventId, buses, presets }: { eventId: string;
               totalBuses={buses.length}
               busesWithFacilities={busesWithFacilities}
               onChange={handleFacilitiesChange}
-            />
-          )}
-
-          {selected && (
-            <BusUnitIdentity
-              key={`${selected.id}-identity`}
-              eventId={eventId}
-              busId={selected.id}
-              busName={selected.name}
-              initialImageUrl={selected.unitImageUrl}
-              initialLabel={selected.unitLabel}
-              initialPosX={selected.unitImagePosX}
-              initialPosY={selected.unitImagePosY}
-              initialZoom={selected.unitImageZoom}
             />
           )}
 
