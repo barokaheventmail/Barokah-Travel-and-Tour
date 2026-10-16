@@ -15,6 +15,7 @@ import { ArmadaActions } from '@/components/admin/armada-actions'
 import { BusArmadaSection, type BusWithWorkersData } from '@/components/admin/bus-crew'
 import { SeatLayoutEditor, type SeatBus } from '@/components/admin/seat-layout-editor'
 import { PanduanEditor } from '@/components/admin/panduan-editor'
+import { PanduanHeadingSettings } from '@/components/admin/panduan-heading-settings'
 import { EventImage } from '@/components/admin/event-image'
 import type { GenerateBus } from '@/components/admin/generate-crew'
 import type { CredentialBus } from '@/components/admin/crew-credentials-modal'
@@ -322,30 +323,47 @@ export default async function EventDetail({
       )}
 
       {active === 'panduan' && (
-        <PanduanEditor
-          eventId={event.id}
-          eventTitle={event.title}
-          presets={panduanPresets}
-          initialItinerary={event.panduanItinerary ?? '[]'}
-          initialRules={event.panduanRules ?? ''}
-          initialSections={event.panduanSections ?? null}
-          initialCrewName={event.crewName ?? ''}
-          initialCrewPhone={event.crewPhone ?? ''}
-          initialCrewRole={event.crewRole ?? ''}
-          initialCrewPhotoUrl={event.crewPhotoUrl ?? null}
-          initialCrewList={event.crewList ?? null}
-          initialDenahCrewName={event.denahKamarCrewName ?? ''}
-          initialDenahCrewRole={event.denahKamarCrewRole ?? ''}
-          initialDenahCrewPhotoUrl={event.denahKamarCrewPhotoUrl ?? null}
-          initialDenahVwCrewName={event.denahVwCrewName ?? ''}
-          initialDenahVwCrewRole={event.denahVwCrewRole ?? ''}
-          initialDenahVwCrewPhotoUrl={event.denahVwCrewPhotoUrl ?? null}
-          initialLogoLeft={event.panduanLogoLeft ?? null}
-          initialLogoLeft2={event.panduanLogoLeft2 ?? null}
-          initialLogoCenter={event.panduanLogoCenter ?? null}
-          initialLogoRight2={event.panduanLogoRight2 ?? null}
-          initialLogoRight={event.panduanLogoRight ?? null}
-        />
+        <>
+          <div className="mt-5 space-y-4">
+            <PanduanHeadingSettings
+              eventId={event.id}
+              eventTitle={event.title}
+              initialItineraryTitle={event.itineraryTitle ?? ''}
+              initialItineraryKeterangan={event.itineraryKeterangan ?? ''}
+              initialItineraryKeterangan2={event.itineraryKeterangan2 ?? ''}
+              initialDenahKamarTitle={event.denahKamarTitle ?? ''}
+              initialDenahKamarKeterangan={event.denahKamarKeterangan ?? ''}
+              initialDenahKamarKeterangan2={event.denahKamarKeterangan2 ?? ''}
+              initialVwTitle={event.vwTitle ?? ''}
+              initialVwKeterangan={event.vwKeterangan ?? ''}
+              initialVwKeterangan2={event.vwKeterangan2 ?? ''}
+            />
+          </div>
+          <PanduanEditor
+            eventId={event.id}
+            eventTitle={event.title}
+            presets={panduanPresets}
+            initialItinerary={event.panduanItinerary ?? '[]'}
+            initialRules={event.panduanRules ?? ''}
+            initialSections={event.panduanSections ?? null}
+            initialCrewName={event.crewName ?? ''}
+            initialCrewPhone={event.crewPhone ?? ''}
+            initialCrewRole={event.crewRole ?? ''}
+            initialCrewPhotoUrl={event.crewPhotoUrl ?? null}
+            initialCrewList={event.crewList ?? null}
+            initialDenahCrewName={event.denahKamarCrewName ?? ''}
+            initialDenahCrewRole={event.denahKamarCrewRole ?? ''}
+            initialDenahCrewPhotoUrl={event.denahKamarCrewPhotoUrl ?? null}
+            initialDenahVwCrewName={event.denahVwCrewName ?? ''}
+            initialDenahVwCrewRole={event.denahVwCrewRole ?? ''}
+            initialDenahVwCrewPhotoUrl={event.denahVwCrewPhotoUrl ?? null}
+            initialLogoLeft={event.panduanLogoLeft ?? null}
+            initialLogoLeft2={event.panduanLogoLeft2 ?? null}
+            initialLogoCenter={event.panduanLogoCenter ?? null}
+            initialLogoRight2={event.panduanLogoRight2 ?? null}
+            initialLogoRight={event.panduanLogoRight ?? null}
+          />
+        </>
       )}
 
       {active === 'peserta' && (

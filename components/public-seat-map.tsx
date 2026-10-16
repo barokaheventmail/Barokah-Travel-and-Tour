@@ -184,32 +184,40 @@ export function PublicSeatMap({
         </div>
 
       {!loading && data && data.seats.length > 0 && (
-        <div className="min-w-0 flex-1 overflow-hidden rounded-none border-2 border-[#dfe4e8]">
-          <div className="flex items-stretch divide-x-2 divide-[#dfe4e8]">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-stretch gap-4">
             {rosterColumns.map((column, ci) => (
               <div key={ci} className="min-w-0 flex-1">
-                <div className="grid grid-cols-[2.75rem_minmax(0,1fr)] bg-[#00A3E0] text-sm font-extrabold uppercase leading-tight tracking-wider text-white">
-                  <span className="border-r-2 border-white/40 px-[3px] py-[2px] text-center">No</span>
-                  <span className="px-[3px] py-[2px] text-center">Nama</span>
-                </div>
-                <div className="divide-y-2 divide-[#edf0f3]">
-                  {column.map((s) => {
-                    const isMine = mySeat != null && s.seat != null && s.seat === mySeat
-                    return (
-                      <div
-                        key={s.order}
-                        className={`grid grid-cols-[2.75rem_minmax(0,1fr)] leading-tight ${isMine ? 'bg-[#bfdbfe]' : ''}`}
-                      >
-                        <span className="border-r-2 border-[#dfe4e8] px-[3px] py-[3px] text-lg font-bold tabular-nums text-[#1b3555]">
-                          {s.seat ?? s.order}
-                        </span>
-                        <span className={`break-words px-[3px] py-[3px] text-lg text-[#1b3555] ${isMine ? 'font-bold' : ''}`}>
-                          {s.name}
-                        </span>
-                      </div>
-                    )
-                  })}
-                </div>
+                <table className="w-full table-fixed border-collapse border border-[#b9c6d2] text-[20px] sm:text-[22px]">
+                  <thead>
+                    <tr className="bg-[#00A3E0] text-[15px] font-bold uppercase tracking-wide text-white sm:text-[17px]">
+                      <th className="border border-[#7fc7e8] px-1.5 py-1.5" style={{ width: '22%' }}>
+                        No
+                      </th>
+                      <th className="border border-[#7fc7e8] px-2 py-1.5 text-center">Nama</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {column.map((s, idx) => {
+                      const isMine = mySeat != null && s.seat != null && s.seat === mySeat
+                      const base = idx % 2 === 1 ? 'bg-[#f8fafc]' : 'bg-white'
+                      return (
+                        <tr key={s.order} className={base}>
+                          <td
+                            className={`border border-[#cdd8e2] px-1 py-1 text-center align-middle font-bold tabular-nums text-[#657080]${isMine ? ' bg-[#bfdbfe]' : ''}`}
+                          >
+                            {s.seat ?? s.order}
+                          </td>
+                          <td
+                            className={`border border-[#cdd8e2] px-2 py-1 text-left align-middle font-normal text-[#1b3555]${isMine ? ' bg-[#bfdbfe]' : ''}`}
+                          >
+                            <span className={isMine ? 'font-bold' : ''}>{s.name}</span>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
               </div>
             ))}
           </div>
@@ -218,74 +226,74 @@ export function PublicSeatMap({
         </div>
       </div>
 
-      {!loading && data && data.unitImageUrl && (
-        <div className="mt-10 flex justify-end print:break-inside-avoid">
-          <div className="flex shrink-0 flex-col items-end pr-6">
-            <div className="relative flex h-32 w-32 shrink-0 items-center justify-center">
-              <span
-                aria-hidden
-                className="absolute -inset-6 rounded-full blur-lg"
-                style={{
-                  background:
-                    'radial-gradient(circle, rgba(59,130,246,1) 0%, rgba(59,130,246,0.85) 50%, rgba(59,130,246,0) 78%)',
-                }}
-              />
-              <div
-                className="relative flex h-32 w-32 items-center justify-center overflow-hidden rounded-full"
-                style={{ clipPath: 'circle(50% at 50% 50%)' }}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={data.unitImageUrl}
-                  alt={`Unit ${data.unitLabel?.trim() || data.busName}`}
-                  className="h-full w-full object-cover"
-                  style={unitImageStyle(data.unitImagePosX, data.unitImagePosY, data.unitImageZoom)}
-                />
+      {!loading && data && (data.unitImageUrl || (data.facilities && data.facilities.length > 0)) && (
+        <div className="mt-auto flex items-end justify-between gap-6 pt-8 pb-6 print:break-inside-avoid">
+          {data.facilities && data.facilities.length > 0 && (
+            <div className="min-w-0 max-w-[72%] overflow-hidden rounded-2xl border-2 border-[#dfe4e8] bg-white">
+              <div className="flex items-center gap-3 bg-gradient-to-r from-[#1b4f9c] via-[#1b6fc4] to-[#00A3E0] px-5 py-3 sm:px-6">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/20 text-white">
+                  <Sparkles size={22} />
+                </span>
+                <p className="min-w-0 flex-1 text-3xl font-extrabold uppercase tracking-wide text-white">
+                  Fasilitas Unit
+                </p>
+                <span className="max-w-[45%] shrink-0 truncate rounded-full bg-white/15 px-3.5 py-1.5 text-sm font-bold uppercase tracking-wide text-white">
+                  {data.busName}
+                </span>
               </div>
+              <ul className="flex flex-wrap gap-2.5 bg-[#f7fafd] p-4 sm:gap-3 sm:p-5">
+                {data.facilities.map((f, i) => {
+                  const Icon = FACILITY_ICONS[f.icon] ?? Armchair
+                  return (
+                    <li
+                      key={`${f.name}-${i}`}
+                      className="inline-flex max-w-full items-center gap-2.5 rounded-full border border-[#e3e9f0] bg-white py-2 pl-2 pr-5 shadow-[0_1px_2px_rgba(27,53,85,0.07)]"
+                    >
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#e6f3fd] text-[#1b4f9c]">
+                        <Icon size={18} />
+                      </span>
+                      <span className="min-w-0 break-words text-xl font-bold leading-tight text-[#1b3555]">
+                        {f.name}
+                      </span>
+                    </li>
+                  )
+                })}
+              </ul>
             </div>
-            <strong
-              className="relative z-[1] -mt-1 inline-block max-w-full truncate bg-[#f5b915] px-6 py-1 text-sm font-extrabold uppercase tracking-wide text-white"
-              style={{ clipPath: 'polygon(0 0, 100% 0, calc(100% - 12px) 50%, 100% 100%, 0 100%, 12px 50%)' }}
-            >
-              {data.unitLabel?.trim() || data.busName}
-            </strong>
-          </div>
-        </div>
-      )}
+          )}
 
-      {!loading && data && data.facilities && data.facilities.length > 0 && (
-        <div className="mt-auto pt-8 pb-6 print:break-inside-avoid">
-          <div className="overflow-hidden rounded-2xl border-2 border-[#dfe4e8] bg-white">
-            <div className="flex items-center gap-3 bg-gradient-to-r from-[#1b4f9c] via-[#1b6fc4] to-[#00A3E0] px-4 py-2.5 sm:px-5">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/20 text-white">
-                <Sparkles size={18} />
-              </span>
-              <p className="min-w-0 flex-1 text-2xl font-extrabold uppercase tracking-wide text-white">
-                Fasilitas Unit
-              </p>
-              <span className="max-w-[45%] shrink-0 truncate rounded-full bg-white/15 px-3 py-1 text-xs font-bold uppercase tracking-wide text-white">
-                {data.busName}
-              </span>
+          {data.unitImageUrl && (
+            <div className="flex shrink-0 flex-col items-end pr-6">
+              <div className="relative flex h-44 w-44 shrink-0 items-center justify-center">
+                <span
+                  aria-hidden
+                  className="absolute -inset-8 rounded-full blur-lg"
+                  style={{
+                    background:
+                      'radial-gradient(circle, rgba(59,130,246,1) 0%, rgba(59,130,246,0.85) 50%, rgba(59,130,246,0) 78%)',
+                  }}
+                />
+                <div
+                  className="relative flex h-44 w-44 items-center justify-center overflow-hidden rounded-full"
+                  style={{ clipPath: 'circle(50% at 50% 50%)' }}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={data.unitImageUrl}
+                    alt={`Unit ${data.unitLabel?.trim() || data.busName}`}
+                    className="h-full w-full object-cover"
+                    style={unitImageStyle(data.unitImagePosX, data.unitImagePosY, data.unitImageZoom)}
+                  />
+                </div>
+              </div>
+              <strong
+                className="relative z-[1] -mt-1 inline-block max-w-full truncate bg-[#f5b915] px-8 py-1.5 text-base font-extrabold uppercase tracking-wide text-white"
+                style={{ clipPath: 'polygon(0 0, 100% 0, calc(100% - 12px) 50%, 100% 100%, 0 100%, 12px 50%)' }}
+              >
+                {data.unitLabel?.trim() || data.busName}
+              </strong>
             </div>
-            <ul className="flex flex-wrap gap-2 bg-[#f7fafd] p-3 sm:gap-2.5 sm:p-4">
-              {data.facilities.map((f, i) => {
-                const Icon = FACILITY_ICONS[f.icon] ?? Armchair
-                return (
-                  <li
-                    key={`${f.name}-${i}`}
-                    className="inline-flex max-w-full items-center gap-2 rounded-full border border-[#e3e9f0] bg-white py-1.5 pl-1.5 pr-4 shadow-[0_1px_2px_rgba(27,53,85,0.07)]"
-                  >
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#e6f3fd] text-[#1b4f9c]">
-                      <Icon size={15} />
-                    </span>
-                    <span className="min-w-0 break-words text-base font-bold leading-tight text-[#1b3555]">
-                      {f.name}
-                    </span>
-                  </li>
-                )
-              })}
-            </ul>
-          </div>
+          )}
         </div>
       )}
 

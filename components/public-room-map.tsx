@@ -5,6 +5,7 @@ import { BedDouble, Loader2, SearchX } from 'lucide-react'
 import { ScaleToFit } from '@/components/scale-to-fit'
 import { A4Section } from '@/components/a4-section'
 import { SectionLogos } from '@/components/section-logos'
+import { PublicHeading } from '@/components/public-heading'
 import {
   buildSections,
   COLUMNS_PER_PAGE,
@@ -161,6 +162,9 @@ export function PublicRoomMap({
   topRight2,
   crewName,
   crewPhotoUrl,
+  heading,
+  keterangan,
+  keterangan2,
 }: {
   eventId: string
   highlightRoom?: string | null
@@ -174,6 +178,10 @@ export function PublicRoomMap({
   topRight2: string | null
   crewName: string | null
   crewPhotoUrl: string | null
+  /** Judul halaman Denah Kamar. Null/kosong = judul bawaan. */
+  heading?: string | null
+  keterangan?: string | null
+  keterangan2?: string | null
 }) {
   const [data, setData] = useState<Room[] | null>(null)
   const [roomTypes, setRoomTypes] = useState<string[]>([])
@@ -255,9 +263,16 @@ export function PublicRoomMap({
     <SectionLogos logoLeft={logoLeft} logoRight={logoRight} logoLeft2={logoLeft2} logoCenter={logoCenter} logoRight2={logoRight2} topRight={topRight} topRight2={topRight2} />
   )
   const title = (
-    <h2 className="mb-6 mt-12 shrink-0 text-center text-xl font-extrabold uppercase tracking-wide text-[#00A3E0]">
-      Denah Kamar
-    </h2>
+    <PublicHeading
+      title={
+        <h2 className="text-xl font-extrabold uppercase tracking-wide text-[#00A3E0]">
+          {(heading ?? '').trim() || 'Denah Kamar'}
+        </h2>
+      }
+      keterangan={keterangan}
+      keterangan2={keterangan2}
+      className="mb-6 mt-12 shrink-0 justify-center"
+    />
   )
 
   if (loading || rooms.length === 0) {

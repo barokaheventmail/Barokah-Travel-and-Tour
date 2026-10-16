@@ -83,6 +83,17 @@ model Event {
   vwName               String     @default("VW MAGELANG") @db.VarChar(191)
   // Judul bagian Denah VW (menimpa judul otomatis). Null/kosong = otomatis.
   vwTitle              String?    @db.VarChar(191)
+  // Judul & keterangan heading tiap section panduan peserta, digaya sama
+  // dengan "Keterangan Denah Duduk" (judul utama + garis + teks orange/hijau
+  // di sebelahnya). Null/kosong = memakai judul bawaan section.
+  itineraryTitle        String? @db.VarChar(200)
+  itineraryKeterangan   String? @db.VarChar(200)
+  itineraryKeterangan2  String? @db.VarChar(200)
+  denahKamarTitle       String? @db.VarChar(200)
+  denahKamarKeterangan  String? @db.VarChar(200)
+  denahKamarKeterangan2 String? @db.VarChar(200)
+  vwKeterangan          String? @db.VarChar(200)
+  vwKeterangan2         String? @db.VarChar(200)
   // Logo di kepala halaman panduan (general, dipakai di semua section). Urutan
   // tampil: kiri → kiri 1 → tengah → kanan 1 → kanan. Null = memakai gambar
   // bawaan untuk kiri (Logo Asita.png) & kanan (siluet barokah tour.png); slot

@@ -43,7 +43,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Data tidak valid' }, { status: 400 })
   }
 
-  const { title, date, dateEnd, location, status, note, panduanItinerary, panduanRules, panduanSections, crewName, crewPhone, crewRole, crewPhotoUrl, crewList, denahKamarCrewName, denahKamarCrewRole, denahKamarCrewPhotoUrl, denahVwCrewName, denahVwCrewRole, denahVwCrewPhotoUrl, panduanLogoLeft, panduanLogoLeft2, panduanLogoCenter, panduanLogoRight2, panduanLogoRight, panduanLogoTopRight, panduanLogoTopRight2, vwName, vwTitle } = parsed.data
+  const { title, date, dateEnd, location, status, note, panduanItinerary, panduanRules, panduanSections, crewName, crewPhone, crewRole, crewPhotoUrl, crewList, denahKamarCrewName, denahKamarCrewRole, denahKamarCrewPhotoUrl, denahVwCrewName, denahVwCrewRole, denahVwCrewPhotoUrl, panduanLogoLeft, panduanLogoLeft2, panduanLogoCenter, panduanLogoRight2, panduanLogoRight, panduanLogoTopRight, panduanLogoTopRight2, vwName, vwTitle, itineraryTitle, itineraryKeterangan, itineraryKeterangan2, denahKamarTitle, denahKamarKeterangan, denahKamarKeterangan2, vwKeterangan, vwKeterangan2 } = parsed.data
 
   const data: Prisma.EventUpdateInput = {}
   if (title !== undefined) data.title = title
@@ -68,6 +68,14 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   if (location !== undefined) data.location = location
   if (vwName !== undefined) data.vwName = vwName || 'VW MAGELANG'
   if (vwTitle !== undefined) data.vwTitle = (vwTitle ?? '').trim() || null
+  if (itineraryTitle !== undefined) data.itineraryTitle = itineraryTitle || null
+  if (itineraryKeterangan !== undefined) data.itineraryKeterangan = itineraryKeterangan || null
+  if (itineraryKeterangan2 !== undefined) data.itineraryKeterangan2 = itineraryKeterangan2 || null
+  if (denahKamarTitle !== undefined) data.denahKamarTitle = denahKamarTitle || null
+  if (denahKamarKeterangan !== undefined) data.denahKamarKeterangan = denahKamarKeterangan || null
+  if (denahKamarKeterangan2 !== undefined) data.denahKamarKeterangan2 = denahKamarKeterangan2 || null
+  if (vwKeterangan !== undefined) data.vwKeterangan = vwKeterangan || null
+  if (vwKeterangan2 !== undefined) data.vwKeterangan2 = vwKeterangan2 || null
   if (status !== undefined) data.status = status
   if (note !== undefined) data.note = note || null
   if (panduanItinerary !== undefined) data.panduanItinerary = panduanItinerary || null

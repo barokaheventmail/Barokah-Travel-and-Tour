@@ -12,6 +12,7 @@ import { parsePanduanSections, splitSectionItems, type CustomSectionItem } from 
 import { qrDataUrl, encodeToken } from '@/lib/scan'
 import { Logo } from '@/components/site'
 import { SectionLogos } from '@/components/section-logos'
+import { PublicHeading } from '@/components/public-heading'
 import { EventNavbar } from '@/components/event-navbar'
 import { PublicSeatMap } from '@/components/public-seat-map'
 import { PublicRoomMap } from '@/components/public-room-map'
@@ -123,7 +124,7 @@ function CustomPanduanSection({
 async function getEvent(id: string) {
   return prisma.event.findUnique({
     where: { id },
-    select: { id: true, title: true, date: true, dateEnd: true, location: true, vwName: true, vwTitle: true, panduanItinerary: true, panduanRules: true, panduanSections: true, crewName: true, crewPhone: true, crewRole: true, crewPhotoUrl: true, crewList: true, denahKamarCrewName: true, denahKamarCrewRole: true, denahKamarCrewPhotoUrl: true, denahVwCrewName: true, denahVwCrewRole: true, denahVwCrewPhotoUrl: true, panduanLogoLeft: true, panduanLogoLeft2: true, panduanLogoCenter: true, panduanLogoRight2: true, panduanLogoRight: true, panduanLogoTopRight: true, panduanLogoTopRight2: true },
+    select: { id: true, title: true, date: true, dateEnd: true, location: true, vwName: true, vwTitle: true, itineraryTitle: true, itineraryKeterangan: true, itineraryKeterangan2: true, denahKamarTitle: true, denahKamarKeterangan: true, denahKamarKeterangan2: true, vwKeterangan: true, vwKeterangan2: true, panduanItinerary: true, panduanRules: true, panduanSections: true, crewName: true, crewPhone: true, crewRole: true, crewPhotoUrl: true, crewList: true, denahKamarCrewName: true, denahKamarCrewRole: true, denahKamarCrewPhotoUrl: true, denahVwCrewName: true, denahVwCrewRole: true, denahVwCrewPhotoUrl: true, panduanLogoLeft: true, panduanLogoLeft2: true, panduanLogoCenter: true, panduanLogoRight2: true, panduanLogoRight: true, panduanLogoTopRight: true, panduanLogoTopRight2: true },
   })
 }
 
@@ -532,7 +533,17 @@ export default async function EventPanduanPage({
                       topRight={event.panduanLogoTopRight}
                       topRight2={event.panduanLogoTopRight2}
                     />
-                    <h3 className="mb-4 text-center text-2xl font-extrabold uppercase tracking-wide text-[#00A3E0]">{event.title}</h3>
+                    <PublicHeading
+                      title={
+                        <h3 className="text-center text-2xl font-extrabold uppercase tracking-wide text-[#00A3E0]">
+                          {event.itineraryTitle?.trim() || event.title}
+                        </h3>
+                      }
+                      keterangan={event.itineraryKeterangan}
+                      keterangan2={event.itineraryKeterangan2}
+                      captionClassName="text-base"
+                      className="mb-4 justify-center"
+                    />
                     <div className="mx-6">
                       <PanduanHeading>Itinerary</PanduanHeading>
                     </div>
@@ -595,6 +606,9 @@ export default async function EventPanduanPage({
         topRight2={event.panduanLogoTopRight2}
         crewName={event.denahKamarCrewName}
         crewPhotoUrl={event.denahKamarCrewPhotoUrl}
+        heading={event.denahKamarTitle}
+        keterangan={event.denahKamarKeterangan}
+        keterangan2={event.denahKamarKeterangan2}
       />
     ) : null,
     // Denah kendaraan dibuat jadi beberapa lembar A4 (5 kelompok kendaraan
@@ -603,6 +617,8 @@ export default async function EventPanduanPage({
       <PublicVwMap
         eventId={id}
         vwName={vehicleTitle}
+        keterangan={event.vwKeterangan}
+        keterangan2={event.vwKeterangan2}
         header={
           <SectionLogos
             logoLeft={logoLeftUrl}

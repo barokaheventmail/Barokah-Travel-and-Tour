@@ -4,6 +4,7 @@ import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from '
 import { Car, Loader2, SearchX } from 'lucide-react'
 import { ScaleToFit } from '@/components/scale-to-fit'
 import { A4Section } from '@/components/a4-section'
+import { PublicHeading } from '@/components/public-heading'
 import { JEEP_DISPLAY, UNASSIGNED_VEHICLE } from '@/lib/participant-groups'
 
 type Member = { name: string; busName: string }
@@ -109,6 +110,8 @@ export function PublicVwMap({
   footer,
   highlightVehicle,
   highlightName,
+  keterangan,
+  keterangan2,
 }: {
   eventId: string
   /** Judul bagian VW (mis. "VW MAGELANG"). Bagian jeep memakai nama tetap. */
@@ -117,6 +120,9 @@ export function PublicVwMap({
   footer?: ReactNode
   highlightVehicle?: string | null
   highlightName?: string | null
+  /** Keterangan orange/hijau di sebelah judul tiap lembar denah kendaraan. */
+  keterangan?: string | null
+  keterangan2?: string | null
 }) {
   const [data, setData] = useState<Group[] | null>(null)
   const [loading, setLoading] = useState(true)
@@ -215,9 +221,14 @@ export function PublicVwMap({
     <A4Section fit="none">
       <section className="guide-fit-table flex h-full flex-col border border-[#dfe4e8] bg-white px-8 py-5 print:min-h-[272mm]">
         {header}
-        <h2 className="mb-6 mt-12 shrink-0 text-center text-xl font-extrabold uppercase tracking-wide text-[#00A3E0]">
-          Denah Kendaraan
-        </h2>
+        <PublicHeading
+          title={
+            <h2 className="text-xl font-extrabold uppercase tracking-wide text-[#00A3E0]">Denah Kendaraan</h2>
+          }
+          keterangan={keterangan}
+          keterangan2={keterangan2}
+          className="mb-6 mt-12 shrink-0 justify-center"
+        />
         <div className="mx-6 flex min-h-0 flex-1 flex-col">{children}</div>
         {footer}
       </section>
@@ -250,9 +261,16 @@ export function PublicVwMap({
             className="guide-fit-table flex h-full flex-col border border-[#dfe4e8] bg-white px-8 py-5 print:min-h-[272mm]"
           >
             {header}
-            <h2 className="mb-4 mt-10 shrink-0 text-center text-xl font-extrabold uppercase tracking-wide text-[#00A3E0]">
-              {page.section.title}
-            </h2>
+            <PublicHeading
+              title={
+                <h2 className="text-xl font-extrabold uppercase tracking-wide text-[#00A3E0]">
+                  {page.section.title}
+                </h2>
+              }
+              keterangan={keterangan}
+              keterangan2={keterangan2}
+              className="mb-4 mt-10 shrink-0 justify-center"
+            />
             <div className="mx-6 flex min-h-0 flex-1 flex-col">
               <p className="mb-2 flex shrink-0 flex-wrap items-center gap-x-4 gap-y-0.5">
                 <span className="flex items-center gap-1.5 text-xs font-bold text-[#1b3555]">
