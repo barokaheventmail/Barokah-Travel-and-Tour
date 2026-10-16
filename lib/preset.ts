@@ -63,9 +63,9 @@ export function validatePanduanPreset(input: unknown): { data: PanduanPresetData
     data: {
       panduanItinerary: itinerary,
       panduanLogoLeft: toNullableStr(record.panduanLogoLeft),
-      panduanLogoLeft2: toNullableStr(record.panduanLogoLeft2) ?? toNullableStr(record.panduanLogoTopRight),
+      panduanLogoLeft2: toNullableStr(record.panduanLogoLeft2),
       panduanLogoCenter: toNullableStr(record.panduanLogoCenter),
-      panduanLogoRight2: toNullableStr(record.panduanLogoRight2) ?? toNullableStr(record.panduanLogoTopRight2),
+      panduanLogoRight2: toNullableStr(record.panduanLogoRight2),
       panduanLogoRight: toNullableStr(record.panduanLogoRight),
     },
   }
@@ -111,9 +111,9 @@ export function parsePanduanPreset(data: string | null | undefined): PanduanPres
     return {
       panduanItinerary: itinerary,
       panduanLogoLeft: toNullableStr(record.panduanLogoLeft),
-      panduanLogoLeft2: toNullableStr(record.panduanLogoLeft2) ?? toNullableStr(record.panduanLogoTopRight),
+      panduanLogoLeft2: toNullableStr(record.panduanLogoLeft2),
       panduanLogoCenter: toNullableStr(record.panduanLogoCenter),
-      panduanLogoRight2: toNullableStr(record.panduanLogoRight2) ?? toNullableStr(record.panduanLogoTopRight2),
+      panduanLogoRight2: toNullableStr(record.panduanLogoRight2),
       panduanLogoRight: toNullableStr(record.panduanLogoRight),
     }
   }

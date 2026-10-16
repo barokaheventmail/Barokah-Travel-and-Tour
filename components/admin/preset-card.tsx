@@ -80,12 +80,12 @@ function PanduanPreview({ data }: { data: string }) {
 
   const doc = parseItineraryDoc(preset.panduanItinerary)
   const days = groupItineraryByDay(doc.rows, doc.notes, doc.sideNotes)
-  const logos: { label: string; url: string | null }[] = [
-    { label: 'Kiri', url: preset.panduanLogoLeft },
+  const logos: { label: string; url: string | null; bawaan?: boolean }[] = [
+    { label: 'Kiri', url: preset.panduanLogoLeft, bawaan: true },
     { label: 'Kiri 1', url: preset.panduanLogoLeft2 },
     { label: 'Tengah', url: preset.panduanLogoCenter },
     { label: 'Kanan 1', url: preset.panduanLogoRight2 },
-    { label: 'Kanan', url: preset.panduanLogoRight },
+    { label: 'Kanan', url: preset.panduanLogoRight, bawaan: true },
   ]
 
   return (
@@ -103,7 +103,7 @@ function PanduanPreview({ data }: { data: string }) {
                 <img src={logo.url} alt={logo.label} className="h-12 w-full object-contain" />
               ) : (
                 <span className="flex h-12 w-full items-center justify-center text-[10px] font-semibold text-[#b6bdc6]">
-                  Bawaan
+                  {logo.bawaan ? 'Bawaan' : 'Kosong'}
                 </span>
               )}
               <span className="text-[10px] font-bold text-[#657080]">{logo.label}</span>
