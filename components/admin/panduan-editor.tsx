@@ -884,6 +884,8 @@ export function PanduanEditor({
         )}
       </div>
 
+      <PanduanSectionsEditor sections={sections} onChange={setSections} disabled={loading} />
+
       <div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">
         <button
           type="button"
@@ -1085,8 +1087,6 @@ export function PanduanEditor({
           </div>
         )}
       </div>
-
-      <PanduanSectionsEditor sections={sections} onChange={setSections} disabled={loading} />
 
       <div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">
         <div>
