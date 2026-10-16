@@ -45,10 +45,12 @@ function chunk<T>(items: T[], size: number): T[][] {
 
 function RoomColumn({
   rooms,
+  startIndex,
   highlightRoom,
   highlightName,
 }: {
   rooms: Room[]
+  startIndex: number
   highlightRoom?: string | null
   highlightName?: string | null
 }) {
@@ -56,9 +58,10 @@ function RoomColumn({
     <table className="w-full table-fixed border-collapse border border-[#b9c6d2] text-sm sm:text-[15px]">
       <thead>
         <tr className="bg-[#00A3E0] text-[11px] font-bold uppercase tracking-wide text-white sm:text-xs">
-          <th className="w-[15%] border border-[#7fc7e8] px-1.5 py-1.5">No</th>
-          <th className="w-[55%] border border-[#7fc7e8] px-2 py-1.5 text-center">Nama</th>
-          <th className="w-[30%] border border-[#7fc7e8] px-1.5 py-1.5 text-center">Tipe Kamar</th>
+          <th className="w-[8%] border border-[#7fc7e8] px-1.5 py-1.5">No</th>
+          <th className="w-[42%] border border-[#7fc7e8] px-2 py-1.5 text-center">Nama</th>
+          <th className="w-[18%] border border-[#7fc7e8] px-1.5 py-1.5 text-center">No Kamar</th>
+          <th className="w-[32%] border border-[#7fc7e8] px-1.5 py-1.5 text-center">Tipe Kamar</th>
         </tr>
       </thead>
       <tbody>
@@ -76,9 +79,9 @@ function RoomColumn({
                     {j === 0 && (
                       <td
                         rowSpan={members.length}
-                        className="border border-[#cdd8e2] border-t-2 border-t-[#8a99a8] px-1 py-1 text-center align-middle font-bold tabular-nums text-[#1b3555]"
+                        className="border border-[#cdd8e2] border-t-2 border-t-[#8a99a8] px-1 py-1 text-center align-middle font-bold tabular-nums text-[#657080]"
                       >
-                        {group.room}
+                        {startIndex + i + 1}
                       </td>
                     )}
                     <td
@@ -86,6 +89,14 @@ function RoomColumn({
                     >
                       <span className={isMyName ? 'font-bold' : ''}>{member.name}</span>
                     </td>
+                    {j === 0 && (
+                      <td
+                        rowSpan={members.length}
+                        className="border border-[#cdd8e2] border-t-2 border-t-[#8a99a8] px-1 py-1 text-center align-middle font-bold tabular-nums text-[#1b3555]"
+                      >
+                        {group.room}
+                      </td>
+                    )}
                     {j === 0 && (
                       <td
                         rowSpan={members.length}
@@ -192,6 +203,15 @@ export function PublicRoomMap({
   const rooms = data ?? []
   const columns = useMemo(() => packColumns(rooms, ROWS_PER_COLUMN), [rooms])
   const pages = useMemo(() => chunk(columns, COLUMNS_PER_PAGE), [columns])
+  const columnOffsets = useMemo(() => {
+    const offsets: number[] = []
+    let acc = 0
+    for (const column of columns) {
+      offsets.push(acc)
+      acc += column.length
+    }
+    return offsets
+  }, [columns])
 
   const logos = (
     <SectionLogos logoLeft={logoLeft} logoRight={logoRight} topRight={topRight} topRight2={topRight2} />
@@ -205,10 +225,10 @@ export function PublicRoomMap({
   if (loading || rooms.length === 0) {
     return (
       <A4Section fit="none">
-        <section className="guide-fit-table flex h-full flex-col border border-[#dfe4e8] bg-white p-5 print:min-h-[272mm]">
+        <section className="guide-fit-table flex h-full flex-col border border-[#dfe4e8] bg-white px-8 py-5 print:min-h-[272mm]">
           {logos}
           {title}
-          <div className="flex min-h-0 flex-1 flex-col">
+          <div className="mx-6 flex min-h-0 flex-1 flex-col">
             {loading ? (
               <div className="flex items-center justify-center gap-2 rounded-xl bg-[#f8fafc] py-8 text-xs font-semibold text-[#657080]">
                 <Loader2 size={15} className="animate-spin" /> Memuat denah kamar…
@@ -229,10 +249,10 @@ export function PublicRoomMap({
     <>
       {pages.map((pageColumns, pi) => (
         <A4Section key={pi} fit="none">
-          <section className="guide-fit-table flex h-full flex-col border border-[#dfe4e8] bg-white p-5 print:min-h-[272mm]">
+          <section className="guide-fit-table flex h-full flex-col border border-[#dfe4e8] bg-white px-8 py-5 print:min-h-[272mm]">
             {logos}
             {title}
-            <div className="flex min-h-0 flex-1 flex-col">
+            <div className="mx-6 flex min-h-0 flex-1 flex-col">
               <p className="mb-2 flex shrink-0 items-center gap-1.5 text-xs font-bold text-[#1b3555]">
                 <BedDouble size={14} className="text-[#00A3E0]" /> Denah Kamar — Semua Bus
               </p>
@@ -240,10 +260,16 @@ export function PublicRoomMap({
                 <div className="flex items-start gap-4">
                   {[0, 1].map((ci) => {
                     const column = pageColumns[ci]
+                    const globalIndex = pi * COLUMNS_PER_PAGE + ci
                     return (
                       <div key={ci} className="min-w-0 flex-1">
                         {column && (
-                          <RoomColumn rooms={column} highlightRoom={highlightRoom} highlightName={highlightName} />
+                          <RoomColumn
+                            rooms={column}
+                            startIndex={columnOffsets[globalIndex] ?? 0}
+                            highlightRoom={highlightRoom}
+                            highlightName={highlightName}
+                          />
                         )}
                       </div>
                     )
