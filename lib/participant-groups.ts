@@ -141,6 +141,25 @@ export const JEEP_DISPLAY: Record<number, string> = {
   3: 'JEEP BROMO',
 }
 
+/**
+ * Judul Denah VW untuk satu jenis kendaraan. Denah kendaraan ditampilkan
+ * terpisah per jenis (VW / Jeep Paris / Jeep Merapi / Jeep Bromo), sehingga
+ * tiap bagian memakai nama kendaraannya sendiri. Nama VW diambil dari field
+ * "Nama VW" yang diisi admin (atau `vwTitle` bila diisi sebagai override).
+ */
+export function vehicleTypeTitle(
+  rank: number,
+  vwName?: string | null,
+  vwTitle?: string | null,
+): string {
+  if (rank === 0) return (vwTitle ?? '').trim() || (vwName ?? '').trim() || 'VW MAGELANG'
+  return JEEP_DISPLAY[rank] ?? UNASSIGNED_VEHICLE
+}
+
+/**
+ * Nama (utama) kendaraan untuk keperluan judul fallback pita crew / auto-title
+ * admin. Bila event punya VW, dipakai nama VW; kalau tidak, nama jeep pertama.
+ */
 export function vehicleSectionTitle(
   counts: { vw: number; jeepParis: number; jeepMerapi: number; jeepBromo: number },
   vwName?: string | null,

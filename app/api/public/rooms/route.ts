@@ -5,18 +5,27 @@ export async function GET(request: NextRequest) {
   const eventId = (request.nextUrl.searchParams.get('eventId') ?? '').trim().slice(0, 100)
   if (!eventId) return NextResponse.json({ rooms: [] })
 
-  const event = await prisma.event.findUnique({
-    where: { id: eventId },
-    select: { id: true, status: true },
-  })
-  if (!event || event.status !== 'ACTIVE') return NextResponse.json({ rooms: [] })
+  const [event, roomTypeRows] = await Promise.all([
+    prisma.event.findUnique({
+      where: { id: eventId },
+      select: { id: true, status: true },
+    }),
+    prisma.roomType.findMany({
+      where: { eventId },
+      select: { name: true },
+      orderBy: [{ order: 'asc' }, { createdAt: 'asc' }],
+    }),
+  ])
+  if (!event || event.status !== 'ACTIVE') return NextResponse.json({ rooms: [], roomTypes: [] })
+
+  const roomTypes = roomTypeRows.map((r) => r.name.trim()).filter((name) => name.length > 0)
 
   const buses = await prisma.bus.findMany({
     where: { eventId },
     select: { id: true, name: true },
     orderBy: { order: 'asc' },
   })
-  if (buses.length === 0) return NextResponse.json({ rooms: [] })
+  if (buses.length === 0) return NextResponse.json({ rooms: [], roomTypes })
 
   const busOrder = new Map(buses.map((b, i) => [b.id, i]))
   const busName = new Map(buses.map((b) => [b.id, b.name]))
@@ -64,5 +73,5 @@ export async function GET(request: NextRequest) {
       return a.room.localeCompare(b.room, undefined, { numeric: true })
     })
 
-  return NextResponse.json({ rooms }, { headers: { 'Cache-Control': 'no-store' } })
+  return NextResponse.json({ rooms, roomTypes }, { headers: { 'Cache-Control': 'no-store' } })
 }

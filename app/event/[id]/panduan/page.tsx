@@ -602,7 +602,7 @@ export default async function EventPanduanPage({
     'vw-map': hasVehicles ? (
       <PublicVwMap
         eventId={id}
-        title={vehicleTitle}
+        vwName={vehicleTitle}
         header={
           <SectionLogos
             logoLeft={logoLeftUrl}
