@@ -128,11 +128,20 @@ Prisma membuka pool koneksi sesuai jumlah CPU tanpa opsi ini.
 ### 3. Build & jalankan
 ```bash
 pnpm install
-pnpm build        # prisma generate && prisma migrate deploy && next build
+pnpm db:deploy    # prisma migrate deploy — jalankan sekali / saat ada migrasi baru
+pnpm build        # prisma generate && next build  (tanpa koneksi migrasi)
 pnpm start        # atau PM2/systemd (lihat release.sh)
 ```
-`prisma migrate deploy` membuat seluruh tabel di database baru (migrasi sudah
-tersedia di `prisma/migrations/`).
+**Penting:** `prisma migrate deploy` **sengaja tidak lagi dijalankan pada setiap
+build**. Hostinger membatasi `max_connections_per_hour` (default 500) — menjalankan
+migrasi tiap deploy membuat build gagal dengan
+`has exceeded the 'max_connections_per_hour' resource`. Jalankan migrasi terpisah
+lewat `pnpm db:deploy` hanya saat ada migrasi baru. Kalau build di panel hosting
+hanya bisa menjalankan satu perintah, pakai `pnpm run build:deploy` (build termasuk
+migrasi) dan set kembali ke `pnpm run build` setelah migrasi selesai.
+
+Kalau kena limit itu: tunggu ±1 jam sampai kuota Hostinger ter-reset, lalu deploy
+ulang. Batas koneksi juga bisa dinaikkan di hPanel (MySQL → user database).
 
 ### 4. Pindahkan data dari Supabase
 Kalau database Supabase masih menjadi sumber data (event, peserta, absensi),

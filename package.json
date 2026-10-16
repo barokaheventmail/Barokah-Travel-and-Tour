@@ -5,7 +5,8 @@
   "packageManager": "pnpm@10.15.0",
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && prisma migrate deploy && next build --webpack",
+    "build": "prisma generate && next build --webpack",
+    "build:deploy": "prisma generate && prisma migrate deploy && next build --webpack",
     "start": "next start",
     "db:up": "docker compose up -d",
     "db:migrate": "prisma migrate dev",
