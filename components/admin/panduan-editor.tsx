@@ -13,6 +13,8 @@ import type { PanduanPresetOption } from '@/lib/preset'
 
 type DayRows = Pick<ItineraryRow, 'time' | 'agenda' | 'bold' | 'italic'>[]
 
+type LogoSlot = 'left' | 'left2' | 'center' | 'right2' | 'right'
+
 const pad2 = (v: string) => (v.length === 1 ? `0${v}` : v)
 const toDisplay = (value: string) => value.replace(':', '.')
 const toDigits = (value: string) => value.replace(/\D/g, '').slice(0, 4)
@@ -176,9 +178,10 @@ export function PanduanEditor({
   initialDenahVwCrewRole,
   initialDenahVwCrewPhotoUrl,
   initialLogoLeft,
+  initialLogoLeft2,
+  initialLogoCenter,
+  initialLogoRight2,
   initialLogoRight,
-  initialLogoTopRight,
-  initialLogoTopRight2,
 }: {
   eventId: string
   eventTitle: string
@@ -198,9 +201,10 @@ export function PanduanEditor({
   initialDenahVwCrewRole: string
   initialDenahVwCrewPhotoUrl: string | null
   initialLogoLeft: string | null
+  initialLogoLeft2: string | null
+  initialLogoCenter: string | null
+  initialLogoRight2: string | null
   initialLogoRight: string | null
-  initialLogoTopRight: string | null
-  initialLogoTopRight2: string | null
 }) {
   const router = useRouter()
   const initialDayGroups = useMemo(() => {
@@ -235,16 +239,18 @@ export function PanduanEditor({
   const [uploadingDenahVwPhoto, setUploadingDenahVwPhoto] = useState(false)
   const [denahVwCrewBusy, setDenahVwCrewBusy] = useState(false)
   const [logoLeft, setLogoLeft] = useState<string | null>(initialLogoLeft)
+  const [logoLeft2, setLogoLeft2] = useState<string | null>(initialLogoLeft2)
+  const [logoCenter, setLogoCenter] = useState<string | null>(initialLogoCenter)
+  const [logoRight2, setLogoRight2] = useState<string | null>(initialLogoRight2)
   const [logoRight, setLogoRight] = useState<string | null>(initialLogoRight)
-  const [logoTopRight, setLogoTopRight] = useState<string | null>(initialLogoTopRight)
-  const [logoTopRight2, setLogoTopRight2] = useState<string | null>(initialLogoTopRight2)
-  const [uploadingLogo, setUploadingLogo] = useState<'left' | 'right' | 'topright' | 'topright2' | null>(null)
+  const [uploadingLogo, setUploadingLogo] = useState<LogoSlot | null>(null)
 
-  const setLogoBySlot = (slot: 'left' | 'right' | 'topright' | 'topright2') => (url: string | null) => {
+  const setLogoBySlot = (slot: LogoSlot) => (url: string | null) => {
     if (slot === 'left') setLogoLeft(url)
-    else if (slot === 'right') setLogoRight(url)
-    else if (slot === 'topright') setLogoTopRight(url)
-    else setLogoTopRight2(url)
+    else if (slot === 'left2') setLogoLeft2(url)
+    else if (slot === 'center') setLogoCenter(url)
+    else if (slot === 'right2') setLogoRight2(url)
+    else setLogoRight(url)
   }
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState<{ kind: 'ok' | 'err'; msg: string } | null>(null)
@@ -381,9 +387,10 @@ export function PanduanEditor({
           panduanRules: serializePanduanRules(rules),
           panduanSections: serializePanduanSections(sections),
           panduanLogoLeft: logoLeft,
+          panduanLogoLeft2: logoLeft2,
+          panduanLogoCenter: logoCenter,
+          panduanLogoRight2: logoRight2,
           panduanLogoRight: logoRight,
-          panduanLogoTopRight: logoTopRight,
-          panduanLogoTopRight2: logoTopRight2,
         }),
       })
       const data = await res.json()
@@ -421,8 +428,9 @@ export function PanduanEditor({
     setFooterNote(doc.footerNote)
     setLogoLeft(preset.panduanLogoLeft)
     setLogoRight(preset.panduanLogoRight)
-    setLogoTopRight(preset.panduanLogoTopRight)
-    setLogoTopRight2(preset.panduanLogoTopRight2)
+    setLogoLeft2(preset.panduanLogoLeft2)
+    setLogoCenter(preset.panduanLogoCenter)
+    setLogoRight2(preset.panduanLogoRight2)
     setStatus({ kind: 'ok', msg: `Preset "${preset.name}" dimuat. Tinjau lalu klik Simpan Panduan.` })
   }
 
@@ -444,9 +452,10 @@ export function PanduanEditor({
           data: {
             panduanItinerary: buildItinerary(),
             panduanLogoLeft: logoLeft,
+            panduanLogoLeft2: logoLeft2,
+            panduanLogoCenter: logoCenter,
+            panduanLogoRight2: logoRight2,
             panduanLogoRight: logoRight,
-            panduanLogoTopRight: logoTopRight,
-            panduanLogoTopRight2: logoTopRight2,
           },
         }),
       })
@@ -514,7 +523,7 @@ export function PanduanEditor({
     }
   }
 
-  async function uploadLogo(slot: 'left' | 'right' | 'topright' | 'topright2', file: File) {
+  async function uploadLogo(slot: LogoSlot, file: File) {
     if (!/^image\/(jpeg|png|webp)$/.test(file.type)) {
       setStatus({ kind: 'err', msg: 'Hanya mendukung gambar JPG, PNG, atau WebP.' })
       return
@@ -538,7 +547,7 @@ export function PanduanEditor({
     }
   }
 
-  async function removeLogo(slot: 'left' | 'right' | 'topright' | 'topright2') {
+  async function removeLogo(slot: LogoSlot) {
     setUploadingLogo(slot)
     setStatus(null)
     try {
@@ -887,6 +896,83 @@ export function PanduanEditor({
       <PanduanSectionsEditor sections={sections} onChange={setSections} disabled={loading} />
 
       <div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">
+        <div>
+          <h2 className="text-sm font-bold text-[#1b3555]">Logo Kepala Halaman</h2>
+          <p className="mt-0.5 text-xs text-[#657080]">
+            Logo di kepala setiap halaman panduan. Urutan tampil: kiri → kiri 1 → tengah → kanan 1 → kanan. Kosongkan
+            (Reset) untuk memakai bawaan / tidak menampilkan.
+          </p>
+        </div>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          {(
+            [
+              { slot: 'left', label: 'Kiri', fallback: '/Logo%20Asita.png' },
+              { slot: 'left2', label: 'Kiri 1', fallback: null },
+              { slot: 'center', label: 'Tengah', fallback: null },
+              { slot: 'right2', label: 'Kanan 1', fallback: null },
+              { slot: 'right', label: 'Kanan', fallback: '/Logo%20siluet%20barokah%20tour.png' },
+            ] as const
+          ).map(({ slot, label, fallback }) => {
+            const url =
+              slot === 'left'
+                ? logoLeft
+                : slot === 'left2'
+                  ? logoLeft2
+                  : slot === 'center'
+                    ? logoCenter
+                    : slot === 'right2'
+                      ? logoRight2
+                      : logoRight
+            const preview = url ?? fallback
+            const busy = uploadingLogo === slot
+            return (
+              <div key={slot} className="flex items-center gap-3 rounded-lg border border-[#e8ecf1] bg-white p-3">
+                <div className="flex h-12 w-24 shrink-0 items-center justify-center overflow-hidden rounded-md border border-[#eef1f4]">
+                  {preview ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img src={preview} alt={`Logo ${label}`} className="max-h-full max-w-full object-contain" />
+                  ) : (
+                    <span className="text-[10px] text-[#9aa3af]">Kosong</span>
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] font-bold text-[#1b3555]">Logo {label}</p>
+                  <p className="text-[10px] text-[#9aa3af]">{url ? 'Kustom' : fallback ? 'Bawaan' : 'Kosong'}</p>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                    <label className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-[#dfe4e8] px-3 py-1.5 text-[11px] font-bold text-[#1b4f9c] transition-colors hover:bg-[#eef4fb]">
+                      {busy ? <Loader2 size={11} className="animate-spin" /> : null}
+                      {busy ? 'Mengunggah…' : 'Unggah'}
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        className="hidden"
+                        disabled={busy}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0]
+                          if (file) uploadLogo(slot, file)
+                          e.target.value = ''
+                        }}
+                      />
+                    </label>
+                    {url && (
+                      <button
+                        type="button"
+                        onClick={() => removeLogo(slot)}
+                        disabled={busy}
+                        className="text-[11px] font-bold text-red-600 hover:underline disabled:opacity-60"
+                      >
+                        Reset
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">
         <button
           type="button"
           onClick={() => setTataTertibOpen((o) => !o)}
@@ -1094,72 +1180,6 @@ export function PanduanEditor({
           <p className="mt-0.5 text-xs text-[#657080]">
             {dayBlocks.length} hari · {dayBlocks.reduce((n, rows) => n + rows.length, 0)} agenda
           </p>
-        </div>
-
-        <div className="mt-4 rounded-xl border border-[#e8ecf1] bg-[#fbfcfe] p-4">
-          <p className="text-xs font-bold text-[#1b3555]">Logo Kepala Itinerary</p>
-          <p className="mt-0.5 text-[11px] text-[#657080]">
-            Logo Asita tampil di kiri atas, sedangkan Logo Barokah Tour tampil di pojok paling kanan atas (didahului
-            Logo Partner 1 &amp; 2). Kosongkan (Reset) untuk memakai bawaan / tidak menampilkan.
-          </p>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2">
-            {(
-              [
-                { slot: 'left', label: 'Asita', fallback: '/Logo%20Asita.png' },
-                { slot: 'right', label: 'Barokah Tour', fallback: '/Logo%20siluet%20barokah%20tour.png' },
-                { slot: 'topright', label: 'Partner 1', fallback: null },
-                { slot: 'topright2', label: 'Partner 2', fallback: null },
-              ] as const
-            ).map(({ slot, label, fallback }) => {
-              const url =
-                slot === 'left' ? logoLeft : slot === 'right' ? logoRight : slot === 'topright' ? logoTopRight : logoTopRight2
-              const preview = url ?? fallback
-              const busy = uploadingLogo === slot
-              return (
-                <div key={slot} className="flex items-center gap-3 rounded-lg border border-[#e8ecf1] bg-white p-3">
-                  <div className="flex h-12 w-24 shrink-0 items-center justify-center overflow-hidden rounded-md border border-[#eef1f4]">
-                    {preview ? (
-                      /* eslint-disable-next-line @next/next/no-img-element */
-                      <img src={preview} alt={`Logo ${label}`} className="max-h-full max-w-full object-contain" />
-                    ) : (
-                      <span className="text-[10px] text-[#9aa3af]">Kosong</span>
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[11px] font-bold text-[#1b3555]">Logo {label}</p>
-                    <p className="text-[10px] text-[#9aa3af]">{url ? 'Kustom' : fallback ? 'Bawaan' : 'Kosong'}</p>
-                    <div className="mt-1.5 flex flex-wrap items-center gap-2">
-                      <label className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-[#dfe4e8] px-3 py-1.5 text-[11px] font-bold text-[#1b4f9c] transition-colors hover:bg-[#eef4fb]">
-                        {busy ? <Loader2 size={11} className="animate-spin" /> : null}
-                        {busy ? 'Mengunggah…' : 'Unggah'}
-                        <input
-                          type="file"
-                          accept="image/jpeg,image/png,image/webp"
-                          className="hidden"
-                          disabled={busy}
-                          onChange={(e) => {
-                            const file = e.target.files?.[0]
-                            if (file) uploadLogo(slot, file)
-                            e.target.value = ''
-                          }}
-                        />
-                      </label>
-                      {url && (
-                        <button
-                          type="button"
-                          onClick={() => removeLogo(slot)}
-                          disabled={busy}
-                          className="text-[11px] font-bold text-red-600 hover:underline disabled:opacity-60"
-                        >
-                          Reset
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
         </div>
 
         {dayBlocks.length === 0 ? (

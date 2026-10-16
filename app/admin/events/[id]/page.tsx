@@ -89,9 +89,10 @@ export default async function EventDetail({
           name: p.name,
           panduanItinerary: data.panduanItinerary,
           panduanLogoLeft: data.panduanLogoLeft,
+          panduanLogoLeft2: data.panduanLogoLeft2,
+          panduanLogoCenter: data.panduanLogoCenter,
+          panduanLogoRight2: data.panduanLogoRight2,
           panduanLogoRight: data.panduanLogoRight,
-          panduanLogoTopRight: data.panduanLogoTopRight,
-          panduanLogoTopRight2: data.panduanLogoTopRight2,
         },
       ]
     })
@@ -340,9 +341,10 @@ export default async function EventDetail({
           initialDenahVwCrewRole={event.denahVwCrewRole ?? ''}
           initialDenahVwCrewPhotoUrl={event.denahVwCrewPhotoUrl ?? null}
           initialLogoLeft={event.panduanLogoLeft ?? null}
+          initialLogoLeft2={event.panduanLogoLeft2 ?? null}
+          initialLogoCenter={event.panduanLogoCenter ?? null}
+          initialLogoRight2={event.panduanLogoRight2 ?? null}
           initialLogoRight={event.panduanLogoRight ?? null}
-          initialLogoTopRight={event.panduanLogoTopRight ?? null}
-          initialLogoTopRight2={event.panduanLogoTopRight2 ?? null}
         />
       )}
 

@@ -83,11 +83,17 @@ model Event {
   vwName               String     @default("VW MAGELANG") @db.VarChar(191)
   // Judul bagian Denah VW (menimpa judul otomatis). Null/kosong = otomatis.
   vwTitle              String?    @db.VarChar(191)
-  // Logo di kepala bagian "Itinerary Perjalanan" pada panduan. Null =
-  // memakai gambar bawaan (kiri: Logo Asita.png, kanan: Logo siluet barokah tour.png).
-  panduanLogoLeft  String? @db.VarChar(500)
-  panduanLogoRight String? @db.VarChar(500)
-  // Logo opsional di pojok kanan atas section (null = kosong/tidak tampil).
+  // Logo di kepala halaman panduan (general, dipakai di semua section). Urutan
+  // tampil: kiri → kiri 1 → tengah → kanan 1 → kanan. Null = memakai gambar
+  // bawaan untuk kiri (Logo Asita.png) & kanan (siluet barokah tour.png); slot
+  // lain kosong/tidak tampil.
+  panduanLogoLeft   String? @db.VarChar(500)
+  panduanLogoLeft2  String? @db.VarChar(500)
+  panduanLogoCenter String? @db.VarChar(500)
+  panduanLogoRight2 String? @db.VarChar(500)
+  panduanLogoRight  String? @db.VarChar(500)
+  // Legacy: logo partner di pojok kanan atas (digantikan panduanLogoLeft2 &
+  // panduanLogoRight2). Tetap disimpan untuk kompatibilitas data lama.
   panduanLogoTopRight  String? @db.VarChar(500)
   panduanLogoTopRight2 String? @db.VarChar(500)
   createdAt DateTime    @default(now())

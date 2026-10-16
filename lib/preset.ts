@@ -10,9 +10,10 @@ export const PRESET_MAX_NAME = 200
 export type PanduanPresetData = {
   panduanItinerary: string
   panduanLogoLeft: string | null
+  panduanLogoLeft2: string | null
+  panduanLogoCenter: string | null
+  panduanLogoRight2: string | null
   panduanLogoRight: string | null
-  panduanLogoTopRight: string | null
-  panduanLogoTopRight2: string | null
 }
 
 export type KursiPresetData = {
@@ -62,9 +63,10 @@ export function validatePanduanPreset(input: unknown): { data: PanduanPresetData
     data: {
       panduanItinerary: itinerary,
       panduanLogoLeft: toNullableStr(record.panduanLogoLeft),
+      panduanLogoLeft2: toNullableStr(record.panduanLogoLeft2) ?? toNullableStr(record.panduanLogoTopRight),
+      panduanLogoCenter: toNullableStr(record.panduanLogoCenter),
+      panduanLogoRight2: toNullableStr(record.panduanLogoRight2) ?? toNullableStr(record.panduanLogoTopRight2),
       panduanLogoRight: toNullableStr(record.panduanLogoRight),
-      panduanLogoTopRight: toNullableStr(record.panduanLogoTopRight),
-      panduanLogoTopRight2: toNullableStr(record.panduanLogoTopRight2),
     },
   }
 }
@@ -109,9 +111,10 @@ export function parsePanduanPreset(data: string | null | undefined): PanduanPres
     return {
       panduanItinerary: itinerary,
       panduanLogoLeft: toNullableStr(record.panduanLogoLeft),
+      panduanLogoLeft2: toNullableStr(record.panduanLogoLeft2) ?? toNullableStr(record.panduanLogoTopRight),
+      panduanLogoCenter: toNullableStr(record.panduanLogoCenter),
+      panduanLogoRight2: toNullableStr(record.panduanLogoRight2) ?? toNullableStr(record.panduanLogoTopRight2),
       panduanLogoRight: toNullableStr(record.panduanLogoRight),
-      panduanLogoTopRight: toNullableStr(record.panduanLogoTopRight),
-      panduanLogoTopRight2: toNullableStr(record.panduanLogoTopRight2),
     }
   }
   return validation.data
@@ -132,7 +135,7 @@ export function presetSummary(kind: PresetKindId, data: string | null | undefine
     const doc = parseItineraryDoc(parsed.panduanItinerary)
     const days = groupItineraryByDay(doc.rows, doc.notes, doc.sideNotes)
     const agenda = doc.rows.length
-    const logos = [parsed.panduanLogoLeft, parsed.panduanLogoRight, parsed.panduanLogoTopRight, parsed.panduanLogoTopRight2].filter(Boolean).length
+    const logos = [parsed.panduanLogoLeft, parsed.panduanLogoLeft2, parsed.panduanLogoCenter, parsed.panduanLogoRight2, parsed.panduanLogoRight].filter(Boolean).length
     return {
       primary: `${days.length} hari · ${agenda} agenda`,
       secondary: logos > 0 ? `${logos} logo kustom` : 'Logo bawaan',

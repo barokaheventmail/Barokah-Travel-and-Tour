@@ -6,17 +6,31 @@ import { prisma } from '@/lib/db'
 import { logger } from '@/lib/logger'
 
 type Params = { params: Promise<{ id: string }> }
-type Slot = 'left' | 'right' | 'topright' | 'topright2'
+type Slot = 'left' | 'left2' | 'center' | 'right2' | 'right' | 'topright' | 'topright2'
 
-const SLOT_FIELDS: Record<Slot, 'panduanLogoLeft' | 'panduanLogoRight' | 'panduanLogoTopRight' | 'panduanLogoTopRight2'> = {
+type LogoField =
+  | 'panduanLogoLeft'
+  | 'panduanLogoLeft2'
+  | 'panduanLogoCenter'
+  | 'panduanLogoRight2'
+  | 'panduanLogoRight'
+  | 'panduanLogoTopRight'
+  | 'panduanLogoTopRight2'
+
+const SLOT_FIELDS: Record<Slot, LogoField> = {
   left: 'panduanLogoLeft',
+  left2: 'panduanLogoLeft2',
+  center: 'panduanLogoCenter',
+  right2: 'panduanLogoRight2',
   right: 'panduanLogoRight',
   topright: 'panduanLogoTopRight',
   topright2: 'panduanLogoTopRight2',
 }
 
+const SLOTS = Object.keys(SLOT_FIELDS) as Slot[]
+
 function parseSlot(value: unknown): Slot | null {
-  return value === 'left' || value === 'right' || value === 'topright' || value === 'topright2' ? value : null
+  return typeof value === 'string' && (SLOTS as string[]).includes(value) ? (value as Slot) : null
 }
 
 const ALLOWED = new Map<string, string>([
@@ -51,7 +65,16 @@ export async function POST(request: NextRequest, { params }: Params) {
 
   const event = await prisma.event.findUnique({
     where: { id },
-    select: { id: true, panduanLogoLeft: true, panduanLogoRight: true, panduanLogoTopRight: true, panduanLogoTopRight2: true },
+    select: {
+      id: true,
+      panduanLogoLeft: true,
+      panduanLogoLeft2: true,
+      panduanLogoCenter: true,
+      panduanLogoRight2: true,
+      panduanLogoRight: true,
+      panduanLogoTopRight: true,
+      panduanLogoTopRight2: true,
+    },
   })
   if (!event) return NextResponse.json({ error: 'Event tidak ditemukan.' }, { status: 404 })
 
@@ -116,7 +139,16 @@ export async function DELETE(request: NextRequest, { params }: Params) {
 
   const event = await prisma.event.findUnique({
     where: { id },
-    select: { id: true, panduanLogoLeft: true, panduanLogoRight: true, panduanLogoTopRight: true, panduanLogoTopRight2: true },
+    select: {
+      id: true,
+      panduanLogoLeft: true,
+      panduanLogoLeft2: true,
+      panduanLogoCenter: true,
+      panduanLogoRight2: true,
+      panduanLogoRight: true,
+      panduanLogoTopRight: true,
+      panduanLogoTopRight2: true,
+    },
   })
   if (!event) return NextResponse.json({ error: 'Event tidak ditemukan.' }, { status: 404 })
 

@@ -148,6 +148,9 @@ export function PublicRoomMap({
   highlightRoom,
   highlightName,
   logoLeft,
+  logoLeft2,
+  logoCenter,
+  logoRight2,
   logoRight,
   topRight,
   topRight2,
@@ -159,6 +162,9 @@ export function PublicRoomMap({
   highlightName?: string | null
   logoLeft: string
   logoRight: string
+  logoLeft2?: string | null
+  logoCenter?: string | null
+  logoRight2?: string | null
   topRight: string | null
   topRight2: string | null
   crewName: string | null
@@ -214,7 +220,7 @@ export function PublicRoomMap({
   }, [columns])
 
   const logos = (
-    <SectionLogos logoLeft={logoLeft} logoRight={logoRight} topRight={topRight} topRight2={topRight2} />
+    <SectionLogos logoLeft={logoLeft} logoRight={logoRight} logoLeft2={logoLeft2} logoCenter={logoCenter} logoRight2={logoRight2} topRight={topRight} topRight2={topRight2} />
   )
   const title = (
     <h2 className="mb-6 mt-12 shrink-0 text-center text-xl font-extrabold uppercase tracking-wide text-[#00A3E0]">

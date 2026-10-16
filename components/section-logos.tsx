@@ -1,26 +1,41 @@
 export function SectionLogos({
   logoLeft,
+  logoLeft2,
+  logoCenter,
+  logoRight2,
   logoRight,
   topRight,
   topRight2,
 }: {
   logoLeft: string
   logoRight: string
-  topRight: string | null
-  topRight2: string | null
+  logoLeft2?: string | null
+  logoCenter?: string | null
+  logoRight2?: string | null
+  topRight?: string | null
+  topRight2?: string | null
 }) {
+  // Fallback ke kolom lama (pojok kanan atas) supaya data sebelum migrasi tetap tampil.
+  const left2 = logoLeft2 ?? topRight ?? null
+  const right2 = logoRight2 ?? topRight2 ?? null
   return (
-    <div className="mb-4 flex items-start justify-between gap-3">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={logoLeft} alt="Logo Asita" className="h-20 w-auto object-contain" />
-      <div className="flex items-center gap-3">
-        {topRight && (
+    <div className="mb-4 flex items-center justify-between gap-3">
+      <div className="flex flex-1 items-center gap-3">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={logoLeft} alt="Logo Asita" className="h-20 w-auto object-contain" />
+        {left2 && (
           /* eslint-disable-next-line @next/next/no-img-element */
-          <img src={topRight} alt="Logo" className="h-20 w-auto object-contain" />
+          <img src={left2} alt="Logo" className="h-20 w-auto object-contain" />
         )}
-        {topRight2 && (
+      </div>
+      {logoCenter && (
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img src={logoCenter} alt="Logo tengah" className="h-20 w-auto object-contain" />
+      )}
+      <div className="flex flex-1 items-center justify-end gap-3">
+        {right2 && (
           /* eslint-disable-next-line @next/next/no-img-element */
-          <img src={topRight2} alt="Logo" className="h-20 w-auto object-contain" />
+          <img src={right2} alt="Logo" className="h-20 w-auto object-contain" />
         )}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={logoRight} alt="Logo Siluet Barokah Tour" className="-mr-5 -mt-5 h-24 w-auto object-contain" />

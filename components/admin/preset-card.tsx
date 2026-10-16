@@ -81,10 +81,11 @@ function PanduanPreview({ data }: { data: string }) {
   const doc = parseItineraryDoc(preset.panduanItinerary)
   const days = groupItineraryByDay(doc.rows, doc.notes, doc.sideNotes)
   const logos: { label: string; url: string | null }[] = [
-    { label: 'Logo kiri', url: preset.panduanLogoLeft },
-    { label: 'Logo kanan', url: preset.panduanLogoRight },
-    { label: 'Kanan atas 1', url: preset.panduanLogoTopRight },
-    { label: 'Kanan atas 2', url: preset.panduanLogoTopRight2 },
+    { label: 'Kiri', url: preset.panduanLogoLeft },
+    { label: 'Kiri 1', url: preset.panduanLogoLeft2 },
+    { label: 'Tengah', url: preset.panduanLogoCenter },
+    { label: 'Kanan 1', url: preset.panduanLogoRight2 },
+    { label: 'Kanan', url: preset.panduanLogoRight },
   ]
 
   return (

@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
           p.kind === 'PANDUAN'
             ? (() => {
                 const d = parsePanduanPreset(p.data)
-                return d ? { itinerary: d.panduanItinerary, logos: [d.panduanLogoLeft, d.panduanLogoRight, d.panduanLogoTopRight, d.panduanLogoTopRight2] } : null
+                return d ? { itinerary: d.panduanItinerary, logos: [d.panduanLogoLeft, d.panduanLogoLeft2, d.panduanLogoCenter, d.panduanLogoRight2, d.panduanLogoRight] } : null
               })()
             : (() => {
                 const d = parseKursiPreset(p.data)

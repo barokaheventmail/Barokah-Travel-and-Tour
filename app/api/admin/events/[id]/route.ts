@@ -43,7 +43,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Data tidak valid' }, { status: 400 })
   }
 
-  const { title, date, dateEnd, location, status, note, panduanItinerary, panduanRules, panduanSections, crewName, crewPhone, crewRole, crewPhotoUrl, crewList, denahKamarCrewName, denahKamarCrewRole, denahKamarCrewPhotoUrl, denahVwCrewName, denahVwCrewRole, denahVwCrewPhotoUrl, panduanLogoLeft, panduanLogoRight, panduanLogoTopRight, panduanLogoTopRight2, vwName, vwTitle } = parsed.data
+  const { title, date, dateEnd, location, status, note, panduanItinerary, panduanRules, panduanSections, crewName, crewPhone, crewRole, crewPhotoUrl, crewList, denahKamarCrewName, denahKamarCrewRole, denahKamarCrewPhotoUrl, denahVwCrewName, denahVwCrewRole, denahVwCrewPhotoUrl, panduanLogoLeft, panduanLogoLeft2, panduanLogoCenter, panduanLogoRight2, panduanLogoRight, panduanLogoTopRight, panduanLogoTopRight2, vwName, vwTitle } = parsed.data
 
   const data: Prisma.EventUpdateInput = {}
   if (title !== undefined) data.title = title
@@ -93,6 +93,9 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   if (denahVwCrewRole !== undefined) data.denahVwCrewRole = denahVwCrewRole || null
   if (denahVwCrewPhotoUrl !== undefined) data.denahVwCrewPhotoUrl = denahVwCrewPhotoUrl || null
   if (panduanLogoLeft !== undefined) data.panduanLogoLeft = panduanLogoLeft || null
+  if (panduanLogoLeft2 !== undefined) data.panduanLogoLeft2 = panduanLogoLeft2 || null
+  if (panduanLogoCenter !== undefined) data.panduanLogoCenter = panduanLogoCenter || null
+  if (panduanLogoRight2 !== undefined) data.panduanLogoRight2 = panduanLogoRight2 || null
   if (panduanLogoRight !== undefined) data.panduanLogoRight = panduanLogoRight || null
   if (panduanLogoTopRight !== undefined) data.panduanLogoTopRight = panduanLogoTopRight || null
   if (panduanLogoTopRight2 !== undefined) data.panduanLogoTopRight2 = panduanLogoTopRight2 || null

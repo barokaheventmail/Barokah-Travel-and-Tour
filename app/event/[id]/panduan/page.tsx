@@ -66,12 +66,18 @@ function CustomPanduanSection({
   section,
   logoLeft,
   logoRight,
+  logoLeft2,
+  logoCenter,
+  logoRight2,
   topRight,
   topRight2,
 }: {
   section: CustomSectionItem
   logoLeft: string
   logoRight: string
+  logoLeft2: string | null
+  logoCenter: string | null
+  logoRight2: string | null
   topRight: string | null
   topRight2: string | null
 }) {
@@ -80,7 +86,7 @@ function CustomPanduanSection({
   return (
     <A4Section>
       <section className="print-avoid-break space-y-6 rounded-[0.8rem] border border-[#dfe4e8] bg-white p-5 print:break-after-page print:min-h-[272mm]">
-        <SectionLogos logoLeft={logoLeft} logoRight={logoRight} topRight={topRight} topRight2={topRight2} />
+        <SectionLogos logoLeft={logoLeft} logoRight={logoRight} logoLeft2={logoLeft2} logoCenter={logoCenter} logoRight2={logoRight2} topRight={topRight} topRight2={topRight2} />
         <div data-a4-body className="flow-root">
           <PanduanHeading>{section.title || 'Catatan'}</PanduanHeading>
           <div className={twoColumns ? 'mt-6 grid grid-cols-2 gap-x-8 gap-y-2.5' : 'mt-6 space-y-2.5'}>
@@ -117,7 +123,7 @@ function CustomPanduanSection({
 async function getEvent(id: string) {
   return prisma.event.findUnique({
     where: { id },
-    select: { id: true, title: true, date: true, dateEnd: true, location: true, vwName: true, vwTitle: true, panduanItinerary: true, panduanRules: true, panduanSections: true, crewName: true, crewPhone: true, crewRole: true, crewPhotoUrl: true, crewList: true, denahKamarCrewName: true, denahKamarCrewRole: true, denahKamarCrewPhotoUrl: true, denahVwCrewName: true, denahVwCrewRole: true, denahVwCrewPhotoUrl: true, panduanLogoLeft: true, panduanLogoRight: true, panduanLogoTopRight: true, panduanLogoTopRight2: true },
+    select: { id: true, title: true, date: true, dateEnd: true, location: true, vwName: true, vwTitle: true, panduanItinerary: true, panduanRules: true, panduanSections: true, crewName: true, crewPhone: true, crewRole: true, crewPhotoUrl: true, crewList: true, denahKamarCrewName: true, denahKamarCrewRole: true, denahKamarCrewPhotoUrl: true, denahVwCrewName: true, denahVwCrewRole: true, denahVwCrewPhotoUrl: true, panduanLogoLeft: true, panduanLogoLeft2: true, panduanLogoCenter: true, panduanLogoRight2: true, panduanLogoRight: true, panduanLogoTopRight: true, panduanLogoTopRight2: true },
   })
 }
 
@@ -202,6 +208,9 @@ export default async function EventPanduanPage({
               <SectionLogos
                 logoLeft={logoLeftUrl}
                 logoRight={logoRightUrl}
+                logoLeft2={event.panduanLogoLeft2}
+                logoCenter={event.panduanLogoCenter}
+                logoRight2={event.panduanLogoRight2}
                 topRight={event.panduanLogoTopRight}
                 topRight2={event.panduanLogoTopRight2}
               />
@@ -257,6 +266,9 @@ export default async function EventPanduanPage({
               <SectionLogos
                 logoLeft={logoLeftUrl}
                 logoRight={logoRightUrl}
+                logoLeft2={event.panduanLogoLeft2}
+                logoCenter={event.panduanLogoCenter}
+                logoRight2={event.panduanLogoRight2}
                 topRight={event.panduanLogoTopRight}
                 topRight2={event.panduanLogoTopRight2}
               />
@@ -346,6 +358,9 @@ export default async function EventPanduanPage({
               <SectionLogos
                 logoLeft={logoLeftUrl}
                 logoRight={logoRightUrl}
+                logoLeft2={event.panduanLogoLeft2}
+                logoCenter={event.panduanLogoCenter}
+                logoRight2={event.panduanLogoRight2}
                 topRight={event.panduanLogoTopRight}
                 topRight2={event.panduanLogoTopRight2}
               />
@@ -431,6 +446,9 @@ export default async function EventPanduanPage({
               <SectionLogos
                 logoLeft={logoLeftUrl}
                 logoRight={logoRightUrl}
+                logoLeft2={event.panduanLogoLeft2}
+                logoCenter={event.panduanLogoCenter}
+                logoRight2={event.panduanLogoRight2}
                 topRight={event.panduanLogoTopRight}
                 topRight2={event.panduanLogoTopRight2}
               />
@@ -508,6 +526,9 @@ export default async function EventPanduanPage({
                     <SectionLogos
                       logoLeft={logoLeftUrl}
                       logoRight={logoRightUrl}
+                      logoLeft2={event.panduanLogoLeft2}
+                      logoCenter={event.panduanLogoCenter}
+                      logoRight2={event.panduanLogoRight2}
                       topRight={event.panduanLogoTopRight}
                       topRight2={event.panduanLogoTopRight2}
                     />
@@ -527,6 +548,9 @@ export default async function EventPanduanPage({
               <SectionLogos
                 logoLeft={logoLeftUrl}
                 logoRight={logoRightUrl}
+                logoLeft2={event.panduanLogoLeft2}
+                logoCenter={event.panduanLogoCenter}
+                logoRight2={event.panduanLogoRight2}
                 topRight={event.panduanLogoTopRight}
                 topRight2={event.panduanLogoTopRight2}
               />
@@ -564,6 +588,9 @@ export default async function EventPanduanPage({
         highlightName={ownBus?.name ?? null}
         logoLeft={logoLeftUrl}
         logoRight={logoRightUrl}
+        logoLeft2={event.panduanLogoLeft2}
+        logoCenter={event.panduanLogoCenter}
+        logoRight2={event.panduanLogoRight2}
         topRight={event.panduanLogoTopRight}
         topRight2={event.panduanLogoTopRight2}
         crewName={event.denahKamarCrewName}
@@ -580,6 +607,9 @@ export default async function EventPanduanPage({
           <SectionLogos
             logoLeft={logoLeftUrl}
             logoRight={logoRightUrl}
+            logoLeft2={event.panduanLogoLeft2}
+            logoCenter={event.panduanLogoCenter}
+            logoRight2={event.panduanLogoRight2}
             topRight={event.panduanLogoTopRight}
             topRight2={event.panduanLogoTopRight2}
           />
@@ -661,6 +691,9 @@ export default async function EventPanduanPage({
               <SectionLogos
                 logoLeft={logoLeftUrl}
                 logoRight={logoRightUrl}
+                logoLeft2={event.panduanLogoLeft2}
+                logoCenter={event.panduanLogoCenter}
+                logoRight2={event.panduanLogoRight2}
                 topRight={event.panduanLogoTopRight}
                 topRight2={event.panduanLogoTopRight2}
               />
@@ -722,6 +755,9 @@ export default async function EventPanduanPage({
                   section={s}
                   logoLeft={logoLeftUrl}
                   logoRight={logoRightUrl}
+                  logoLeft2={event.panduanLogoLeft2}
+                  logoCenter={event.panduanLogoCenter}
+                  logoRight2={event.panduanLogoRight2}
                   topRight={event.panduanLogoTopRight}
                   topRight2={event.panduanLogoTopRight2}
                 />
