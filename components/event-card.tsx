@@ -1,11 +1,12 @@
 import Link from 'next/link'
 import { ArrowRight, Bus, CalendarDays, MapPin, Users } from 'lucide-react'
-import { formatTanggalPendek } from '@/lib/dates'
+import { formatTanggalRentang } from '@/lib/dates'
 
 export type EventCardData = {
   id: string
   title: string
   date: Date
+  dateEnd: Date | null
   location: string
   status: 'DRAFT' | 'ACTIVE' | 'CLOSED'
   imageUrl: string | null
@@ -44,7 +45,7 @@ export function EventCard({ event }: { event: EventCardData }) {
 
       <div className="mt-3 space-y-1.5 text-sm text-[#657080]">
         <p className="flex items-center gap-2">
-          <CalendarDays size={15} className="shrink-0 text-[#1b4f9c]" /> {formatTanggalPendek(new Date(event.date))}
+          <CalendarDays size={15} className="shrink-0 text-[#1b4f9c]" /> {formatTanggalRentang(event.date, event.dateEnd)}
         </p>
         {event.location && (
           <p className="flex items-center gap-2">

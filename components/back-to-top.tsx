@@ -7,15 +7,38 @@ function easeInOutCubic(t: number): number {
   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
 }
 
+// Halaman panduan memakai <main> sebagai kontainer scroll (bukan window), jadi
+// posisi scroll dihitung dari elemen yang benar-benar bergulir.
+function getScrollTop(): number {
+  if (typeof window === 'undefined') return 0
+  const main = document.querySelector('main')
+  const mainTop = main instanceof HTMLElement ? main.scrollTop : 0
+  const docTop = document.scrollingElement?.scrollTop ?? window.scrollY
+  return Math.max(mainTop, docTop)
+}
+
+function getScroller(): HTMLElement | null {
+  if (typeof window === 'undefined') return null
+  const main = document.querySelector('main')
+  if (main instanceof HTMLElement && getComputedStyle(main).overflowY !== 'visible') return main
+  return null
+}
+
 export function BackToTop() {
   const [visible, setVisible] = useState(false)
   const frame = useRef<number | null>(null)
 
   useEffect(() => {
-    const onScroll = () => setVisible(window.scrollY > 400)
+    const onScroll = () => setVisible(getScrollTop() > 400)
     onScroll()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
+    // `scroll` tidak bubble, tapi tetap melewati fase capture sehingga listener
+    // di document menangkap scroll dari <main> maupun window.
+    document.addEventListener('scroll', onScroll, { capture: true, passive: true })
+    window.addEventListener('resize', onScroll)
+    return () => {
+      document.removeEventListener('scroll', onScroll, { capture: true } as EventListenerOptions)
+      window.removeEventListener('resize', onScroll)
+    }
   }, [])
 
   useEffect(() => {
@@ -25,14 +48,20 @@ export function BackToTop() {
   }, [])
 
   const scrollToTop = () => {
-    const start = window.scrollY
+    const scroller = getScroller()
+    const start = getScrollTop()
     if (start <= 0) return
     const duration = Math.min(1000, 300 + start * 0.4)
     const startTime = performance.now()
 
     const step = (now: number) => {
       const progress = Math.min((now - startTime) / duration, 1)
-      window.scrollTo(0, start * (1 - easeInOutCubic(progress)))
+      const value = start * (1 - easeInOutCubic(progress))
+      if (scroller) {
+        scroller.scrollTo({ top: value })
+      } else {
+        window.scrollTo(0, value)
+      }
       if (progress < 1) frame.current = requestAnimationFrame(step)
     }
     frame.current = requestAnimationFrame(step)

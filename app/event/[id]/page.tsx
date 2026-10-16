@@ -68,6 +68,7 @@ export default async function EventPage({ params, searchParams }: { params: Prom
           eventId={event.id}
           eventTitle={event.title}
           eventDate={event.date.toISOString()}
+          eventDateEnd={event.dateEnd ? event.dateEnd.toISOString() : null}
           eventLocation={event.location}
           note={event.note}
           imageUrl={event.imageUrl}

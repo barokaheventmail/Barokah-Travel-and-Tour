@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { formatTanggalPendek } from '@/lib/dates'
+import { formatTanggalRentang } from '@/lib/dates'
 import { buildTicketPdf, ticketFileName } from '@/lib/ticket-pdf'
 
 export const dynamic = 'force-dynamic'
@@ -64,7 +64,7 @@ export async function GET(request: Request) {
     name: p.name,
     ticketCode: p.ticketCode,
     eventTitle: p.event.title,
-    eventDate: formatTanggalPendek(new Date(p.event.date)),
+    eventDate: formatTanggalRentang(p.event.date, p.event.dateEnd),
     eventLocation: p.event.location,
     busName: p.bus.name,
     seat: p.seat,

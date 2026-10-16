@@ -1086,6 +1086,7 @@ export function buildTemplateWorkbook(): ArrayBuffer {
 export const eventSchema = z.object({
   title: z.string().trim().min(1, 'Judul wajib diisi'),
   date: z.string().min(1, 'Tanggal wajib diisi'),
+  dateEnd: z.string().nullish(),
   location: z.string().trim().default(''),
   vwName: z.string().trim().optional(),
   status: z.enum(['DRAFT', 'ACTIVE', 'CLOSED']).default('ACTIVE'),
@@ -1100,6 +1101,7 @@ export const eventSchema = z.object({
 export const eventPatchSchema = z.object({
   title: z.string().trim().min(1, 'Judul wajib diisi').optional(),
   date: z.string().min(1, 'Tanggal wajib diisi').optional(),
+  dateEnd: z.string().nullish(),
   location: z.string().trim().optional(),
   vwName: z.string().trim().optional(),
   vwTitle: z.string().trim().nullish(),

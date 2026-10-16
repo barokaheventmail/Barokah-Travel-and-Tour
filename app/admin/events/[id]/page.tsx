@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { ArrowLeft, ArrowRight, Bus, CalendarDays, History, MapPin, Printer, ShieldAlert } from 'lucide-react'
 import { prisma } from '@/lib/db'
-import { formatWaktuLengkap } from '@/lib/dates'
+import { formatTanggalRentang } from '@/lib/dates'
 import { EditEvent } from '@/components/admin/edit-event'
 import { DeleteEvent } from '@/components/admin/delete-event'
 import { ImportExcel } from '@/components/admin/import-excel'
@@ -245,6 +245,7 @@ export default async function EventDetail({
                     id: event.id,
                     title: event.title,
                     date: event.date.toISOString(),
+                    dateEnd: event.dateEnd ? event.dateEnd.toISOString() : '',
                     location: event.location,
                     vwName: event.vwName,
                     status: event.status,
@@ -256,7 +257,7 @@ export default async function EventDetail({
           </div>
           <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[#657080]">
             <span className="flex items-center gap-1">
-              <CalendarDays size={13} /> {formatWaktuLengkap(new Date(event.date))}
+              <CalendarDays size={13} /> {formatTanggalRentang(event.date, event.dateEnd)}
             </span>
             {event.location && (
               <span className="flex items-center gap-1">
@@ -335,6 +336,9 @@ export default async function EventDetail({
           initialDenahCrewName={event.denahKamarCrewName ?? ''}
           initialDenahCrewRole={event.denahKamarCrewRole ?? ''}
           initialDenahCrewPhotoUrl={event.denahKamarCrewPhotoUrl ?? null}
+          initialDenahVwCrewName={event.denahVwCrewName ?? ''}
+          initialDenahVwCrewRole={event.denahVwCrewRole ?? ''}
+          initialDenahVwCrewPhotoUrl={event.denahVwCrewPhotoUrl ?? null}
           initialLogoLeft={event.panduanLogoLeft ?? null}
           initialLogoRight={event.panduanLogoRight ?? null}
           initialLogoTopRight={event.panduanLogoTopRight ?? null}

@@ -74,7 +74,7 @@ const YOUR_SEAT = 12
 export default function Guide() {
   const departDate = formatDate(upcomingSaturday())
   return (
-    <main className="min-h-screen bg-[#f4f7fa] pb-12">
+    <main className="h-screen overflow-y-scroll bg-[#f4f7fa] pb-12 [scrollbar-width:auto] [-ms-overflow-style:auto] [scrollbar-color:#1b4f9c_#dfe4e8] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-[#dfe4e8] [&::-webkit-scrollbar-thumb]:bg-[#1b4f9c] [&::-webkit-scrollbar-thumb]:rounded [&::-webkit-scrollbar-thumb]:hover:bg-[#143d79]">
       {/* sticky top-0 => topbar tetap menempel di atas saat halaman di-scroll.
           Karena masih in-flow, tidak perlu padding tambahan di <main>. */}
       <header className="sticky top-0 z-50 border-b bg-white shadow-[0_2px_14px_-8px_rgba(27,53,85,0.45)]">

@@ -38,10 +38,20 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Data tidak valid' }, { status: 400 })
   }
 
-  const { title, date, location, status, note, panduanItinerary, crewName, crewPhone, crewRole, crewPhotoUrl, vwName } = parsed.data
+  const { title, date, dateEnd, location, status, note, panduanItinerary, crewName, crewPhone, crewRole, crewPhotoUrl, vwName } = parsed.data
   const d = new Date(date)
   if (isNaN(d.getTime())) {
     return NextResponse.json({ error: 'Tanggal tidak valid.' }, { status: 400 })
+  }
+  let de: Date | null = null
+  if (dateEnd) {
+    de = new Date(dateEnd)
+    if (isNaN(de.getTime())) {
+      return NextResponse.json({ error: 'Tanggal selesai tidak valid.' }, { status: 400 })
+    }
+    if (de.getTime() < d.getTime()) {
+      return NextResponse.json({ error: 'Tanggal selesai tidak boleh sebelum tanggal mulai.' }, { status: 400 })
+    }
   }
 
   const event = await prisma.$transaction(async (tx) => {
@@ -49,6 +59,7 @@ export async function POST(request: NextRequest) {
       data: {
         title,
         date: d,
+        dateEnd: de,
         location,
         vwName: vwName || 'VW MAGELANG',
         status,

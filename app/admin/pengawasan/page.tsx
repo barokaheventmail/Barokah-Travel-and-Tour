@@ -3,7 +3,7 @@ import { notFound, redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import { Bus, CalendarDays, History, ShieldCheck, UserCog, Users } from 'lucide-react'
 import { prisma } from '@/lib/db'
-import { formatTanggalPendek, formatWaktuLengkap } from '@/lib/dates'
+import { formatTanggalPendek, formatTanggalRentang, formatWaktuLengkap } from '@/lib/dates'
 import { HIDDEN_LOG_ACTIONS } from '@/lib/log-labels'
 import { LogEntry } from '@/components/admin/log-entry'
 import { requireAdminSession } from '@/lib/auth'
@@ -144,7 +144,7 @@ export default async function OwnerSupervisionPage() {
                           {e.title}
                         </Link>
                       </td>
-                      <td className="py-2 pr-3 text-[#657080]">{formatTanggalPendek(new Date(e.date))}</td>
+                      <td className="py-2 pr-3 text-[#657080]">{formatTanggalRentang(e.date, e.dateEnd)}</td>
                       <td className="py-2 pr-3">
                         <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${STATUS_CLS[e.status] ?? ''}`}>
                           {STATUS_LABEL[e.status] ?? e.status}

@@ -26,6 +26,7 @@ export type ExportBus = {
 export type ExportInput = {
   eventTitle: string
   eventDate: Date
+  eventDateEnd?: Date | null
   buses: ExportBus[]
 }
 
@@ -62,6 +63,13 @@ export function formatTanggalExport(d: Date | null | undefined): string {
   const month = d.getMonth() + 1
   if (!day || !month) return ''
   return `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${d.getFullYear()}`
+}
+
+/** Rentang tanggal acara di header Excel: "12/03/2026" atau "12/03/2026 – 14/03/2026". */
+export function formatTanggalRentangExport(date: Date, dateEnd?: Date | null): string {
+  const start = formatTanggalExport(date)
+  if (!dateEnd || dateEnd.getTime() === date.getTime()) return start
+  return `${start} – ${formatTanggalExport(dateEnd)}`
 }
 
 export function formatWaktuScan(d: Date | null | undefined): string {
@@ -201,7 +209,7 @@ function addRekapSheet(wb: ExcelJS.Workbook, input: ExportInput, buses: ExportBu
 
   ws.mergeCells('A2:F2')
   const sub = ws.getCell('A2')
-  sub.value = `Tanggal acara: ${formatTanggalExport(input.eventDate)} · dibuat ${formatWaktuScan(new Date())}`
+  sub.value = `Tanggal acara: ${formatTanggalRentangExport(input.eventDate, input.eventDateEnd)} · dibuat ${formatWaktuScan(new Date())}`
   sub.font = { size: 10, color: { argb: 'FF8A93A3' } }
 
   // Label header ditulis eksplisit ke baris 4, bukan lewat `header:` di ws.columns

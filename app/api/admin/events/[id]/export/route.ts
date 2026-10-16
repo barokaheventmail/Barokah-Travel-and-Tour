@@ -71,7 +71,7 @@ export async function GET(request: NextRequest, { params }: Params) {
   const buses = [...grouped.values()].sort((a, b) => a.order - b.order || a.name.localeCompare(b.name))
   const filter = { busId: busParam && busParam !== 'all' ? busParam : null, status }
   const selectedBus = busParam && busParam !== 'all' ? buses.find((b) => b.id === busParam) ?? null : null
-  const input = { eventTitle: event.title, eventDate: event.date, buses }
+  const input = { eventTitle: event.title, eventDate: event.date, eventDateEnd: event.dateEnd, buses }
   const fileName = exportFileName(event.title, selectedBus?.name ?? null, status, format)
 
   logger.info('export peserta', {

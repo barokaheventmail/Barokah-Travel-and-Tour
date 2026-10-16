@@ -4,7 +4,7 @@ import type { Metadata } from 'next'
 import { BadgeCheck, BookOpen, Bus, Clock3, DoorOpen, MapPin } from 'lucide-react'
 import { prisma } from '@/lib/db'
 import { qrDataUrl, encodeToken } from '@/lib/scan'
-import { formatTanggalPendek } from '@/lib/dates'
+import { formatTanggalRentang } from '@/lib/dates'
 import { AutoRefresh } from '@/components/admin/auto-refresh'
 import { DownloadTicketPdf } from '@/components/admin/download-ticket-pdf'
 
@@ -67,7 +67,7 @@ export default async function TicketPage({ params }: { params: Promise<{ token: 
                 <dd className="mt-0.5 flex items-center gap-1 font-semibold text-[#1b3555]">{p.event.title}</dd>
                 <dd className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#657080]">
                   <span className="flex items-center gap-1">
-                    <Clock3 size={12} /> {formatTanggalPendek(new Date(p.event.date))}
+                    <Clock3 size={12} /> {formatTanggalRentang(p.event.date, p.event.dateEnd)}
                   </span>
                   {p.event.location && (
                     <span className="flex items-center gap-1">

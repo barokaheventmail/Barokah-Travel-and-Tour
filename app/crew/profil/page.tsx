@@ -5,7 +5,7 @@ import { ArrowLeft, CalendarDays, CircleUserRound, History, Route } from 'lucide
 import type { Prisma } from '@prisma/client'
 import { requireCrewSession } from '@/lib/auth'
 import { prisma } from '@/lib/db'
-import { formatWaktuLengkap } from '@/lib/dates'
+import { formatTanggalRentang } from '@/lib/dates'
 import { parseItineraryDoc, groupItineraryByDay, type ItineraryDay } from '@/lib/itinerary'
 import { SessionGuard } from '@/components/crew/session-guard'
 import { LogoutButton } from '@/components/admin/logout-button'
@@ -140,7 +140,7 @@ export default async function CrewProfilPage({ searchParams }: { searchParams: S
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE))
 
   type ItineraryGroup = {
-    event: { id: string; title: string; date: Date; location: string }
+    event: { id: string; title: string; date: Date; dateEnd: Date | null; location: string }
     buses: string[]
     dayGroups: ItineraryDay[]
     footerNote: string
@@ -154,7 +154,7 @@ export default async function CrewProfilPage({ searchParams }: { searchParams: S
         bus: {
           select: {
             name: true,
-            event: { select: { id: true, title: true, date: true, location: true, panduanItinerary: true } },
+            event: { select: { id: true, title: true, date: true, dateEnd: true, location: true, panduanItinerary: true } },
           },
         },
       },
@@ -165,7 +165,7 @@ export default async function CrewProfilPage({ searchParams }: { searchParams: S
       let group = groupMap.get(ev.id)
       if (!group) {
         group = {
-          event: { id: ev.id, title: ev.title, date: ev.date, location: ev.location },
+          event: { id: ev.id, title: ev.title, date: ev.date, dateEnd: ev.dateEnd, location: ev.location },
           buses: new Set(),
           dayGroups: (() => {
             const doc = parseItineraryDoc(ev.panduanItinerary)
@@ -256,7 +256,7 @@ export default async function CrewProfilPage({ searchParams }: { searchParams: S
                   <div key={group.event.id} className="rounded-2xl border border-[#dfe4e8] bg-white p-4">
                     <h3 className="text-base font-bold text-[#1b3555]">{group.event.title}</h3>
                     <p className="mt-1 flex items-center gap-1 text-xs text-[#657080]">
-                      <CalendarDays size={13} className="text-[#2ca84a]" /> {formatWaktuLengkap(group.event.date)}
+                      <CalendarDays size={13} className="text-[#2ca84a]" /> {formatTanggalRentang(group.event.date, group.event.dateEnd)}
                       {group.event.location && <> · {group.event.location}</>}
                     </p>
                     <p className="mt-2 inline-flex items-center gap-1 rounded-full bg-[#eef4fb] px-2.5 py-1 text-[11px] font-bold text-[#1b4f9c]">

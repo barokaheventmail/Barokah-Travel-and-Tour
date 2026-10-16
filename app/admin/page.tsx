@@ -2,7 +2,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { Bus, CalendarDays, ClipboardList, MapPin, QrCode, Search, Users } from 'lucide-react'
 import { prisma } from '@/lib/db'
-import { formatTanggalPendek } from '@/lib/dates'
+import { formatTanggalRentang } from '@/lib/dates'
 import { CreateEvent } from '@/components/admin/create-event'
 
 export const metadata: Metadata = { title: 'Panel Admin – Barokah Tour', robots: { index: false } }
@@ -102,7 +102,7 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
                     </div>
                     <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[#657080]">
                       <span className="flex items-center gap-1">
-                        <CalendarDays size={13} /> {formatTanggalPendek(new Date(event.date))}
+                        <CalendarDays size={13} /> {formatTanggalRentang(event.date, event.dateEnd)}
                       </span>
                       {event.location && (
                         <span className="flex items-center gap-1">

@@ -17,7 +17,7 @@ import {
   Users,
 } from 'lucide-react'
 import { TicketSearch, type TicketSearchHandle } from '@/components/ticket-search'
-import { formatTanggalPendek } from '@/lib/dates'
+import { formatTanggalRentang } from '@/lib/dates'
 
 export type EventTicketsParticipant = { id: string; order: number; name: string; token: string; present: boolean }
 
@@ -33,6 +33,7 @@ type EventTicketsProps = {
   eventId: string
   eventTitle: string
   eventDate: string
+  eventDateEnd?: string | null
   eventLocation: string | null
   note: string | null
   imageUrl?: string | null
@@ -48,6 +49,7 @@ export function EventTickets({
   eventId,
   eventTitle,
   eventDate,
+  eventDateEnd,
   eventLocation,
   note,
   imageUrl,
@@ -256,7 +258,7 @@ export function EventTickets({
           <div className="mt-5 flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/8 px-3.5 py-1.5 text-[13px] font-semibold text-white/90 backdrop-blur-sm">
               <CalendarDays size={14} className="shrink-0 text-[#f5b915]" />
-              {formatTanggalPendek(new Date(eventDate))}
+              {formatTanggalRentang(eventDate, eventDateEnd)}
             </span>
             {eventLocation && (
               <span className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/8 px-3.5 py-1.5 text-[13px] font-semibold text-white/90 backdrop-blur-sm">

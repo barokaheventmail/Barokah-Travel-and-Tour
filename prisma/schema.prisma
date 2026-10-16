@@ -49,6 +49,9 @@ model Event {
   id        String      @id @default(cuid())
   title     String      @db.VarChar(500)
   date      DateTime
+  // Tanggal selesai event (untuk event multi-hari). Null = event 1 hari,
+  // sama dengan `date`. Disimpan sebagai tanggal murni (tanpa jam).
+  dateEnd   DateTime?
   location  String      @default("") @db.VarChar(500)
   status    EventStatus @default(ACTIVE)
   note      String?     @db.Text

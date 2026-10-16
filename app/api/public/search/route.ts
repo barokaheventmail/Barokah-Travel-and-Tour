@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
           },
         },
       },
-      event: { select: { id: true, title: true, date: true } },
+      event: { select: { id: true, title: true, date: true, dateEnd: true } },
     },
     orderBy: [{ event: { date: 'desc' } }, { order: 'asc' }],
     take: 500,
@@ -79,6 +79,7 @@ export async function GET(request: NextRequest) {
         busName: p.bus.name,
         eventTitle: p.event.title,
         eventDate: p.event.date.toISOString(),
+        eventDateEnd: p.event.dateEnd ? p.event.dateEnd.toISOString() : null,
         crew: resp ? { name: resp.name ?? resp.username, phone: resp.phone, photoUrl: resp.photoUrl } : null,
       }
     }),

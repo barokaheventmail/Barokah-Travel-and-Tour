@@ -43,7 +43,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Data tidak valid' }, { status: 400 })
   }
 
-  const { title, date, location, status, note, panduanItinerary, panduanRules, panduanSections, crewName, crewPhone, crewRole, crewPhotoUrl, crewList, denahKamarCrewName, denahKamarCrewRole, denahKamarCrewPhotoUrl, denahVwCrewName, denahVwCrewRole, denahVwCrewPhotoUrl, panduanLogoLeft, panduanLogoRight, panduanLogoTopRight, panduanLogoTopRight2, vwName, vwTitle } = parsed.data
+  const { title, date, dateEnd, location, status, note, panduanItinerary, panduanRules, panduanSections, crewName, crewPhone, crewRole, crewPhotoUrl, crewList, denahKamarCrewName, denahKamarCrewRole, denahKamarCrewPhotoUrl, denahVwCrewName, denahVwCrewRole, denahVwCrewPhotoUrl, panduanLogoLeft, panduanLogoRight, panduanLogoTopRight, panduanLogoTopRight2, vwName, vwTitle } = parsed.data
 
   const data: Prisma.EventUpdateInput = {}
   if (title !== undefined) data.title = title
@@ -51,6 +51,19 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     const d = new Date(date)
     if (isNaN(d.getTime())) return NextResponse.json({ error: 'Tanggal tidak valid.' }, { status: 400 })
     data.date = d
+  }
+  if (dateEnd !== undefined) {
+    if (dateEnd) {
+      const de = new Date(dateEnd)
+      if (isNaN(de.getTime())) return NextResponse.json({ error: 'Tanggal selesai tidak valid.' }, { status: 400 })
+      const start = date !== undefined ? new Date(date) : existing.date
+      if (de.getTime() < start.getTime()) {
+        return NextResponse.json({ error: 'Tanggal selesai tidak boleh sebelum tanggal mulai.' }, { status: 400 })
+      }
+      data.dateEnd = de
+    } else {
+      data.dateEnd = null
+    }
   }
   if (location !== undefined) data.location = location
   if (vwName !== undefined) data.vwName = vwName || 'VW MAGELANG'

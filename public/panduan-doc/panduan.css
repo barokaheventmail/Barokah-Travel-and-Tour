@@ -196,6 +196,99 @@ table.agenda tr { break-inside: avoid; page-break-inside: avoid; }
 }
 .toolbar button:hover { background: #e4aa09; }
 
+/* ---- Denah Duduk Peserta ---------------------------------------------- */
+.seat-chart-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4mm 6mm;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.seat-table-wrapper {
+  break-inside: avoid;
+  page-break-inside: avoid;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.seat-table-title {
+  font-size: 9.5pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--navy);
+  text-align: center;
+  margin: 0 0 2mm;
+  padding: 1.5mm 0;
+  border-bottom: 2px solid var(--accent);
+}
+
+.seat-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1.5px solid var(--navy);
+  font-size: 9pt;
+}
+
+.seat-table thead th {
+  background: var(--navy);
+  color: #fff;
+  font-size: 8.5pt;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  text-align: center;
+  padding: 2mm 3mm;
+  border: 1px solid var(--navy);
+}
+
+.seat-table th:first-child,
+.seat-table td:first-child {
+  width: 14mm;
+  text-align: center;
+  border-right: 1px solid var(--line);
+}
+
+.seat-table td {
+  padding: 2mm 3mm;
+  border-top: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+  min-height: 7mm;
+}
+
+.seat-table tbody tr:nth-child(even) td {
+  background: #fbfcfe;
+}
+
+.seat-table tbody tr:last-child td {
+  border-bottom: 1.5px solid var(--navy);
+}
+
+.seat-table tbody td:last-child {
+  border-right: 1.5px solid var(--navy);
+}
+
+/* Print adjustments for seat chart */
+@media print {
+  .seat-chart-container {
+    gap: 3mm 5mm;
+  }
+  .seat-table {
+    font-size: 8.5pt;
+  }
+  .seat-table thead th {
+    font-size: 8pt;
+  }
+  .seat-table-title {
+    font-size: 9pt;
+  }
+}
+
 /* =========================================================================
    PRINT / EXPORT PDF — presisi A4, tanpa shadow, tanpa margin browser
    ========================================================================= */

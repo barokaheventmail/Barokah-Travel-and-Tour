@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { Pencil, X } from 'lucide-react'
-import { EventForm, toLocalInput } from './event-form'
+import { toDateInput } from '@/lib/dates'
+import { EventForm } from './event-form'
 import type { EventFormData } from './event-form'
 
 export function EditEvent({ event }: { event: EventFormData & { id: string } }) {
@@ -29,7 +30,7 @@ export function EditEvent({ event }: { event: EventFormData & { id: string } }) 
         </button>
       </div>
       <EventForm
-        initial={{ ...event, date: toLocalInput(event.date) }}
+        initial={{ ...event, date: toDateInput(event.date), dateEnd: toDateInput(event.dateEnd) }}
         onDone={() => setOpen(false)}
         compact
       />

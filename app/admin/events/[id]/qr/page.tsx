@@ -4,7 +4,7 @@ import type { Metadata } from 'next'
 import { ArrowLeft } from 'lucide-react'
 import { prisma } from '@/lib/db'
 import { qrDataUrl, encodeToken } from '@/lib/scan'
-import { formatTanggalPendek } from '@/lib/dates'
+import { formatTanggalRentang } from '@/lib/dates'
 import { chunkPairs, metaLine } from '@/lib/print'
 import { PrintButton } from '@/components/admin/print-button'
 import { QrBusFilter } from '@/components/admin/qr-bus-filter'
@@ -181,7 +181,7 @@ export default async function EventQR({
 
       <div className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1 print:mt-0">
         <h1 className="text-xl font-bold text-[#1b3555]">{event.title}</h1>
-        <span className="text-sm text-[#657080]">{formatTanggalPendek(new Date(event.date))}</span>
+        <span className="text-sm text-[#657080]">{formatTanggalRentang(event.date, event.dateEnd)}</span>
       </div>
 
       <QrBusFilter

@@ -35,8 +35,16 @@ const months = [
   'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
 ]
 
-function formatDate(date: Date): string {
-  return `${days[date.getDay()]}, ${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`
+function formatDate(date: Date, dateEnd?: Date | null): string {
+  const one = (d: Date) => `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`
+  if (!dateEnd || dateEnd.getTime() === date.getTime()) return one(date)
+  if (dateEnd.getFullYear() === date.getFullYear()) {
+    if (dateEnd.getMonth() === date.getMonth()) {
+      return `${days[date.getDay()]}, ${date.getDate()}–${dateEnd.getDate()} ${months[dateEnd.getMonth()]} ${dateEnd.getFullYear()}`
+    }
+    return `${one(date)} – ${days[dateEnd.getDay()]}, ${dateEnd.getDate()} ${months[dateEnd.getMonth()]} ${dateEnd.getFullYear()}`
+  }
+  return `${one(date)} – ${one(dateEnd)}`
 }
 
 function PanduanHeading({ children }: { children: ReactNode }) {
@@ -109,7 +117,7 @@ function CustomPanduanSection({
 async function getEvent(id: string) {
   return prisma.event.findUnique({
     where: { id },
-    select: { id: true, title: true, date: true, location: true, vwName: true, vwTitle: true, panduanItinerary: true, panduanRules: true, panduanSections: true, crewName: true, crewPhone: true, crewRole: true, crewPhotoUrl: true, crewList: true, denahKamarCrewName: true, denahKamarCrewRole: true, denahKamarCrewPhotoUrl: true, denahVwCrewName: true, denahVwCrewRole: true, denahVwCrewPhotoUrl: true, panduanLogoLeft: true, panduanLogoRight: true, panduanLogoTopRight: true, panduanLogoTopRight2: true },
+    select: { id: true, title: true, date: true, dateEnd: true, location: true, vwName: true, vwTitle: true, panduanItinerary: true, panduanRules: true, panduanSections: true, crewName: true, crewPhone: true, crewRole: true, crewPhotoUrl: true, crewList: true, denahKamarCrewName: true, denahKamarCrewRole: true, denahKamarCrewPhotoUrl: true, denahVwCrewName: true, denahVwCrewRole: true, denahVwCrewPhotoUrl: true, panduanLogoLeft: true, panduanLogoRight: true, panduanLogoTopRight: true, panduanLogoTopRight2: true },
   })
 }
 
@@ -562,49 +570,55 @@ export default async function EventPanduanPage({
         crewPhotoUrl={event.denahKamarCrewPhotoUrl}
       />
     ) : null,
+    // Denah kendaraan dibuat jadi beberapa lembar A4 (5 kelompok kendaraan
+    // per section) — bukan satu section dengan tombol "Halaman 1 / N".
     'vw-map': hasVehicles ? (
-<A4Section fit="none">
-              <section className="guide-fit-table flex h-full flex-col border border-[#dfe4e8] bg-white p-5 print:min-h-[272mm]">
-                <SectionLogos
-                  logoLeft={logoLeftUrl}
-                  logoRight={logoRightUrl}
-                  topRight={event.panduanLogoTopRight}
-                  topRight2={event.panduanLogoTopRight2}
-                />
-                <h2 className="mb-6 mt-12 shrink-0 text-center text-xl font-extrabold uppercase tracking-wide text-[#00A3E0]">{vehicleTitle}</h2>
-                <div className="flex min-h-0 flex-1 flex-col">
-                  <PublicVwMap eventId={id} highlightVehicle={ownVehicle} highlightName={ownBus?.name ?? null} />
-                </div>
-                {(event.denahVwCrewName || event.denahVwCrewPhotoUrl) && (
-                  <div className="mt-6 flex flex-col items-end pr-8 pt-4 text-center">
-                    {event.denahVwCrewPhotoUrl ? (
-                      <div className="relative flex h-24 w-36 shrink-0 items-center justify-center">
-                        <span aria-hidden className="absolute -inset-3 rounded-lg bg-white/70 blur-lg" />
-                        <div className="relative flex h-24 w-36 shrink-0 items-center justify-center overflow-hidden rounded-lg shadow-lg shadow-black/50">
-                          <img src={event.denahVwCrewPhotoUrl} alt={event.denahVwCrewName ?? undefined} className="h-full w-full object-cover" />
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex h-24 w-36 shrink-0 items-center justify-center rounded-lg text-2xl font-bold text-[#f5b915] shadow-lg shadow-black/50">
-                        {event.denahVwCrewName?.slice(0, 2).toUpperCase()}
-                      </div>
-                    )}
-                    <strong
-                      className="relative z-[1] mt-3 block w-36 bg-[#f5b915] px-3 py-1 text-center text-sm font-extrabold uppercase tracking-wide text-white"
-                      style={{ clipPath: 'polygon(0 0, 100% 0, calc(100% - 12px) 50%, 100% 100%, 0 100%, 12px 50%)' }}
-                    >
-                      {event.denahVwCrewName || vehicleTitle}
-                    </strong>
+      <PublicVwMap
+        eventId={id}
+        title={vehicleTitle}
+        header={
+          <SectionLogos
+            logoLeft={logoLeftUrl}
+            logoRight={logoRightUrl}
+            topRight={event.panduanLogoTopRight}
+            topRight2={event.panduanLogoTopRight2}
+          />
+        }
+        footer={
+          (event.denahVwCrewName || event.denahVwCrewPhotoUrl) ? (
+            <div className="mt-6 flex justify-end pr-8 pt-4">
+              <div className="flex flex-col items-center text-center">
+              {event.denahVwCrewPhotoUrl ? (
+                <div className="relative flex h-24 w-36 shrink-0 items-center justify-center">
+                  <span aria-hidden className="absolute -inset-3 rounded-lg bg-white/70 blur-lg" />
+                  <div className="relative flex h-24 w-36 shrink-0 items-center justify-center overflow-hidden rounded-lg shadow-lg shadow-black/50">
+                    <img src={event.denahVwCrewPhotoUrl} alt={event.denahVwCrewName ?? undefined} className="h-full w-full object-cover" />
                   </div>
-                )}
-              </section>
-              </A4Section>
+                </div>
+              ) : (
+                <div className="flex h-24 w-36 shrink-0 items-center justify-center rounded-lg text-2xl font-bold text-[#f5b915] shadow-lg shadow-black/50">
+                  {event.denahVwCrewName?.slice(0, 2).toUpperCase()}
+                </div>
+              )}
+              <strong
+                className="relative z-[1] mt-3 inline-block min-w-[13rem] max-w-full break-words bg-[#f5b915] px-8 py-2 text-center text-lg font-extrabold uppercase leading-tight tracking-wide text-white"
+                style={{ clipPath: 'polygon(0 0, 100% 0, calc(100% - 16px) 50%, 100% 100%, 0 100%, 16px 50%)' }}
+              >
+                {event.denahVwCrewName || vehicleTitle}
+              </strong>
+              </div>
+            </div>
+          ) : null
+        }
+        highlightVehicle={ownVehicle}
+        highlightName={ownBus?.name ?? null}
+      />
     ) : null,
   }
 
 
   return (
-    <main className="print-guide min-h-screen bg-[#f4f7fa] print:bg-white pb-12 print:min-h-0 print:pb-0">
+    <main className="print-guide h-screen min-h-0 overflow-y-scroll bg-[#f4f7fa] print:bg-white pb-12 print:min-h-0 print:pb-0 [scrollbar-width:auto] [-ms-overflow-style:auto] [scrollbar-color:#1b4f9c_#dfe4e8] print:[scrollbar-width:none] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-[#dfe4e8] [&::-webkit-scrollbar-thumb]:bg-[#1b4f9c] [&::-webkit-scrollbar-thumb]:rounded [&::-webkit-scrollbar-thumb]:hover:bg-[#143d79] print:[&::-webkit-scrollbar]:hidden">
       <BackToTop />
       <div className="print:hidden">
         <EventNavbar eventId={event.id} variant="panduan" />
@@ -627,7 +641,7 @@ export default async function EventPanduanPage({
               <h1 className="mt-2 text-3xl font-bold text-[#1b3555]">{event.title}</h1>
               <div className="mt-4 flex flex-wrap gap-4 text-sm text-[#657080]">
                 <span className="flex items-center gap-1">
-                  <Clock3 size={15} className="text-[#2ca84a]" /> {formatDate(event.date)}
+                  <Clock3 size={15} className="text-[#2ca84a]" /> {formatDate(event.date, event.dateEnd)}
                 </span>
                 {event.location && (
                   <span className="flex items-center gap-1">
@@ -661,7 +675,7 @@ export default async function EventPanduanPage({
                     <h1 className="mt-1 text-xl font-bold leading-tight text-[#1b3555]">{event.title}</h1>
                     <div className="mt-3 flex flex-col gap-1.5 text-[11px] text-[#657080]">
                       <span className="flex items-center gap-1.5">
-                        <Clock3 size={12} className="text-[#2ca84a]" /> {formatDate(event.date)}
+                        <Clock3 size={12} className="text-[#2ca84a]" /> {formatDate(event.date, event.dateEnd)}
                       </span>
                       {event.location && (
                         <span className="flex items-center gap-1.5">

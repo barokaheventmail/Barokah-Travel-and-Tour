@@ -3,7 +3,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { BadgeCheck, MessageCircle, QrCode, Search, SearchX, Ticket, UserRound } from 'lucide-react'
-import { formatTanggalPendek } from '@/lib/dates'
+import { formatTanggalPendek, formatTanggalRentang } from '@/lib/dates'
 import { waLink } from '@/lib/wa'
 
 export type CrewInfo = {
@@ -21,6 +21,7 @@ export type SearchMatch = {
   busName: string
   eventTitle: string
   eventDate: string
+  eventDateEnd?: string | null
   crew: CrewInfo | null
 }
 
@@ -269,7 +270,7 @@ export const TicketSearch = forwardRef<
             <div className="min-w-0 flex-1">
               <p className="text-sm font-bold text-[#1b3555]">{selected.name} · Tiket Ditemukan</p>
               <p className="text-xs text-[#657080]">
-                {selected.eventTitle} · {formatTanggalPendek(new Date(selected.eventDate))}
+                {selected.eventTitle} · {formatTanggalRentang(selected.eventDate, selected.eventDateEnd)}
               </p>
             </div>
             <button
@@ -291,7 +292,7 @@ export const TicketSearch = forwardRef<
             </div>
             <div className="rounded-xl bg-[#f8fafc] p-3">
               <dt className="text-[11px] font-semibold uppercase tracking-wide text-[#9aa3af]">Tanggal Event</dt>
-              <dd className="mt-0.5 font-semibold text-[#1b3555]">{formatTanggalPendek(new Date(selected.eventDate))}</dd>
+              <dd className="mt-0.5 font-semibold text-[#1b3555]">{formatTanggalRentang(selected.eventDate, selected.eventDateEnd)}</dd>
             </div>
             <div className="rounded-xl bg-[#f8fafc] p-3">
               <dt className="text-[11px] font-semibold uppercase tracking-wide text-[#9aa3af]">Tanggal Lahir</dt>
