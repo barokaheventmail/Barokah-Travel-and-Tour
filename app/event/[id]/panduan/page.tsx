@@ -544,7 +544,7 @@ export default async function EventPanduanPage({
       <>
         {buses.map((bus) => (
           <A4Section key={bus.id}>
-            <section className="rounded-none border border-[#dfe4e8] bg-white p-5 print:min-h-[272mm]">
+            <section className="flex flex-col rounded-none border border-[#dfe4e8] bg-white p-5 print:min-h-[272mm]">
               <SectionLogos
                 logoLeft={logoLeftUrl}
                 logoRight={logoRightUrl}
@@ -554,7 +554,7 @@ export default async function EventPanduanPage({
                 topRight={event.panduanLogoTopRight}
                 topRight2={event.panduanLogoTopRight2}
               />
-              <div data-a4-body className="flow-root">
+              <div data-a4-body className="flex flex-1 flex-col">
                 <div className="mb-6 mt-6 flex items-center justify-center gap-4">
                   <h2 className="text-center text-4xl font-extrabold uppercase tracking-wide text-[#00A3E0]">Denah Duduk</h2>
                   {(bus.denahDudukKeterangan || bus.denahDudukKeterangan2) && (

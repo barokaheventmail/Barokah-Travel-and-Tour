@@ -32,7 +32,7 @@ export function SectionLogos({
       <div className="flex flex-1 items-center justify-end gap-3">
         {logoRight2 && (
           /* eslint-disable-next-line @next/next/no-img-element */
-          <img src={logoRight2} alt="Logo" className="relative z-10 h-20 w-auto translate-x-[75px] object-contain" />
+          <img src={logoRight2} alt="Logo" className="relative z-10 h-20 w-auto translate-x-[85px] object-contain" />
         )}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={logoRight} alt="Logo Siluet Barokah Tour" className="-mr-5 -mt-5 h-24 w-auto object-contain" />

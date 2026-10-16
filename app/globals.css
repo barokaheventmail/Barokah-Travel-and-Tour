@@ -52,7 +52,12 @@ input[type='number'] { -moz-appearance:textfield; appearance:textfield; }
   .print-ticket { position:absolute; left:0; top:0; width:100%; max-width:none; border:none; box-shadow:none; border-radius:0; }
   /* Panduan peserta: whole page prints, chrome (navbar/buttons) hidden with print:hidden. */
   .print-guide, .print-guide * { visibility:visible; }
-  .print-guide { position:static; left:auto; top:auto; width:100%; max-width:none; margin:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  /* Wadah panduan memakai `h-screen overflow-y-scroll` di layar supaya punya
+     scrollbar sendiri. Di media cetak, `100vh` = tinggi SATU halaman dan
+     `overflow: scroll` memotong semua section sesudahnya — akibatnya hanya
+     sampul + potongan halaman pertama yang tercetak (± 2 halaman). Netralkan
+     jadi auto/visible agar seluruh section ikut terpaginasi. */
+  .print-guide { position:static; left:auto; top:auto; width:100%; max-width:none; margin:0; height:auto !important; max-height:none !important; overflow:visible !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   /* Kolom isi panduan membentang penuh ke seluruh lebar A4 (layar tetap
      max-w-2xl) supaya PDF tidak tampil kecil. */
   #panduan-isi { max-width:none; margin:0; padding:0; }

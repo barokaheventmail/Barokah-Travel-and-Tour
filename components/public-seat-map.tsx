@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Armchair, ChevronLeft, ChevronRight, Loader2, SearchX } from 'lucide-react'
+import { Armchair, ChevronLeft, ChevronRight, Loader2, SearchX, Sparkles } from 'lucide-react'
+import { FACILITY_ICONS } from '@/components/facility-icon'
 import { SeatGrid, type SeatCell } from '@/components/seat-grid'
 import { unitImageStyle } from '@/lib/seat'
 import type { Facility } from '@/lib/facilities'
@@ -123,7 +124,7 @@ export function PublicSeatMap({
   }, [eventId, selectedId])
 
   return (
-    <div className="mt-4">
+    <div className="mt-4 flex flex-1 flex-col">
       {buses.length > 1 && (
         <div className="mt-3 flex items-center gap-2 print:hidden">
           <button
@@ -217,58 +218,76 @@ export function PublicSeatMap({
         </div>
       </div>
 
-      {!loading &&
-        data &&
-        ((data.facilities && data.facilities.length > 0) || data.unitImageUrl) && (
-          <div className="mt-16 flex flex-row items-center justify-between gap-3 pb-6 sm:gap-6 print:break-inside-avoid">
-            {data.facilities && data.facilities.length > 0 && (
-              <div className="relative -top-6 min-w-0 flex-1">
-                <p className="text-xs font-bold text-[#1b3555]">Fasilitas Unit — {data.busName}</p>
-                <ul className="mt-1 grid grid-flow-col grid-rows-3 gap-x-6 gap-y-0.5">
-                  {data.facilities.map((f, i) => (
-                    <li key={`${f.name}-${i}`} className="flex items-center gap-1.5">
-                      <span className="shrink-0 text-[#1b3555]">•</span>
-                      <p className="min-w-0 text-[11px] font-semibold text-[#1b3555]">{f.name}</p>
-                    </li>
-                  ))}
-                </ul>
+      {!loading && data && data.unitImageUrl && (
+        <div className="mt-10 flex justify-end print:break-inside-avoid">
+          <div className="flex shrink-0 flex-col items-end pr-6">
+            <div className="relative flex h-32 w-32 shrink-0 items-center justify-center">
+              <span
+                aria-hidden
+                className="absolute -inset-6 rounded-full blur-lg"
+                style={{
+                  background:
+                    'radial-gradient(circle, rgba(59,130,246,1) 0%, rgba(59,130,246,0.85) 50%, rgba(59,130,246,0) 78%)',
+                }}
+              />
+              <div
+                className="relative flex h-32 w-32 items-center justify-center overflow-hidden rounded-full"
+                style={{ clipPath: 'circle(50% at 50% 50%)' }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={data.unitImageUrl}
+                  alt={`Unit ${data.unitLabel?.trim() || data.busName}`}
+                  className="h-full w-full object-cover"
+                  style={unitImageStyle(data.unitImagePosX, data.unitImagePosY, data.unitImageZoom)}
+                />
               </div>
-            )}
-
-            {data.unitImageUrl && (
-              <div className="ml-auto flex shrink-0 flex-col items-end pr-8">
-                <div className="relative flex h-32 w-32 shrink-0 items-center justify-center">
-                  <span
-                    aria-hidden
-                    className="absolute -inset-6 rounded-full blur-lg"
-                    style={{
-                      background:
-                        'radial-gradient(circle, rgba(59,130,246,1) 0%, rgba(59,130,246,0.85) 50%, rgba(59,130,246,0) 78%)',
-                    }}
-                  />
-                  <div
-                    className="relative flex h-32 w-32 items-center justify-center overflow-hidden rounded-full"
-                    style={{ clipPath: 'circle(50% at 50% 50%)' }}
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={data.unitImageUrl}
-                      alt={`Unit ${data.unitLabel?.trim() || data.busName}`}
-                      className="h-full w-full object-cover"
-                      style={unitImageStyle(data.unitImagePosX, data.unitImagePosY, data.unitImageZoom)}
-                    />
-                  </div>
-                </div>
-                <strong
-                  className="relative z-[1] -mt-1 inline-block max-w-full truncate bg-[#f5b915] px-6 py-1 text-sm font-extrabold uppercase tracking-wide text-white"
-                  style={{ clipPath: 'polygon(0 0, 100% 0, calc(100% - 12px) 50%, 100% 100%, 0 100%, 12px 50%)' }}
-                >
-                  {data.unitLabel?.trim() || data.busName}
-                </strong>
-              </div>
-            )}
+            </div>
+            <strong
+              className="relative z-[1] -mt-1 inline-block max-w-full truncate bg-[#f5b915] px-6 py-1 text-sm font-extrabold uppercase tracking-wide text-white"
+              style={{ clipPath: 'polygon(0 0, 100% 0, calc(100% - 12px) 50%, 100% 100%, 0 100%, 12px 50%)' }}
+            >
+              {data.unitLabel?.trim() || data.busName}
+            </strong>
           </div>
-        )}
+        </div>
+      )}
+
+      {!loading && data && data.facilities && data.facilities.length > 0 && (
+        <div className="mt-auto pt-8 pb-6 print:break-inside-avoid">
+          <div className="overflow-hidden rounded-2xl border-2 border-[#dfe4e8] bg-white">
+            <div className="flex items-center gap-3 bg-gradient-to-r from-[#1b4f9c] via-[#1b6fc4] to-[#00A3E0] px-4 py-2.5 sm:px-5">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/20 text-white">
+                <Sparkles size={18} />
+              </span>
+              <p className="min-w-0 flex-1 text-2xl font-extrabold uppercase tracking-wide text-white">
+                Fasilitas Unit
+              </p>
+              <span className="max-w-[45%] shrink-0 truncate rounded-full bg-white/15 px-3 py-1 text-xs font-bold uppercase tracking-wide text-white">
+                {data.busName}
+              </span>
+            </div>
+            <ul className="flex flex-wrap gap-2 bg-[#f7fafd] p-3 sm:gap-2.5 sm:p-4">
+              {data.facilities.map((f, i) => {
+                const Icon = FACILITY_ICONS[f.icon] ?? Armchair
+                return (
+                  <li
+                    key={`${f.name}-${i}`}
+                    className="inline-flex max-w-full items-center gap-2 rounded-full border border-[#e3e9f0] bg-white py-1.5 pl-1.5 pr-4 shadow-[0_1px_2px_rgba(27,53,85,0.07)]"
+                  >
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#e6f3fd] text-[#1b4f9c]">
+                      <Icon size={15} />
+                    </span>
+                    <span className="min-w-0 break-words text-base font-bold leading-tight text-[#1b3555]">
+                      {f.name}
+                    </span>
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+        </div>
+      )}
 
       {/* Dirender lewat portal ke <body> supaya `fixed inset-0` tetap menempel
           ke viewport — bukan ke ancestor yang punya `transform: scale()` di
