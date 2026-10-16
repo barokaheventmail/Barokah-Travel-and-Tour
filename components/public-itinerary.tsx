@@ -36,28 +36,26 @@ function DayBlock({ group, multiDay }: { group: ItineraryDay; multiDay: boolean 
       )}
       {group.rows.length > 0 && (
         <div className="overflow-hidden rounded-none border border-[#dfe4e8]">
-          <div className="grid grid-cols-[7.5rem_minmax(0,1.5fr)_minmax(0,1fr)] bg-[#00A3E0] text-xs font-extrabold uppercase leading-tight tracking-wider text-white">
+          <div className="grid grid-cols-[7.5rem_minmax(0,1fr)] bg-[#00A3E0] text-xs font-extrabold uppercase leading-tight tracking-wider text-white">
             <span className="border-r-2 border-white/40 px-[3px] py-px text-center">Waktu</span>
-            <span className="border-r-2 border-white/40 px-[3px] py-px text-center">Agenda</span>
-            <span className="px-[3px] py-px text-center">Keterangan</span>
+            <span className="px-[3px] py-px text-center">Agenda</span>
           </div>
           <div className="divide-y divide-[#edf0f3]">
             {group.rows.map((item, i) => (
               <div
                 key={`${group.day}-${item.time}-${i}`}
-                className="grid grid-cols-[7.5rem_minmax(0,1.5fr)_minmax(0,1fr)] leading-tight transition-colors hover:bg-[#f8fafc]"
+                className="grid grid-cols-[7.5rem_minmax(0,1fr)] leading-tight transition-colors hover:bg-[#f8fafc]"
               >
                 <span className="whitespace-nowrap border-r-2 border-[#dfe4e8] px-[3px] py-px text-sm font-medium tabular-nums text-[#1b4f9c]">
                   {item.time}
                 </span>
                 <span
-                  className={`break-words border-r-2 border-[#dfe4e8] px-[3px] py-px text-[#1b3555] ${
+                  className={`break-words px-[3px] py-px text-[#1b3555] ${
                     item.bold ? 'text-[0.95rem] font-bold' : 'text-sm font-normal'
                   } ${item.italic ? 'italic' : ''}`}
                 >
                   {item.agenda}
                 </span>
-                <span className="break-words px-[3px] py-px text-sm text-[#657080]">{item.keterangan}</span>
               </div>
             ))}
           </div>

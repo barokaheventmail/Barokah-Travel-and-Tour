@@ -11,7 +11,7 @@ import { parsePanduanSections, serializePanduanSections, type PanduanSectionItem
 import { PanduanSectionsEditor } from '@/components/admin/panduan-sections-editor'
 import type { PanduanPresetOption } from '@/lib/preset'
 
-type DayRows = Pick<ItineraryRow, 'time' | 'agenda' | 'keterangan' | 'bold' | 'italic'>[]
+type DayRows = Pick<ItineraryRow, 'time' | 'agenda' | 'bold' | 'italic'>[]
 
 const pad2 = (v: string) => (v.length === 1 ? `0${v}` : v)
 const toDisplay = (value: string) => value.replace(':', '.')
@@ -203,7 +203,7 @@ export function PanduanEditor({
   }, [initialItinerary])
   const [dayBlocks, setDayBlocks] = useState<DayRows[]>(() =>
     initialDayGroups.map((g) =>
-      g.rows.map((r) => ({ time: r.time, agenda: r.agenda, keterangan: r.keterangan, bold: r.bold, italic: r.italic })),
+      g.rows.map((r) => ({ time: r.time, agenda: r.agenda, bold: r.bold, italic: r.italic })),
     ),
   )
   const [dayNotes, setDayNotes] = useState<string[]>(() => initialDayGroups.map((g) => g.note))
@@ -253,7 +253,7 @@ export function PanduanEditor({
 
   function addDayRow(b: number) {
     setDayBlocks((blocks) =>
-      blocks.map((rows, i) => (i === b ? [...rows, { time: '', agenda: '', keterangan: '', bold: false, italic: false }] : rows)),
+      blocks.map((rows, i) => (i === b ? [...rows, { time: '', agenda: '', bold: false, italic: false }] : rows)),
     )
   }
 
@@ -402,7 +402,7 @@ export function PanduanEditor({
     const groups = groupItineraryByDay(doc.rows, doc.notes, doc.sideNotes)
     setDayBlocks(
       groups.map((g) =>
-        g.rows.map((r) => ({ time: r.time, agenda: r.agenda, keterangan: r.keterangan, bold: r.bold, italic: r.italic })),
+      g.rows.map((r) => ({ time: r.time, agenda: r.agenda, bold: r.bold, italic: r.italic })),
       ),
     )
     setDayNotes(groups.map((g) => g.note))
@@ -1086,7 +1086,6 @@ export function PanduanEditor({
                     <div className="mt-3 hidden items-center gap-2 text-[11px] font-bold uppercase tracking-wide text-[#657080] sm:flex">
                       <span className="w-full sm:w-56 sm:shrink-0 sm:pl-1">Waktu</span>
                       <span className="w-full sm:min-w-0 sm:flex-1 sm:pl-1">Agenda</span>
-                      <span className="w-full sm:min-w-0 sm:flex-1 sm:pl-1">Keterangan</span>
                     </div>
                     <div className="mt-2 space-y-2 sm:mt-3">
                       {rows.map((row, r) => (
@@ -1120,16 +1119,6 @@ export function PanduanEditor({
                             onChange={(e) => setDayRow(b, r, { agenda: e.target.value })}
                             onKeyDown={(e) => dayRowEnter(b, r, 2, e)}
                             placeholder="Agenda kegiatan"
-                            className={`${rowCls} w-full sm:min-w-0 sm:flex-1`}
-                          />
-                          <input
-                            ref={(el) => {
-                              rowRefs.current[`${b}:${r}:3`] = el
-                            }}
-                            value={row.keterangan}
-                            onChange={(e) => setDayRow(b, r, { keterangan: e.target.value })}
-                            onKeyDown={(e) => dayRowEnter(b, r, 3, e)}
-                            placeholder="Keterangan (opsional)"
                             className={`${rowCls} w-full sm:min-w-0 sm:flex-1`}
                           />
                           <div className="flex shrink-0 items-center gap-1 self-end sm:self-auto">

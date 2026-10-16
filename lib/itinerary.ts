@@ -1,4 +1,4 @@
-export type ItineraryRow = { time: string; agenda: string; keterangan: string; day: number; bold: boolean; italic: boolean }
+export type ItineraryRow = { time: string; agenda: string; day: number; bold: boolean; italic: boolean }
 
 export type ItineraryDay = { day: number; rows: ItineraryRow[]; note: string; sideNote: string }
 
@@ -41,14 +41,13 @@ export function parseItineraryDoc(raw: string | null | undefined): { rows: Itine
 function mapRow(item: unknown): ItineraryRow {
   const rec = (typeof item === 'object' && item !== null ? item : {}) as Record<string, unknown>
   const time = typeof rec.time === 'string' ? rec.time.trim() : ''
-  // Bentuk lama `{time, desc}` -> agenda (tanpa keterangan).
+  // Bentuk lama `{time, desc}` -> agenda.
   const agenda = typeof rec.agenda === 'string' ? rec.agenda.trim() : typeof rec.desc === 'string' ? rec.desc.trim() : ''
-  const keterangan = typeof rec.keterangan === 'string' ? rec.keterangan.trim() : ''
   const rawDay = Number(rec.day)
   const day = Number.isFinite(rawDay) ? Math.max(1, Math.floor(rawDay)) : 1
   const bold = rec.bold === true
   const italic = rec.italic === true
-  return { time, agenda, keterangan, day, bold, italic }
+  return { time, agenda, day, bold, italic }
 }
 
 export function parseItinerary(raw: string | null | undefined): ItineraryRow[] {
@@ -76,7 +75,6 @@ export function serializeItinerary(
       day: Math.max(1, Math.floor(Number(row.day) || 1)),
       time: row.time.trim(),
       agenda: row.agenda.trim(),
-      keterangan: row.keterangan.trim(),
       ...(row.bold ? { bold: true } : {}),
       ...(row.italic ? { italic: true } : {}),
     }))

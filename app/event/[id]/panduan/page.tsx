@@ -11,6 +11,7 @@ import { effectiveCrewList } from '@/lib/crew'
 import { parsePanduanSections, splitSectionItems, type CustomSectionItem } from '@/lib/panduan-sections'
 import { qrDataUrl, encodeToken } from '@/lib/scan'
 import { Logo } from '@/components/site'
+import { SectionLogos } from '@/components/section-logos'
 import { EventNavbar } from '@/components/event-navbar'
 import { PublicSeatMap } from '@/components/public-seat-map'
 import { PublicRoomMap } from '@/components/public-room-map'
@@ -50,37 +51,6 @@ function PanduanHeading({ children }: { children: ReactNode }) {
         <span className="relative">{children}</span>
       </span>
     </h2>
-  )
-}
-
-function SectionLogos({
-  logoLeft,
-  logoRight,
-  topRight,
-  topRight2,
-}: {
-  logoLeft: string
-  logoRight: string
-  topRight: string | null
-  topRight2: string | null
-}) {
-  return (
-    <div className="mb-4 flex items-start justify-between gap-3">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={logoLeft} alt="Logo Asita" className="h-20 w-auto object-contain" />
-      <div className="flex items-center gap-3">
-        {topRight && (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img src={topRight} alt="Logo" className="h-20 w-auto object-contain" />
-        )}
-        {topRight2 && (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img src={topRight2} alt="Logo" className="h-20 w-auto object-contain" />
-        )}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={logoRight} alt="Logo Siluet Barokah Tour" className="-mr-5 -mt-5 h-24 w-auto object-contain" />
-      </div>
-    </div>
   )
 }
 
@@ -580,42 +550,17 @@ export default async function EventPanduanPage({
       </>
     ) : null,
     'room-map': buses.length > 0 ? (
-<A4Section fit="none">
-              <section className="guide-fit-table flex h-full flex-col border border-[#dfe4e8] bg-white p-5 print:min-h-[272mm]">
-                <SectionLogos
-                  logoLeft={logoLeftUrl}
-                  logoRight={logoRightUrl}
-                  topRight={event.panduanLogoTopRight}
-                  topRight2={event.panduanLogoTopRight2}
-                />
-                <h2 className="mb-6 mt-12 shrink-0 text-center text-xl font-extrabold uppercase tracking-wide text-[#00A3E0]">Denah Kamar</h2>
-                <div className="flex min-h-0 flex-1 flex-col">
-                  <PublicRoomMap eventId={id} highlightRoom={ownBus?.room ?? null} highlightName={ownBus?.name ?? null} />
-                </div>
-                {(event.denahKamarCrewName || event.denahKamarCrewPhotoUrl) && (
-                  <div className="mt-6 flex flex-col items-end pr-8 pt-4 text-center">
-                    {event.denahKamarCrewPhotoUrl ? (
-                      <div className="relative flex h-24 w-36 shrink-0 items-center justify-center">
-                        <span aria-hidden className="absolute -inset-3 rounded-lg bg-white/70 blur-lg" />
-                        <div className="relative flex h-24 w-36 shrink-0 items-center justify-center overflow-hidden rounded-lg shadow-lg shadow-black/50">
-                          <img src={event.denahKamarCrewPhotoUrl} alt={event.denahKamarCrewName ?? undefined} className="h-full w-full object-cover" />
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex h-24 w-36 shrink-0 items-center justify-center rounded-lg text-2xl font-bold text-[#f5b915] shadow-lg shadow-black/50">
-                        {event.denahKamarCrewName?.slice(0, 2).toUpperCase()}
-                      </div>
-                    )}
-                    <strong
-                      className="relative z-[1] mt-3 block w-36 bg-[#f5b915] px-3 py-1 text-center text-sm font-extrabold uppercase tracking-wide text-white"
-                      style={{ clipPath: 'polygon(0 0, 100% 0, calc(100% - 12px) 50%, 100% 100%, 0 100%, 12px 50%)' }}
-                    >
-                      {event.denahKamarCrewName}
-                    </strong>
-                  </div>
-                )}
-              </section>
-              </A4Section>
+      <PublicRoomMap
+        eventId={id}
+        highlightRoom={ownBus?.room ?? null}
+        highlightName={ownBus?.name ?? null}
+        logoLeft={logoLeftUrl}
+        logoRight={logoRightUrl}
+        topRight={event.panduanLogoTopRight}
+        topRight2={event.panduanLogoTopRight2}
+        crewName={event.denahKamarCrewName}
+        crewPhotoUrl={event.denahKamarCrewPhotoUrl}
+      />
     ) : null,
     'vw-map': hasVehicles ? (
 <A4Section fit="none">

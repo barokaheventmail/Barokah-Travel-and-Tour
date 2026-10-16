@@ -1,17 +1,19 @@
 'use client'
 
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
-import { BedDouble, ChevronLeft, ChevronRight, Loader2, SearchX } from 'lucide-react'
+import { Fragment, useEffect, useMemo, useState } from 'react'
+import { BedDouble, Loader2, SearchX } from 'lucide-react'
 import { ScaleToFit } from '@/components/scale-to-fit'
+import { A4Section } from '@/components/a4-section'
+import { SectionLogos } from '@/components/section-logos'
 
 type Member = { name: string; busName: string }
 type Room = { room: string; roomType: string | null; members: Member[] }
 
 const REFRESH_MS = 10000
-// Tinggi tiap kolom dibatasi jumlah baris nama (bukan jumlah kamar) supaya
-// tabel tidak perlu dikecilkan berlebihan saat dipasang di lembar A4. Satu
-// halaman memuat 2 kolom berdampingan; sisanya mengalir ke halaman berikutnya
-// (ke kanan dulu, baru ke bawah).
+// Tiap kolom dibatasi jumlah baris nama (bukan jumlah kamar) supaya tabel tetap
+// proporsional. Satu halaman A4 memuat 2 kolom berdampingan; kelebihannya
+// mengalir ke halaman berikutnya (semua halaman ikut tercetak, tanpa paginasi
+// interaktif). Tiap halaman menampilkan kop/logo + judul seperti Denah Duduk.
 const ROWS_PER_COLUMN = 18
 const COLUMNS_PER_PAGE = 2
 
@@ -33,6 +35,12 @@ function packColumns(rooms: Room[], rowsPerColumn: number): Room[][] {
   }
   if (current.length > 0) columns.push(current)
   return columns
+}
+
+function chunk<T>(items: T[], size: number): T[][] {
+  const out: T[][] = []
+  for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size))
+  return out
 }
 
 function RoomColumn({
@@ -97,20 +105,56 @@ function RoomColumn({
   )
 }
 
+function CrewBadge({ name, photoUrl }: { name: string | null; photoUrl: string | null }) {
+  if (!name && !photoUrl) return null
+  return (
+    <div className="mt-6 flex flex-col items-end pr-8 pt-4 text-center">
+      {photoUrl ? (
+        <div className="relative flex h-24 w-36 shrink-0 items-center justify-center">
+          <span aria-hidden className="absolute -inset-3 rounded-lg bg-white/70 blur-lg" />
+          <div className="relative flex h-24 w-36 shrink-0 items-center justify-center overflow-hidden rounded-lg shadow-lg shadow-black/50">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={photoUrl} alt={name ?? undefined} className="h-full w-full object-cover" />
+          </div>
+        </div>
+      ) : (
+        <div className="flex h-24 w-36 shrink-0 items-center justify-center rounded-lg text-2xl font-bold text-[#f5b915] shadow-lg shadow-black/50">
+          {name?.slice(0, 2).toUpperCase()}
+        </div>
+      )}
+      <strong
+        className="relative z-[1] mt-3 block w-36 bg-[#f5b915] px-3 py-1 text-center text-sm font-extrabold uppercase tracking-wide text-white"
+        style={{ clipPath: 'polygon(0 0, 100% 0, calc(100% - 12px) 50%, 100% 100%, 0 100%, 12px 50%)' }}
+      >
+        {name}
+      </strong>
+    </div>
+  )
+}
+
 export function PublicRoomMap({
   eventId,
   highlightRoom,
   highlightName,
+  logoLeft,
+  logoRight,
+  topRight,
+  topRight2,
+  crewName,
+  crewPhotoUrl,
 }: {
   eventId: string
   highlightRoom?: string | null
   highlightName?: string | null
+  logoLeft: string
+  logoRight: string
+  topRight: string | null
+  topRight2: string | null
+  crewName: string | null
+  crewPhotoUrl: string | null
 }) {
   const [data, setData] = useState<Room[] | null>(null)
   const [loading, setLoading] = useState(true)
-  const [page, setPage] = useState(0)
-
-  const jumpedRef = useRef<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -145,91 +189,72 @@ export function PublicRoomMap({
     }
   }, [eventId])
 
-  useEffect(() => {
-    setPage(0)
-  }, [eventId])
-
-  // Peserta (dari QR): reset penanda saat target highlight berubah.
-  useEffect(() => {
-    jumpedRef.current = null
-  }, [highlightRoom, highlightName])
-
   const rooms = data ?? []
   const columns = useMemo(() => packColumns(rooms, ROWS_PER_COLUMN), [rooms])
-  const pageCount = Math.max(1, Math.ceil(columns.length / COLUMNS_PER_PAGE))
-  const safePage = Math.min(page, pageCount - 1)
-  const startCol = safePage * COLUMNS_PER_PAGE
-  const pageColumns = columns.slice(startCol, startCol + COLUMNS_PER_PAGE)
+  const pages = useMemo(() => chunk(columns, COLUMNS_PER_PAGE), [columns])
 
-  // Peserta (dari QR): lompat ke halaman yang memuat kamarnya.
-  useEffect(() => {
-    if (!highlightRoom || !data) return
-    if (jumpedRef.current === highlightRoom) return
-    const colIdx = columns.findIndex((col) => col.some((room) => room.room === highlightRoom))
-    if (colIdx >= 0) {
-      setPage(Math.floor(colIdx / COLUMNS_PER_PAGE))
-      jumpedRef.current = highlightRoom
-    }
-  }, [data, columns, highlightRoom])
+  const logos = (
+    <SectionLogos logoLeft={logoLeft} logoRight={logoRight} topRight={topRight} topRight2={topRight2} />
+  )
+  const title = (
+    <h2 className="mb-6 mt-12 shrink-0 text-center text-xl font-extrabold uppercase tracking-wide text-[#00A3E0]">
+      Denah Kamar
+    </h2>
+  )
+
+  if (loading || rooms.length === 0) {
+    return (
+      <A4Section fit="none">
+        <section className="guide-fit-table flex h-full flex-col border border-[#dfe4e8] bg-white p-5 print:min-h-[272mm]">
+          {logos}
+          {title}
+          <div className="flex min-h-0 flex-1 flex-col">
+            {loading ? (
+              <div className="flex items-center justify-center gap-2 rounded-xl bg-[#f8fafc] py-8 text-xs font-semibold text-[#657080]">
+                <Loader2 size={15} className="animate-spin" /> Memuat denah kamar…
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-[#dfe4e8] px-4 py-8 text-center">
+                <SearchX size={22} className="text-[#c3cad2]" />
+                <p className="text-xs font-bold text-[#657080]">Denah kamar belum tersedia</p>
+              </div>
+            )}
+          </div>
+        </section>
+      </A4Section>
+    )
+  }
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      {loading ? (
-        <div className="flex items-center justify-center gap-2 rounded-xl bg-[#f8fafc] py-8 text-xs font-semibold text-[#657080]">
-          <Loader2 size={15} className="animate-spin" /> Memuat denah kamar…
-        </div>
-      ) : rooms.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-[#dfe4e8] px-4 py-8 text-center">
-          <SearchX size={22} className="text-[#c3cad2]" />
-          <p className="text-xs font-bold text-[#657080]">Denah kamar belum tersedia</p>
-        </div>
-      ) : (
-        <>
-          <p className="mb-2 flex shrink-0 items-center gap-1.5 text-xs font-bold text-[#1b3555]">
-            <BedDouble size={14} className="text-[#00A3E0]" /> Denah Kamar — Semua Bus
-          </p>
-          <ScaleToFit className="min-h-0 flex-1">
-            <div className="flex items-start gap-4">
-              {[0, 1].map((ci) => {
-                const column = pageColumns[ci]
-                return (
-                  <div key={ci} className="min-w-0 flex-1">
-                    {column && (
-                      <RoomColumn rooms={column} highlightRoom={highlightRoom} highlightName={highlightName} />
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-          </ScaleToFit>
-
-          {pageCount > 1 && (
-            <div className="mt-3 flex shrink-0 items-center justify-center gap-3 print:hidden">
-              <button
-                type="button"
-                onClick={() => setPage((p) => Math.max(0, p - 1))}
-                disabled={safePage === 0}
-                aria-label="Halaman sebelumnya"
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#dfe4e8] bg-white p-0 text-[#1b4f9c] transition-colors duration-150 hover:bg-[#eef4fb] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                <ChevronLeft size={16} />
-              </button>
-              <p className="min-w-0 text-center text-xs font-bold text-[#1b3555]">
-                Halaman {safePage + 1} / {pageCount}
+    <>
+      {pages.map((pageColumns, pi) => (
+        <A4Section key={pi} fit="none">
+          <section className="guide-fit-table flex h-full flex-col border border-[#dfe4e8] bg-white p-5 print:min-h-[272mm]">
+            {logos}
+            {title}
+            <div className="flex min-h-0 flex-1 flex-col">
+              <p className="mb-2 flex shrink-0 items-center gap-1.5 text-xs font-bold text-[#1b3555]">
+                <BedDouble size={14} className="text-[#00A3E0]" /> Denah Kamar — Semua Bus
               </p>
-              <button
-                type="button"
-                onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
-                disabled={safePage >= pageCount - 1}
-                aria-label="Halaman berikutnya"
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#dfe4e8] bg-white p-0 text-[#1b4f9c] transition-colors duration-150 hover:bg-[#eef4fb] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                <ChevronRight size={16} />
-              </button>
+              <ScaleToFit className="min-h-0 flex-1">
+                <div className="flex items-start gap-4">
+                  {[0, 1].map((ci) => {
+                    const column = pageColumns[ci]
+                    return (
+                      <div key={ci} className="min-w-0 flex-1">
+                        {column && (
+                          <RoomColumn rooms={column} highlightRoom={highlightRoom} highlightName={highlightName} />
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </ScaleToFit>
             </div>
-          )}
-        </>
-      )}
-    </div>
+            {pi === pages.length - 1 && <CrewBadge name={crewName} photoUrl={crewPhotoUrl} />}
+          </section>
+        </A4Section>
+      ))}
+    </>
   )
 }

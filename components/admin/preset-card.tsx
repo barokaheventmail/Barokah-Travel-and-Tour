@@ -135,9 +135,6 @@ function PanduanPreview({ data }: { data: string }) {
                         >
                           {row.agenda}
                         </span>
-                        {row.keterangan && (
-                          <span className="mt-0.5 block text-[11px] text-[#657080]">{row.keterangan}</span>
-                        )}
                       </span>
                     </div>
                   ))}
