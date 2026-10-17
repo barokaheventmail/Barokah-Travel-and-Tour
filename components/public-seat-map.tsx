@@ -59,13 +59,19 @@ export function PublicSeatMap({
   const index = buses.findIndex((b) => b.id === selectedId)
   const current = index >= 0 ? buses[index] : null
 
-  // Daftar nama dipecah per kolom, maksimal 25 kursi per kolom. Bila lebih dari
-  // 25, kolom berikutnya diletakkan di sampingnya (1–25, 26–50, dst.).
-  const ROSTER_COLUMN_SIZE = 25
+  // Daftar nama dipecah per kelompok, maksimal 30 peserta per kelompok, dan
+  // paling banyak 2 kelompok berdampingan. Kelompok berikutnya turun ke baris
+  // baru dengan pola bergantian kiri → kanan.
+  const ROSTER_COLUMN_SIZE = 30
+  const ROSTER_COLUMNS_PER_ROW = 2
   const rosterSeats = data?.seats ?? []
-  const rosterColumns: typeof rosterSeats[] = []
+  const rosterColumns: (typeof rosterSeats)[] = []
   for (let i = 0; i < rosterSeats.length; i += ROSTER_COLUMN_SIZE) {
     rosterColumns.push(rosterSeats.slice(i, i + ROSTER_COLUMN_SIZE))
+  }
+  const rosterRows: (typeof rosterSeats)[][] = []
+  for (let i = 0; i < rosterColumns.length; i += ROSTER_COLUMNS_PER_ROW) {
+    rosterRows.push(rosterColumns.slice(i, i + ROSTER_COLUMNS_PER_ROW))
   }
 
   function step(dir: 1 | -1) {
@@ -154,152 +160,148 @@ export function PublicSeatMap({
 
       <div className="mt-3 overflow-x-auto print:overflow-visible">
         <div className="flex min-w-[34rem] items-start gap-4 sm:gap-6 print:min-w-0">
-        <div className="print-avoid-break w-64 shrink-0 sm:w-72">
-        {loading ? (
-          <div className="flex items-center justify-center gap-2 rounded-xl bg-[#f8fafc] py-8 text-xs font-semibold text-[#657080]">
-            <Loader2 size={15} className="animate-spin" /> Memuat peta kursi…
-          </div>
-        ) : !data ? (
-          <div className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-[#dfe4e8] px-4 py-8 text-center">
-            <SearchX size={22} className="text-[#c3cad2]" />
-            <p className="text-xs font-bold text-[#657080]">Peta kursi belum tersedia</p>
-          </div>
-        ) : data.seatRows > 0 && data.seatCols > 0 ? (
-          <>
-            <p className="text-xs font-bold text-[#1b3555]">{data.busName}</p>
-            <SeatGrid
-              bus={data}
-              highlightSeat={mySeat}
-              showAttendance={false}
-              onSelect={(s) => setSelected({ seat: s.seat, name: s.name, busName: data.busName })}
-            />
-          </>
-        ) : (
-          <div className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-[#dfe4e8] px-4 py-8 text-center">
-            <Armchair size={22} className="text-[#c3cad2]" />
-            <p className="text-xs font-bold text-[#657080]">Belum ada layout kursi</p>
-            <p className="text-[11px] text-[#9aa3af]">Peta kursi unit ini diatur oleh admin.</p>
-          </div>
-        )}
-        </div>
-
-      {!loading && data && data.seats.length > 0 && (
-        <div className="min-w-0 flex-1">
-          <div className="flex items-stretch gap-4">
-            {rosterColumns.map((column, ci) => (
-              <div key={ci} className="min-w-0 flex-1">
-                <table className="w-full table-fixed border-collapse border border-[#b9c6d2] text-[20px] sm:text-[22px]">
-                  <thead>
-                    <tr className="bg-[#00A3E0] text-[15px] font-bold uppercase tracking-wide text-white sm:text-[17px]">
-                      <th className="border border-[#7fc7e8] px-1.5 py-1.5" style={{ width: '22%' }}>
-                        No
-                      </th>
-                      <th className="border border-[#7fc7e8] px-2 py-1.5 text-center">Nama</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {column.map((s, idx) => {
-                      const isMine = mySeat != null && s.seat != null && s.seat === mySeat
-                      const base = idx % 2 === 1 ? 'bg-[#f8fafc]' : 'bg-white'
-                      return (
-                        <tr key={s.order} className={base}>
-                          <td
-                            className={`border border-[#cdd8e2] px-1 py-1 text-center align-middle font-bold tabular-nums text-[#657080]${isMine ? ' bg-[#bfdbfe]' : ''}`}
-                          >
-                            {s.seat ?? s.order}
-                          </td>
-                          <td
-                            className={`border border-[#cdd8e2] px-2 py-1 text-left align-middle font-normal text-[#1b3555]${isMine ? ' bg-[#bfdbfe]' : ''}`}
-                          >
-                            <span className={isMine ? 'font-bold' : ''}>{s.name}</span>
-                          </td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
+          <div className="print-avoid-break w-64 shrink-0 sm:w-72">
+            {loading ? (
+              <div className="flex items-center justify-center gap-2 rounded-xl bg-[#f8fafc] py-8 text-xs font-semibold text-[#657080]">
+                <Loader2 size={15} className="animate-spin" /> Memuat peta kursi…
               </div>
-            ))}
+            ) : !data ? (
+              <div className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-[#dfe4e8] px-4 py-8 text-center">
+                <SearchX size={22} className="text-[#c3cad2]" />
+                <p className="text-xs font-bold text-[#657080]">Peta kursi belum tersedia</p>
+              </div>
+            ) : data.seatRows > 0 && data.seatCols > 0 ? (
+              <>
+                <p className="text-xs font-bold text-[#1b3555]">{data.busName}</p>
+                <SeatGrid
+                  bus={data}
+                  highlightSeat={mySeat}
+                  showAttendance={false}
+                  onSelect={(s) => setSelected({ seat: s.seat, name: s.name, busName: data.busName })}
+                />
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-[#dfe4e8] px-4 py-8 text-center">
+                <Armchair size={22} className="text-[#c3cad2]" />
+                <p className="text-xs font-bold text-[#657080]">Belum ada layout kursi</p>
+                <p className="text-[11px] text-[#9aa3af]">Peta kursi unit ini diatur oleh admin.</p>
+              </div>
+            )}
           </div>
-        </div>
-      )}
+
+          {!loading && data && data.seats.length > 0 && (
+            <div className="min-w-0 flex-1 overflow-hidden rounded-none border-2 border-[#dfe4e8]">
+              {rosterRows.map((row, ri) => (
+                <div
+                  key={ri}
+                  className={`flex items-stretch${ri > 0 ? ' border-t-2 border-[#dfe4e8]' : ''}`}
+                >
+                  {row.map((column, ci) => (
+                    <div
+                      key={ci}
+                      className={`min-w-0 flex-1${ci > 0 ? ' border-l-2 border-[#dfe4e8]' : ''}`}
+                    >
+                      {ri === 0 && (
+                        <div className="grid grid-cols-[3.75rem_minmax(0,1fr)] bg-[#00A3E0] text-xl font-extrabold uppercase tracking-wider text-white">
+                          <span className="border-r-2 border-white/40 px-[3px] py-[2px] text-center">No</span>
+                          <span className="px-[3px] py-[2px] text-center">Nama</span>
+                        </div>
+                      )}
+                      <div className="divide-y-2 divide-[#edf0f3]">
+                        {column.map((s) => {
+                          const isMine = mySeat != null && s.seat != null && s.seat === mySeat
+                          return (
+                            <div
+                              key={s.order}
+                              className={`grid grid-cols-[3.75rem_minmax(0,1fr)] ${isMine ? 'bg-[#bfdbfe]' : ''}`}
+                            >
+                              <span className="border-r-2 border-[#dfe4e8] px-[3px] py-[2px] text-3xl font-bold tabular-nums text-[#1b3555]">
+                                {s.seat ?? s.order}
+                              </span>
+                              <span className={`truncate px-[3px] py-[2px] text-3xl text-[#1b3555] ${isMine ? 'font-bold' : ''}`}>
+                                {s.name}
+                              </span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                  {row.length < ROSTER_COLUMNS_PER_ROW && (
+                    <div aria-hidden className="min-w-0 flex-1 border-l-2 border-[#dfe4e8]" />
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
-      {!loading && data && (data.unitImageUrl || (data.facilities && data.facilities.length > 0)) && (
-        <div className="mt-auto flex items-end justify-between gap-6 pt-8 pb-6 print:break-inside-avoid">
-          {data.facilities && data.facilities.length > 0 && (
-            <div className="min-w-0 max-w-[72%] overflow-hidden rounded-2xl border-2 border-[#dfe4e8] bg-white">
-              <div className="flex items-center gap-3 bg-gradient-to-r from-[#1b4f9c] via-[#1b6fc4] to-[#00A3E0] px-5 py-3 sm:px-6">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/20 text-white">
-                  <Sparkles size={22} />
-                </span>
-                <p className="min-w-0 flex-1 text-3xl font-extrabold uppercase tracking-wide text-white">
+      {!loading &&
+        data &&
+        ((data.facilities && data.facilities.length > 0) || data.unitImageUrl) && (
+          <div className="mt-auto flex items-start justify-between gap-6 pt-6 pb-5 print:break-inside-avoid">
+            {data.facilities && data.facilities.length > 0 && (
+              <div className="mt-6 min-w-0 flex-1">
+                <p className="mb-1.5 text-3xl font-extrabold uppercase tracking-wide text-[#1b4f9c]">
                   Fasilitas Unit
                 </p>
-                <span className="max-w-[45%] shrink-0 truncate rounded-full bg-white/15 px-3.5 py-1.5 text-sm font-bold uppercase tracking-wide text-white">
-                  {data.busName}
-                </span>
+                <ul className="grid grid-cols-[repeat(3,max-content)] gap-x-6 gap-y-0.5">
+                  {data.facilities.map((f, i) => {
+                    const Icon = FACILITY_ICONS[f.icon] ?? Armchair
+                    return (
+                      <li key={`${f.name}-${i}`} className="flex items-start gap-2.5">
+                        <span
+                          aria-hidden
+                          className="mt-[0.5em] h-2 w-2 shrink-0 rounded-full bg-black"
+                        />
+                        <span className="min-w-0 text-2xl font-semibold leading-snug text-black">
+                          {f.name}
+                        </span>
+                      </li>
+                    )
+                  })}
+                </ul>
               </div>
-              <ul className="flex flex-wrap gap-2.5 bg-[#f7fafd] p-4 sm:gap-3 sm:p-5">
-                {data.facilities.map((f, i) => {
-                  const Icon = FACILITY_ICONS[f.icon] ?? Armchair
-                  return (
-                    <li
-                      key={`${f.name}-${i}`}
-                      className="inline-flex max-w-full items-center gap-2.5 rounded-full border border-[#e3e9f0] bg-white py-2 pl-2 pr-5 shadow-[0_1px_2px_rgba(27,53,85,0.07)]"
-                    >
-                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#e6f3fd] text-[#1b4f9c]">
-                        <Icon size={18} />
-                      </span>
-                      <span className="min-w-0 break-words text-xl font-bold leading-tight text-[#1b3555]">
-                        {f.name}
-                      </span>
-                    </li>
-                  )
-                })}
-              </ul>
-            </div>
-          )}
+            )}
 
-          {data.unitImageUrl && (
-            <div className="flex shrink-0 flex-col items-end pr-6">
-              <div className="relative flex h-44 w-44 shrink-0 items-center justify-center">
-                <span
-                  aria-hidden
-                  className="absolute -inset-8 rounded-full blur-lg"
-                  style={{
-                    background:
-                      'radial-gradient(circle, rgba(59,130,246,1) 0%, rgba(59,130,246,0.85) 50%, rgba(59,130,246,0) 78%)',
-                  }}
-                />
-                <div
-                  className="relative flex h-44 w-44 items-center justify-center overflow-hidden rounded-full"
-                  style={{ clipPath: 'circle(50% at 50% 50%)' }}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={data.unitImageUrl}
-                    alt={`Unit ${data.unitLabel?.trim() || data.busName}`}
-                    className="h-full w-full object-cover"
-                    style={unitImageStyle(data.unitImagePosX, data.unitImagePosY, data.unitImageZoom)}
+            {data.unitImageUrl && (
+              <div className="mt-5 flex shrink-0 flex-col items-center pr-4 sm:pr-6">
+                <div className="relative flex h-44 w-44 shrink-0 items-center justify-center sm:h-52 sm:w-52">
+                  <span
+                    aria-hidden
+                    className="absolute -inset-8 rounded-full blur-lg sm:-inset-10"
+                    style={{
+                      background:
+                        'radial-gradient(circle, rgba(59,130,246,1) 0%, rgba(59,130,246,0.85) 50%, rgba(59,130,246,0) 78%)',
+                    }}
                   />
+                  <div
+                    className="relative flex h-44 w-44 items-center justify-center overflow-hidden rounded-full sm:h-52 sm:w-52"
+                    style={{ clipPath: 'circle(50% at 50% 50%)' }}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={data.unitImageUrl}
+                      alt={`Unit ${data.unitLabel?.trim() || data.busName}`}
+                      className="h-full w-full object-cover"
+                      style={unitImageStyle(data.unitImagePosX, data.unitImagePosY, data.unitImageZoom)}
+                    />
+                  </div>
                 </div>
+                <strong
+                  className="relative z-[1] -mt-2 inline-block max-w-full truncate bg-[#f5b915] px-8 py-2 text-base font-extrabold uppercase tracking-wide text-white sm:text-lg"
+                  style={{
+                    clipPath: 'polygon(0 0, 100% 0, calc(100% - 14px) 50%, 100% 100%, 0 100%, 14px 50%)',
+                  }}
+                >
+                  {data.unitLabel?.trim() || data.busName}
+                </strong>
               </div>
-              <strong
-                className="relative z-[1] -mt-1 inline-block max-w-full truncate bg-[#f5b915] px-8 py-1.5 text-base font-extrabold uppercase tracking-wide text-white"
-                style={{ clipPath: 'polygon(0 0, 100% 0, calc(100% - 12px) 50%, 100% 100%, 0 100%, 12px 50%)' }}
-              >
-                {data.unitLabel?.trim() || data.busName}
-              </strong>
-            </div>
-          )}
-        </div>
-      )}
+            )}
+          </div>
+        )}
 
-      {/* Dirender lewat portal ke <body> supaya `fixed inset-0` tetap menempel
-          ke viewport — bukan ke ancestor yang punya `transform: scale()` di
-          komponen <A4Section>, yang akan membuat modal ikut mengecil. */}
       {selected && mounted && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-5 backdrop-blur-sm print:hidden">
           <div className="animate-fade-up w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
