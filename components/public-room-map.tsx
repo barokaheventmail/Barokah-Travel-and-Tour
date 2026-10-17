@@ -224,20 +224,21 @@ export function PublicRoomMap({
   }, [eventId])
 
   const rooms = data ?? []
-  const sections = useMemo(() => buildSections(rooms, roomTypes), [rooms, roomTypes])
+  // Hanya tipe kamar yang benar-benar ada di data (hasil import Excel) yang
+  // ditampilkan. Tipe terdaftar tapi tanpa peserta tidak dibuatkan seksi kosong.
+  const sections = useMemo(
+    () => buildSections(rooms, roomTypes).filter((section) => !section.empty),
+    [rooms, roomTypes],
+  )
 
   // Setiap tipe menempati satu atau beberapa lembar A4 (2 kolom per lembar).
   // Tipe baru selalu dimulai dari lembar baru agar batas antar tipe jelas.
   const pages = useMemo(() => {
     type Cell = { rooms: Room[]; startIndex: number }
-    type Page = { section: Section; widths: ReturnType<typeof sectionWidths>; cells: Cell[]; empty: boolean }
+    type Page = { section: Section; widths: ReturnType<typeof sectionWidths>; cells: Cell[] }
     const list: Page[] = []
     for (const section of sections) {
       const widths = sectionWidths(section)
-      if (section.empty) {
-        list.push({ section, widths, cells: [], empty: true })
-        continue
-      }
       const columns = packColumns(section.rooms, ROWS_PER_COLUMN)
       const cells: Cell[] = []
       let acc = 0
@@ -251,7 +252,6 @@ export function PublicRoomMap({
             section,
             widths,
             cells: cells.slice(i, i + COLUMNS_PER_PAGE),
-            empty: false,
           })
         }
       })
@@ -307,35 +307,27 @@ export function PublicRoomMap({
             {title}
             <div className="flex min-h-0 flex-1 flex-col">
               <SectionHeading section={page.section} />
-              {page.empty ? (
-                <div className="flex min-h-0 flex-1 items-center justify-center">
-                  <p className="max-w-sm rounded-xl border border-dashed border-[#dfe4e8] bg-[#f8fafc] px-4 py-6 text-center text-xs font-bold text-[#657080]">
-                    Belum ada peserta yang ditempatkan pada tipe kamar ini.
-                  </p>
+              <ScaleToFit className="min-h-0 flex-1">
+                <div className="flex items-start gap-4">
+                  {Array.from({ length: COLUMNS_PER_PAGE }, (_, ci) => {
+                    const cell = page.cells[ci]
+                    return (
+                      <div key={ci} className="min-w-0 flex-1">
+                        {cell && (
+                          <RoomColumn
+                            rooms={cell.rooms}
+                            startIndex={cell.startIndex}
+                            fallbackType={page.section.type === UNASSIGNED_TYPE ? '—' : page.section.type}
+                            widths={page.widths}
+                            highlightRoom={highlightRoom}
+                            highlightName={highlightName}
+                          />
+                        )}
+                      </div>
+                    )
+                  })}
                 </div>
-              ) : (
-                <ScaleToFit className="min-h-0 flex-1">
-                  <div className="flex items-start gap-4">
-                    {Array.from({ length: COLUMNS_PER_PAGE }, (_, ci) => {
-                      const cell = page.cells[ci]
-                      return (
-                        <div key={ci} className="min-w-0 flex-1">
-                          {cell && (
-                            <RoomColumn
-                              rooms={cell.rooms}
-                              startIndex={cell.startIndex}
-                              fallbackType={page.section.type === UNASSIGNED_TYPE ? '—' : page.section.type}
-                              widths={page.widths}
-                              highlightRoom={highlightRoom}
-                              highlightName={highlightName}
-                            />
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
-                </ScaleToFit>
-              )}
+              </ScaleToFit>
             </div>
             <CrewBadge name={crewName} photoUrl={crewPhotoUrl} />
           </section>
