@@ -181,6 +181,7 @@ function KursiPreview({ data }: { data: string }) {
     `${facilities.length} fasilitas`,
     front.driver !== null ? 'Ada Driver' : 'Tanpa Driver',
     ...(front.crew !== null ? ['Ada Crew'] : []),
+    ...(front.tl !== null ? ['Ada TL'] : []),
   ]
 
   return (

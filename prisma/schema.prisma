@@ -92,6 +92,9 @@ model Event {
   denahKamarTitle       String? @db.VarChar(200)
   denahKamarKeterangan  String? @db.VarChar(200)
   denahKamarKeterangan2 String? @db.VarChar(200)
+  // Judul utama halaman Denah Duduk (default semua unit). Null/kosong = judul
+  // bawaan "Denah Duduk".
+  denahDudukTitle       String? @db.VarChar(200)
   vwKeterangan          String? @db.VarChar(200)
   vwKeterangan2         String? @db.VarChar(200)
   // Logo di kepala halaman panduan (general, dipakai di semua section). Urutan

@@ -334,6 +334,7 @@ export default async function EventDetail({
               initialDenahKamarTitle={event.denahKamarTitle ?? ''}
               initialDenahKamarKeterangan={event.denahKamarKeterangan ?? ''}
               initialDenahKamarKeterangan2={event.denahKamarKeterangan2 ?? ''}
+              initialDenahDudukTitle={event.denahDudukTitle ?? ''}
               initialVwTitle={event.vwTitle ?? ''}
               initialVwKeterangan={event.vwKeterangan ?? ''}
               initialVwKeterangan2={event.vwKeterangan2 ?? ''}
@@ -435,7 +436,15 @@ export default async function EventDetail({
         </div>
       )}
 
-      {active === 'kursi' && <SeatLayoutEditor eventId={event.id} buses={seatBuses} presets={kursiPresets} />}
+      {active === 'kursi' && (
+        <SeatLayoutEditor
+          eventId={event.id}
+          eventTitle={event.title}
+          denahDudukTitle={event.denahDudukTitle ?? ''}
+          buses={seatBuses}
+          presets={kursiPresets}
+        />
+      )}
 
       {active === 'riwayat' && (
         <div className="relative mt-5 overflow-hidden rounded-2xl border border-[#ece3cd] bg-white shadow-[0_18px_44px_-28px_rgba(27,53,85,0.5)]">

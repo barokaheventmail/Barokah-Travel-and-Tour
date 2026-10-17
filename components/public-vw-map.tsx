@@ -6,6 +6,7 @@ import { ScaleToFit } from '@/components/scale-to-fit'
 import { A4Section } from '@/components/a4-section'
 import { PublicHeading } from '@/components/public-heading'
 import { JEEP_DISPLAY, UNASSIGNED_VEHICLE } from '@/lib/participant-groups'
+import { vehicleKeterangan2 } from '@/lib/panduan-heading'
 
 type Member = { name: string; busName: string }
 type Group = { vehicle: string; rank: number; members: Member[] }
@@ -120,8 +121,9 @@ export function PublicVwMap({
   footer?: ReactNode
   highlightVehicle?: string | null
   highlightName?: string | null
-  /** Keterangan orange/hijau di sebelah judul tiap lembar denah kendaraan. */
+  /** Keterangan orange (sudah di-resolve: manual atau nama event). */
   keterangan?: string | null
+  /** Keterangan hijau manual. Kosong = otomatis "X Orang" per kendaraan. */
   keterangan2?: string | null
 }) {
   const [data, setData] = useState<Group[] | null>(null)
@@ -217,18 +219,28 @@ export function PublicVwMap({
     return () => cancelAnimationFrame(frame)
   }, [targetPage, highlightVehicle])
 
+  const manualGreen = (keterangan2 ?? '').trim()
+  const headingFor = (section: Section | null) => {
+    const total = section ? section.groups.reduce((sum, g) => sum + g.members.length, 0) : 0
+    return (
+      <PublicHeading
+        title={
+          <h2 className="text-xl font-extrabold uppercase tracking-wide text-[#00A3E0]">
+            {section ? section.title : 'Denah Kendaraan'}
+          </h2>
+        }
+        keterangan={keterangan}
+        keterangan2={manualGreen || vehicleKeterangan2(total)}
+        className={section ? 'mb-4 mt-10 shrink-0 justify-center' : 'mb-6 mt-12 shrink-0 justify-center'}
+      />
+    )
+  }
+
   const shell = (children: ReactNode) => (
     <A4Section fit="none">
       <section className="guide-fit-table flex h-full flex-col border border-[#dfe4e8] bg-white px-8 py-5 print:min-h-[272mm]">
         {header}
-        <PublicHeading
-          title={
-            <h2 className="text-xl font-extrabold uppercase tracking-wide text-[#00A3E0]">Denah Kendaraan</h2>
-          }
-          keterangan={keterangan}
-          keterangan2={keterangan2}
-          className="mb-6 mt-12 shrink-0 justify-center"
-        />
+        {headingFor(null)}
         <div className="mx-6 flex min-h-0 flex-1 flex-col">{children}</div>
         {footer}
       </section>
@@ -261,16 +273,7 @@ export function PublicVwMap({
             className="guide-fit-table flex h-full flex-col border border-[#dfe4e8] bg-white px-8 py-5 print:min-h-[272mm]"
           >
             {header}
-            <PublicHeading
-              title={
-                <h2 className="text-xl font-extrabold uppercase tracking-wide text-[#00A3E0]">
-                  {page.section.title}
-                </h2>
-              }
-              keterangan={keterangan}
-              keterangan2={keterangan2}
-              className="mb-4 mt-10 shrink-0 justify-center"
-            />
+            {headingFor(page.section)}
             <div className="mx-6 flex min-h-0 flex-1 flex-col">
               <p className="mb-2 flex shrink-0 flex-wrap items-center gap-x-4 gap-y-0.5">
                 <span className="flex items-center gap-1.5 text-xs font-bold text-[#1b3555]">

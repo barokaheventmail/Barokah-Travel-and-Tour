@@ -1112,6 +1112,7 @@ export const eventPatchSchema = z.object({
   denahKamarTitle: z.string().trim().max(200).nullish(),
   denahKamarKeterangan: z.string().trim().max(200).nullish(),
   denahKamarKeterangan2: z.string().trim().max(200).nullish(),
+  denahDudukTitle: z.string().trim().max(200).nullish(),
   vwKeterangan: z.string().trim().max(200).nullish(),
   vwKeterangan2: z.string().trim().max(200).nullish(),
   status: z.enum(['DRAFT', 'ACTIVE', 'CLOSED']).optional(),

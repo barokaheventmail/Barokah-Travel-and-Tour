@@ -1,17 +1,27 @@
 'use client'
 
-import { UsersRound } from 'lucide-react'
-import type { FrontLayout, FrontSlot } from '@/lib/front'
+import { Crown, UsersRound } from 'lucide-react'
+import { FRONT_SLOTS, type FrontLayout, type FrontSlot } from '@/lib/front'
 
 const STRIP_GAP = 'gap-[2px] sm:gap-[3px]'
 
 /**
- * Ilustrasi depan bus: dashboard sopir + strip tempat Driver & Crew + dinding
- * pembatas ke kabin penumpang. Semua bagian diberi garis pinggir (kotak)
- * supaya batas tiap area jelas.
+ * Label singkat tiap slot di strip depan. Dipakai untuk aria/title dan chip
+ * penanda supaya penamaan konsisten dengan editor admin.
+ */
+const SLOT_LABELS: Record<FrontSlot, string> = {
+  driver: 'Driver',
+  crew: 'Crew',
+  tl: 'TL',
+}
+
+/**
+ * Ilustrasi depan bus: dashboard sopir + strip tempat Driver, Crew & TL +
+ * dinding pembatas ke kabin penumpang. Semua bagian diberi garis pinggir
+ * (kotak) supaya batas tiap area jelas.
  *
- * Di editor admin (`interactive`) marker Driver/Crew bisa dipindah lewat klik
- * maupun drag & drop; di peta peserta/crew tampilannya hanya baca.
+ * Di editor admin (`interactive`) marker bisa dipindah lewat klik maupun drag &
+ * drop; di peta peserta/crew tampilannya hanya baca.
  */
 export function BusFront({
   cols,
@@ -31,10 +41,9 @@ export function BusFront({
   onMove?: (slot: FrontSlot, col: number) => void
 }) {
   if (cols <= 0) return null
-  const driver = front?.driver ?? null
-  const crew = front?.crew ?? null
   const slotAt = (col: number): FrontSlot | null =>
-    col === driver ? 'driver' : col === crew ? 'crew' : null
+    FRONT_SLOTS.find((slot) => front?.[slot] === col) ?? null
+  const hasAny = FRONT_SLOTS.some((slot) => (front?.[slot] ?? null) !== null)
 
   return (
     <div className="w-full select-none">
@@ -47,8 +56,8 @@ export function BusFront({
         </span>
       </div>
 
-      {/* Strip Driver & Crew */}
-      {(interactive || driver !== null || crew !== null) && (
+      {/* Strip Driver, Crew & TL */}
+      {(interactive || hasAny) && (
         <div
           className={`mt-1.5 grid ${STRIP_GAP} ${
             interactive
@@ -59,8 +68,6 @@ export function BusFront({
         >
           {Array.from({ length: cols }, (_, col) => {
             const slot = slotAt(col)
-            const isDriver = slot === 'driver'
-            const isCrew = slot === 'crew'
             const filled = slot !== null
             const canPlace = interactive
             // Tampilan peserta/crew: kotak kosong tidak digambar, tapi kolomnya
@@ -81,19 +88,17 @@ export function BusFront({
                   if (!interactive || !onMove) return
                   e.preventDefault()
                   const raw = e.dataTransfer.getData('text/front-slot')
-                  if (raw === 'driver' || raw === 'crew') onMove(raw, col)
+                  if (FRONT_SLOTS.includes(raw as FrontSlot)) onMove(raw as FrontSlot, col)
                 }}
                 onClick={() => {
                   if (canPlace) onPlace?.(col)
                 }}
                 aria-label={
-                  isDriver
-                    ? 'Posisi Driver'
-                    : isCrew
-                      ? 'Posisi Crew'
-                      : canPlace
-                        ? `Kosong, klik untuk menempatkan ${placing ?? 'Driver/Crew'}`
-                        : 'Kosong'
+                  slot
+                    ? `Posisi ${SLOT_LABELS[slot]}`
+                    : canPlace
+                      ? `Kosong, klik untuk menempatkan ${placing ? SLOT_LABELS[placing] : 'Driver/Crew/TL'}`
+                      : 'Kosong'
                 }
                 className={`flex h-10 min-w-0 items-center justify-center overflow-hidden border-2 px-1 text-[10px] font-bold uppercase leading-none transition-colors sm:h-11 ${
                   filled
@@ -102,22 +107,25 @@ export function BusFront({
                 } ${canPlace ? 'cursor-pointer hover:brightness-105 active:scale-95' : 'cursor-default'}`}
                 title={
                   !canPlace
-                    ? isDriver
-                      ? 'Driver'
-                      : isCrew
-                        ? 'Crew'
-                        : undefined
-                    : isDriver
-                      ? 'Driver — klik untuk melepas, atau geser ke kolom lain'
-                      : isCrew
-                        ? 'Crew — klik untuk melepas, atau geser ke kolom lain'
-                        : `Klik untuk menempatkan ${placing === 'crew' ? 'Crew' : 'Driver'} di sini`
+                    ? slot
+                      ? SLOT_LABELS[slot]
+                      : undefined
+                    : slot
+                      ? `${SLOT_LABELS[slot]} — klik untuk melepas, atau geser ke kolom lain`
+                      : `Klik untuk menempatkan ${
+                          placing ? SLOT_LABELS[placing] : 'Driver/Crew/TL'
+                        } di sini`
                 }
               >
-                {isDriver && <span className="leading-none">Driver</span>}
-                {isCrew && (
+                {slot === 'driver' && <span className="leading-none">Driver</span>}
+                {slot === 'crew' && (
                   <span className="flex items-center gap-1">
                     <UsersRound size={12} /> <span className="hidden sm:inline">Crew</span>
+                  </span>
+                )}
+                {slot === 'tl' && (
+                  <span className="flex items-center gap-1">
+                    <Crown size={12} /> <span className="hidden sm:inline">TL</span>
                   </span>
                 )}
                 {!filled && <span className="text-sm leading-none">·</span>}
@@ -127,7 +135,7 @@ export function BusFront({
         </div>
       )}
 
-      {/* Ruang kosong antara Driver/Crew dan kursi penumpang */}
+      {/* Ruang kosong antara strip depan dan kursi penumpang */}
       <div className="h-3 sm:h-4" aria-hidden />
     </div>
   )

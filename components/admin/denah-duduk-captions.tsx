@@ -13,6 +13,8 @@ const BTN_PRIMARY =
 
 export function DenahDudukCaptions({
   eventId,
+  eventTitle,
+  denahDudukTitle,
   busId,
   busName,
   buses,
@@ -20,6 +22,10 @@ export function DenahDudukCaptions({
   initialKeterangan2,
 }: {
   eventId: string
+  /** Judul event — default keterangan orange bila dikosongkan. */
+  eventTitle: string
+  /** Judul utama halaman Denah Duduk (event-level). */
+  denahDudukTitle?: string
   busId: string
   busName: string
   buses: { id: string; name: string }[]
@@ -35,8 +41,10 @@ export function DenahDudukCaptions({
 
   const allSelected = scope.mode === 'all'
   const noTarget = scope.mode === 'some' && scope.ids.length === 0
+  const previewTitle = (denahDudukTitle ?? '').trim() || 'Denah Duduk'
+  const orangePreview = keterangan.trim() || eventTitle
   const greenPreview = keterangan2.trim() || busName
-  const hasPreview = keterangan.trim().length > 0 || keterangan2.trim().length > 0
+  const hasPreview = orangePreview.length > 0 || greenPreview.length > 0
   const handleScopeChange = (ids: string[], mode: TargetMode) => setScope({ mode, ids })
 
   async function save() {
@@ -80,9 +88,10 @@ export function DenahDudukCaptions({
         <span className="rounded-full bg-[#eef3fb] px-2.5 py-0.5 text-[11px] font-bold text-[#1b4f9c]">{busName}</span>
       </div>
       <p className="mt-1 text-xs leading-relaxed text-[#657080]">
-        Tampil di sebelah kanan judul <strong className="text-[#657080]">Denah Duduk</strong> pada panduan peserta, dipisah
-        garis vertikal. Keterangan pertama berwarna orange, keterangan kedua berwarna hijau. Keterangan 2 otomatis berisi
-        nama unit bila dikosongkan. Simpan bisa ke unit ini saja, beberapa unit, atau semua unit.
+        Tampil di sebelah kanan judul <strong className="text-[#657080]">{previewTitle}</strong> pada panduan peserta, dipisah
+        garis vertikal. Keterangan pertama berwarna orange, keterangan kedua berwarna hijau. Keterangan 1 otomatis berisi
+        judul event dan Keterangan 2 otomatis berisi nama unit bila dikosongkan. Simpan bisa ke unit ini saja, beberapa unit,
+        atau semua unit.
       </p>
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -94,7 +103,7 @@ export function DenahDudukCaptions({
             id="denah-ket-1"
             value={keterangan}
             onChange={(e) => setKeterangan(e.target.value.slice(0, 200))}
-            placeholder="mis. Duduk sesuai nomor kursi"
+            placeholder={eventTitle ? `Otomatis: ${eventTitle}` : 'mis. Duduk sesuai nomor kursi'}
             maxLength={200}
             className={`${FIELD} mt-1.5`}
           />
@@ -117,12 +126,12 @@ export function DenahDudukCaptions({
       <div className="mt-4 rounded-xl bg-[#f8fafc] p-3">
         <p className="text-[10px] font-bold uppercase tracking-wide text-[#9aa3af]">Pratinjau</p>
         <div className="mt-2 flex items-center justify-center gap-4">
-          <span className="text-4xl font-extrabold uppercase tracking-wide text-[#00A3E0]">Denah Duduk</span>
+          <span className="text-4xl font-extrabold uppercase tracking-wide text-[#00A3E0]">{previewTitle}</span>
           {hasPreview && (
             <div className="flex items-center gap-3">
               <span aria-hidden className="h-9 w-0.5 shrink-0 bg-[#00A3E0]" />
               <div className="flex flex-col text-left leading-tight">
-                {keterangan.trim() && <p className="text-2xl font-bold uppercase tracking-wide text-[#e8830c]">{keterangan}</p>}
+                {orangePreview && <p className="text-2xl font-bold uppercase tracking-wide text-[#e8830c]">{orangePreview}</p>}
                 {greenPreview && <p className="text-2xl font-bold uppercase tracking-wide text-[#2ca84a]">{greenPreview}</p>}
               </div>
             </div>

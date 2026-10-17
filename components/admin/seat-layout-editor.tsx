@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { Fragment, useCallback, useState } from 'react'
-import { Armchair, Check, ChevronDown, Eraser, Loader2, Minus, Plus, RotateCcw, Save, ShipWheel, Trash2, Users, UsersRound, X } from 'lucide-react'
+import { Armchair, Check, ChevronDown, Crown, Eraser, Loader2, Minus, Plus, RotateCcw, Save, ShipWheel, Trash2, Users, UsersRound, X } from 'lucide-react'
 import { BusFacilitiesEditor } from '@/components/admin/bus-facilities-editor'
 import { BusUnitIdentity } from '@/components/admin/bus-unit-identity'
 import { DenahDudukCaptions } from '@/components/admin/denah-duduk-captions'
@@ -27,6 +27,7 @@ import {
 import {
   defaultFrontLayout,
   emptyFrontLayout,
+  FRONT_SLOTS,
   parseFrontLayout,
   type FrontLayout,
   type FrontSlot,
@@ -104,7 +105,7 @@ function Stepper({
   )
 }
 
-export function SeatLayoutEditor({ eventId, buses, presets }: { eventId: string; buses: SeatBus[]; presets: KursiPresetOption[] }) {
+export function SeatLayoutEditor({ eventId, eventTitle, denahDudukTitle, buses, presets }: { eventId: string; eventTitle: string; denahDudukTitle?: string; buses: SeatBus[]; presets: KursiPresetOption[] }) {
   const router = useRouter()
   const [selectedId, setSelectedId] = useState(buses[0]?.id ?? null)
   const selected = buses.find((b) => b.id === selectedId) ?? null
@@ -160,21 +161,25 @@ export function SeatLayoutEditor({ eventId, buses, presets }: { eventId: string;
     const r = Math.min(MAX, Math.max(MIN, rows))
     const c = Math.min(MAX, Math.max(MIN, cols))
     setLayout((prev) => ({ rows: r, cols: c, cells: resizeCells(prev.cells, r, c) }))
-    setFront((prev) => ({
-      driver: prev.driver !== null && prev.driver < c ? prev.driver : null,
-      crew: prev.crew !== null && prev.crew < c ? prev.crew : null,
-    }))
+    setFront((prev) => {
+      const next: FrontLayout = { ...prev }
+      for (const slot of FRONT_SLOTS) {
+        next[slot] = prev[slot] !== null && prev[slot] < c ? prev[slot] : null
+      }
+      return next
+    })
   }
 
   /** Klik sel strip: hapus kalau sudah terisi, atau taruh slot yang dipilih. */
   function placeFront(col: number) {
     setFront((prev) => {
-      const occupant: FrontSlot | null =
-        prev.driver === col ? 'driver' : prev.crew === col ? 'crew' : null
+      const occupant = FRONT_SLOTS.find((slot) => prev[slot] === col)
       if (occupant) return { ...prev, [occupant]: null }
       const next: FrontLayout = { ...prev, [placing]: col }
-      const other: FrontSlot = placing === 'driver' ? 'crew' : 'driver'
-      if (next[other] === col) next[other] = null
+      // Satu kolom hanya untuk satu slot — lepas marker lain di kolom ini.
+      for (const slot of FRONT_SLOTS) {
+        if (slot !== placing && next[slot] === col) next[slot] = null
+      }
       return next
     })
   }
@@ -183,8 +188,9 @@ export function SeatLayoutEditor({ eventId, buses, presets }: { eventId: string;
   function moveFront(slot: FrontSlot, col: number) {
     setFront((prev) => {
       const next: FrontLayout = { ...prev, [slot]: col }
-      const other: FrontSlot = slot === 'driver' ? 'crew' : 'driver'
-      if (next[other] === col) next[other] = null
+      for (const other of FRONT_SLOTS) {
+        if (other !== slot && next[other] === col) next[other] = null
+      }
       return next
     })
     setPlacing(slot)
@@ -369,9 +375,10 @@ export function SeatLayoutEditor({ eventId, buses, presets }: { eventId: string;
           Klik kotak biru di tepi atas atau tepi kiri untuk menyalakan/mematikan seluruh kolom atau baris sekaligus.
           Lebar &amp; Tinggi mengatur rasio bentuk tiap kotak (mis. Lebar 2 × Tinggi 1 = persegi panjang).
           Posisi kotak yang diklik akan konsisten & dipakai di peta kursi crew.
-          Di strip depan (di bawah dashboard) tempat <strong className="font-semibold text-[#1b4f9c]">Driver</strong> dan{' '}
-          <strong className="font-semibold text-[#2ca84a]">Crew</strong> bisa diatur manual &mdash; default Driver di
-          pojok kanan atas &amp; Crew di kolom kiri.
+          Di strip depan (di bawah dashboard) tempat <strong className="font-semibold text-[#1b4f9c]">Driver</strong>,{' '}
+          <strong className="font-semibold text-[#2ca84a]">Crew</strong>, dan{' '}
+          <strong className="font-semibold text-[#b8860b]">TL (Tour Leader)</strong> bisa diatur manual &mdash; default
+          Driver di pojok kanan atas &amp; Crew di kolom kiri.
         </p>
       </div>
 
@@ -515,6 +522,8 @@ export function SeatLayoutEditor({ eventId, buses, presets }: { eventId: string;
             <DenahDudukCaptions
               key={`${selected.id}-captions`}
               eventId={eventId}
+              eventTitle={eventTitle}
+              denahDudukTitle={denahDudukTitle}
               busId={selected.id}
               busName={selected.name}
               buses={buses.map((b) => ({ id: b.id, name: b.name }))}
@@ -581,6 +590,16 @@ export function SeatLayoutEditor({ eventId, buses, presets }: { eventId: string;
                         >
                           <UsersRound size={12} /> Crew
                         </button>
+                        <button
+                          type="button"
+                          onClick={() => setPlacing('tl')}
+                          aria-pressed={placing === 'tl'}
+                          className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold transition-colors ${
+                            placing === 'tl' ? 'bg-[#b8860b] text-white' : 'text-[#b8860b] hover:bg-[#fff7e0]'
+                          }`}
+                        >
+                          <Crown size={12} /> TL
+                        </button>
                       </div>
                       <div className="ml-auto flex items-center gap-1.5">
                         <button
@@ -601,8 +620,9 @@ export function SeatLayoutEditor({ eventId, buses, presets }: { eventId: string;
                       </div>
                     </div>
                     <p className="mb-1.5 text-[11px] leading-relaxed text-[#9aa3af]">
-                      Pilih <strong className="font-bold text-[#1b4f9c]">Driver</strong> atau{' '}
-                      <strong className="font-bold text-[#2ca84a]">Crew</strong>, lalu klik sel strip untuk menempatkan.
+                      Pilih <strong className="font-bold text-[#1b4f9c]">Driver</strong>,{' '}
+                      <strong className="font-bold text-[#2ca84a]">Crew</strong>, atau{' '}
+                      <strong className="font-bold text-[#b8860b]">TL</strong>, lalu klik sel strip untuk menempatkan.
                       Klik marker untuk melepas, atau geser (drag) marker ke kolom lain. Posisi ini muncul di peta kursi peserta &amp; crew.
                     </p>
                     <BusFront

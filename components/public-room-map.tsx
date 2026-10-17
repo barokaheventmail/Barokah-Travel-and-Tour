@@ -16,6 +16,7 @@ import {
   type RoomMapRoom,
   type RoomSection,
 } from '@/lib/room-map'
+import { roomTypeKeterangan2 } from '@/lib/panduan-heading'
 
 type Room = RoomMapRoom
 type Section = RoomSection
@@ -178,9 +179,11 @@ export function PublicRoomMap({
   topRight2: string | null
   crewName: string | null
   crewPhotoUrl: string | null
-  /** Judul halaman Denah Kamar. Null/kosong = judul bawaan. */
+  /** Judul halaman Denah Kamar (default). Null/kosong = judul bawaan. */
   heading?: string | null
+  /** Keterangan orange (sudah di-resolve: manual atau nama event). */
   keterangan?: string | null
+  /** Keterangan hijau manual. Kosong = otomatis "X Orang/Kamar" per tipe. */
   keterangan2?: string | null
 }) {
   const [data, setData] = useState<Room[] | null>(null)
@@ -262,7 +265,8 @@ export function PublicRoomMap({
   const logos = (
     <SectionLogos logoLeft={logoLeft} logoRight={logoRight} logoLeft2={logoLeft2} logoCenter={logoCenter} logoRight2={logoRight2} topRight={topRight} topRight2={topRight2} />
   )
-  const title = (
+  const manualGreen = (keterangan2 ?? '').trim()
+  const headingFor = (section: Section | null) => (
     <PublicHeading
       title={
         <h2 className="text-xl font-extrabold uppercase tracking-wide text-[#00A3E0]">
@@ -270,7 +274,7 @@ export function PublicRoomMap({
         </h2>
       }
       keterangan={keterangan}
-      keterangan2={keterangan2}
+      keterangan2={manualGreen || (section ? roomTypeKeterangan2(section.type) : null)}
       className="mb-6 mt-12 shrink-0 justify-center"
     />
   )
@@ -280,7 +284,7 @@ export function PublicRoomMap({
       <A4Section fit="none">
         <section className="guide-fit-table flex h-full flex-col border border-[#dfe4e8] bg-white px-8 py-5 print:min-h-[272mm]">
           {logos}
-          {title}
+          {headingFor(null)}
           <div className="flex min-h-0 flex-1 flex-col">
             {loading ? (
               <div className="flex items-center justify-center gap-2 rounded-xl bg-[#f8fafc] py-8 text-xs font-semibold text-[#657080]">
@@ -304,7 +308,7 @@ export function PublicRoomMap({
         <A4Section key={pi} fit="none">
           <section className="guide-fit-table flex h-full flex-col border border-[#dfe4e8] bg-white px-8 py-5 print:min-h-[272mm]">
             {logos}
-            {title}
+            {headingFor(page.section)}
             <div className="flex min-h-0 flex-1 flex-col">
               <SectionHeading section={page.section} />
               <ScaleToFit className="min-h-0 flex-1">

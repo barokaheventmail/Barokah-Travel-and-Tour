@@ -18,6 +18,10 @@ export function UnitTargetPicker({
   targets,
   onChange,
   label = 'Simpan ke',
+  oneLabel = 'Unit Ini',
+  allLabel = 'Semua Unit',
+  someLabel = 'Pilih unit…',
+  noun = 'unit',
   disabled = false,
 }: {
   buses: { id: string; name: string }[]
@@ -26,6 +30,14 @@ export function UnitTargetPicker({
   targets: string[]
   onChange: (ids: string[], mode: TargetMode) => void
   label?: string
+  /** Label tombol "unit ini" (mis. "Halaman Ini"). */
+  oneLabel?: string
+  /** Label tombol "semua" (mis. "Semua Halaman"). */
+  allLabel?: string
+  /** Label tombol pilih beberapa (mis. "Pilih halaman…"). */
+  someLabel?: string
+  /** Kata benda untuk pesan ringkasan (mis. "halaman" / "unit"). */
+  noun?: string
   disabled?: boolean
 }) {
   const [open, setOpen] = useState(false)
@@ -47,7 +59,7 @@ export function UnitTargetPicker({
           disabled={disabled}
           className={mode === 'one' ? BTN_ACTIVE : BTN_GHOST}
         >
-          Unit Ini
+          {oneLabel}
         </button>
         <button
           type="button"
@@ -55,7 +67,7 @@ export function UnitTargetPicker({
           disabled={disabled}
           className={mode === 'all' ? BTN_ACTIVE : BTN_GHOST}
         >
-          Semua Unit
+          {allLabel}
         </button>
         <div className="relative">
           <button
@@ -69,7 +81,7 @@ export function UnitTargetPicker({
                 : 'inline-flex items-center gap-1.5 rounded-full border border-[#dfe4e8] bg-white px-3 py-2 text-[11px] font-bold text-[#1b4f9c] transition-colors hover:bg-[#eef4fb] disabled:opacity-50'
             }
           >
-            Pilih unit… ({count})
+            {someLabel} ({count})
             <ChevronDown size={12} className={open ? 'rotate-180 transition-transform' : 'transition-transform'} />
           </button>
           {open && (
@@ -102,10 +114,10 @@ export function UnitTargetPicker({
       </div>
       <p className="mt-2 text-[11px] text-[#9aa3af]">
         {mode === 'some' && targets.length === 0
-          ? 'Belum ada unit tujuan dipilih.'
+          ? `Belum ada ${noun} tujuan dipilih.`
           : mode === 'all'
-            ? `Akan disimpan ke semua unit (${buses.length}).`
-            : `Akan disimpan ke ${targets.length} unit terpilih.`}
+            ? `Akan disimpan ke semua ${noun} (${buses.length}).`
+            : `Akan disimpan ke ${targets.length} ${noun} terpilih.`}
       </p>
     </div>
   )

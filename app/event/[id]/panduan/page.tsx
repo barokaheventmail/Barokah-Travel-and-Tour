@@ -6,6 +6,7 @@ import { BookOpen, Clock3, Download, MapPin, Phone, QrCode } from 'lucide-react'
 import { prisma } from '@/lib/db'
 import { parseItineraryDoc, groupItineraryByDay } from '@/lib/itinerary'
 import { vehicleLabel, vehicleSectionTitle } from '@/lib/participant-groups'
+import { resolveKeterangan } from '@/lib/panduan-heading'
 import { DEFAULT_PANDUAN_RULES, parsePanduanRules } from '@/lib/panduan-rules'
 import { effectiveCrewList } from '@/lib/crew'
 import { parsePanduanSections, splitSectionItems, type CustomSectionItem } from '@/lib/panduan-sections'
@@ -124,7 +125,7 @@ function CustomPanduanSection({
 async function getEvent(id: string) {
   return prisma.event.findUnique({
     where: { id },
-    select: { id: true, title: true, date: true, dateEnd: true, location: true, vwName: true, vwTitle: true, itineraryTitle: true, itineraryKeterangan: true, itineraryKeterangan2: true, denahKamarTitle: true, denahKamarKeterangan: true, denahKamarKeterangan2: true, vwKeterangan: true, vwKeterangan2: true, panduanItinerary: true, panduanRules: true, panduanSections: true, crewName: true, crewPhone: true, crewRole: true, crewPhotoUrl: true, crewList: true, denahKamarCrewName: true, denahKamarCrewRole: true, denahKamarCrewPhotoUrl: true, denahVwCrewName: true, denahVwCrewRole: true, denahVwCrewPhotoUrl: true, panduanLogoLeft: true, panduanLogoLeft2: true, panduanLogoCenter: true, panduanLogoRight2: true, panduanLogoRight: true, panduanLogoTopRight: true, panduanLogoTopRight2: true },
+    select: { id: true, title: true, date: true, dateEnd: true, location: true, vwName: true, vwTitle: true, itineraryTitle: true, itineraryKeterangan: true, itineraryKeterangan2: true, denahKamarTitle: true, denahKamarKeterangan: true, denahKamarKeterangan2: true, denahDudukTitle: true, vwKeterangan: true, vwKeterangan2: true, panduanItinerary: true, panduanRules: true, panduanSections: true, crewName: true, crewPhone: true, crewRole: true, crewPhotoUrl: true, crewList: true, denahKamarCrewName: true, denahKamarCrewRole: true, denahKamarCrewPhotoUrl: true, denahVwCrewName: true, denahVwCrewRole: true, denahVwCrewPhotoUrl: true, panduanLogoLeft: true, panduanLogoLeft2: true, panduanLogoCenter: true, panduanLogoRight2: true, panduanLogoRight: true, panduanLogoTopRight: true, panduanLogoTopRight2: true },
   })
 }
 
@@ -539,7 +540,7 @@ export default async function EventPanduanPage({
                           {event.itineraryTitle?.trim() || event.title}
                         </h3>
                       }
-                      keterangan={event.itineraryKeterangan}
+                      keterangan={resolveKeterangan(event.itineraryKeterangan, event.title)}
                       keterangan2={event.itineraryKeterangan2}
                       captionClassName="text-base"
                       className="mb-4 justify-center"
@@ -567,18 +568,20 @@ export default async function EventPanduanPage({
               />
               <div data-a4-body className="flex flex-1 flex-col">
                 <div className="mb-6 mt-6 flex items-center justify-center gap-4">
-                  <h2 className="text-center text-4xl font-extrabold uppercase tracking-wide text-[#00A3E0]">Denah Duduk</h2>
-                  {(bus.denahDudukKeterangan || bus.denahDudukKeterangan2) && (
-                    <div className="flex items-center gap-3">
-                      <span aria-hidden className="h-9 w-0.5 shrink-0 bg-[#00A3E0]" />
-                      <div className="flex flex-col text-left leading-tight">
-                        {bus.denahDudukKeterangan && (
-                          <p className="text-2xl font-bold uppercase tracking-wide text-[#e8830c]">{bus.denahDudukKeterangan}</p>
-                        )}
-                        <p className="text-2xl font-bold uppercase tracking-wide text-[#2ca84a]">{bus.denahDudukKeterangan2 || bus.name}</p>
-                      </div>
+                  <h2 className="text-center text-4xl font-extrabold uppercase tracking-wide text-[#00A3E0]">
+                    {event.denahDudukTitle?.trim() || 'Denah Duduk'}
+                  </h2>
+                  <div className="flex items-center gap-3">
+                    <span aria-hidden className="h-9 w-0.5 shrink-0 bg-[#00A3E0]" />
+                    <div className="flex flex-col text-left leading-tight">
+                      <p className="text-2xl font-bold uppercase tracking-wide text-[#e8830c]">
+                        {resolveKeterangan(bus.denahDudukKeterangan, event.title)}
+                      </p>
+                      <p className="text-2xl font-bold uppercase tracking-wide text-[#2ca84a]">
+                        {bus.denahDudukKeterangan2 || bus.name}
+                      </p>
                     </div>
-                  )}
+                  </div>
                 </div>
                 <PublicSeatMap
                   eventId={id}
@@ -607,7 +610,7 @@ export default async function EventPanduanPage({
         crewName={event.denahKamarCrewName}
         crewPhotoUrl={event.denahKamarCrewPhotoUrl}
         heading={event.denahKamarTitle}
-        keterangan={event.denahKamarKeterangan}
+        keterangan={resolveKeterangan(event.denahKamarKeterangan, event.title)}
         keterangan2={event.denahKamarKeterangan2}
       />
     ) : null,
@@ -617,7 +620,7 @@ export default async function EventPanduanPage({
       <PublicVwMap
         eventId={id}
         vwName={vehicleTitle}
-        keterangan={event.vwKeterangan}
+        keterangan={resolveKeterangan(event.vwKeterangan, event.title)}
         keterangan2={event.vwKeterangan2}
         header={
           <SectionLogos

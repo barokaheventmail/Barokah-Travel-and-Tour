@@ -43,7 +43,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Data tidak valid' }, { status: 400 })
   }
 
-  const { title, date, dateEnd, location, status, note, panduanItinerary, panduanRules, panduanSections, crewName, crewPhone, crewRole, crewPhotoUrl, crewList, denahKamarCrewName, denahKamarCrewRole, denahKamarCrewPhotoUrl, denahVwCrewName, denahVwCrewRole, denahVwCrewPhotoUrl, panduanLogoLeft, panduanLogoLeft2, panduanLogoCenter, panduanLogoRight2, panduanLogoRight, panduanLogoTopRight, panduanLogoTopRight2, vwName, vwTitle, itineraryTitle, itineraryKeterangan, itineraryKeterangan2, denahKamarTitle, denahKamarKeterangan, denahKamarKeterangan2, vwKeterangan, vwKeterangan2 } = parsed.data
+  const { title, date, dateEnd, location, status, note, panduanItinerary, panduanRules, panduanSections, crewName, crewPhone, crewRole, crewPhotoUrl, crewList, denahKamarCrewName, denahKamarCrewRole, denahKamarCrewPhotoUrl, denahVwCrewName, denahVwCrewRole, denahVwCrewPhotoUrl, panduanLogoLeft, panduanLogoLeft2, panduanLogoCenter, panduanLogoRight2, panduanLogoRight, panduanLogoTopRight, panduanLogoTopRight2, vwName, vwTitle, itineraryTitle, itineraryKeterangan, itineraryKeterangan2, denahKamarTitle, denahKamarKeterangan, denahKamarKeterangan2, denahDudukTitle, vwKeterangan, vwKeterangan2 } = parsed.data
 
   const data: Prisma.EventUpdateInput = {}
   if (title !== undefined) data.title = title
@@ -74,6 +74,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   if (denahKamarTitle !== undefined) data.denahKamarTitle = denahKamarTitle || null
   if (denahKamarKeterangan !== undefined) data.denahKamarKeterangan = denahKamarKeterangan || null
   if (denahKamarKeterangan2 !== undefined) data.denahKamarKeterangan2 = denahKamarKeterangan2 || null
+  if (denahDudukTitle !== undefined) data.denahDudukTitle = denahDudukTitle || null
   if (vwKeterangan !== undefined) data.vwKeterangan = vwKeterangan || null
   if (vwKeterangan2 !== undefined) data.vwKeterangan2 = vwKeterangan2 || null
   if (status !== undefined) data.status = status
