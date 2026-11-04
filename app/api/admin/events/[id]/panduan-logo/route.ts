@@ -6,7 +6,21 @@ import { prisma } from '@/lib/db'
 import { logger } from '@/lib/logger'
 
 type Params = { params: Promise<{ id: string }> }
-type Slot = 'left' | 'left2' | 'center' | 'right2' | 'right' | 'topright' | 'topright2'
+type Slot =
+  | 'left'
+  | 'left2'
+  | 'center'
+  | 'right2'
+  | 'right'
+  | 'topright'
+  | 'topright2'
+  | 'cover-left'
+  | 'cover-left2'
+  | 'cover-center'
+  | 'cover-right2'
+  | 'cover-right'
+  | 'cover-image-left'
+  | 'cover-image-right'
 
 type LogoField =
   | 'panduanLogoLeft'
@@ -16,6 +30,13 @@ type LogoField =
   | 'panduanLogoRight'
   | 'panduanLogoTopRight'
   | 'panduanLogoTopRight2'
+  | 'panduanCoverLogoLeft'
+  | 'panduanCoverLogoLeft2'
+  | 'panduanCoverLogoCenter'
+  | 'panduanCoverLogoRight2'
+  | 'panduanCoverLogoRight'
+  | 'panduanCoverImageLeft'
+  | 'panduanCoverImageRight'
 
 const SLOT_FIELDS: Record<Slot, LogoField> = {
   left: 'panduanLogoLeft',
@@ -25,6 +46,13 @@ const SLOT_FIELDS: Record<Slot, LogoField> = {
   right: 'panduanLogoRight',
   topright: 'panduanLogoTopRight',
   topright2: 'panduanLogoTopRight2',
+  'cover-left': 'panduanCoverLogoLeft',
+  'cover-left2': 'panduanCoverLogoLeft2',
+  'cover-center': 'panduanCoverLogoCenter',
+  'cover-right2': 'panduanCoverLogoRight2',
+  'cover-right': 'panduanCoverLogoRight',
+  'cover-image-left': 'panduanCoverImageLeft',
+  'cover-image-right': 'panduanCoverImageRight',
 }
 
 const SLOTS = Object.keys(SLOT_FIELDS) as Slot[]
@@ -74,6 +102,13 @@ export async function POST(request: NextRequest, { params }: Params) {
       panduanLogoRight: true,
       panduanLogoTopRight: true,
       panduanLogoTopRight2: true,
+      panduanCoverLogoLeft: true,
+      panduanCoverLogoLeft2: true,
+      panduanCoverLogoCenter: true,
+      panduanCoverLogoRight2: true,
+      panduanCoverLogoRight: true,
+      panduanCoverImageLeft: true,
+      panduanCoverImageRight: true,
     },
   })
   if (!event) return NextResponse.json({ error: 'Event tidak ditemukan.' }, { status: 404 })
@@ -148,6 +183,13 @@ export async function DELETE(request: NextRequest, { params }: Params) {
       panduanLogoRight: true,
       panduanLogoTopRight: true,
       panduanLogoTopRight2: true,
+      panduanCoverLogoLeft: true,
+      panduanCoverLogoLeft2: true,
+      panduanCoverLogoCenter: true,
+      panduanCoverLogoRight2: true,
+      panduanCoverLogoRight: true,
+      panduanCoverImageLeft: true,
+      panduanCoverImageRight: true,
     },
   })
   if (!event) return NextResponse.json({ error: 'Event tidak ditemukan.' }, { status: 404 })

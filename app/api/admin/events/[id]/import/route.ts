@@ -241,7 +241,7 @@ export async function POST(request: NextRequest, { params }: Params) {
           .filter((n) => !have.has(n))
           .map((name) => ({ eventId: id, name, order: nextOrder++ }))
         if (toCreate.length > 0) {
-          await tx.roomType.createMany({ data: toCreate, skipDuplicates: true })
+          await tx.roomType.createMany({ data: toCreate })
           addedRoomTypes = toCreate.map((r) => r.name)
         }
       }

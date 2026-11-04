@@ -5,7 +5,7 @@ export function SectionLogos({
   logoRight2,
   logoRight,
 }: {
-  logoLeft: string
+  logoLeft?: string | null
   logoRight: string
   logoLeft2?: string | null
   logoCenter?: string | null
@@ -18,8 +18,10 @@ export function SectionLogos({
   return (
     <div className="mb-4 flex items-center justify-between gap-3">
       <div className="flex flex-1 items-center gap-3">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={logoLeft} alt="Logo Asita" className="h-20 w-auto object-contain" />
+        {logoLeft && (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img src={logoLeft} alt="Logo" className="h-20 w-auto object-contain" />
+        )}
         {logoLeft2 && (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img src={logoLeft2} alt="Logo" className="h-20 w-auto object-contain" />

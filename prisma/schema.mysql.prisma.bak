@@ -1,0 +1,308 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  OWNER
+  CREW
+}
+
+enum EventStatus {
+  DRAFT
+  ACTIVE
+  CLOSED
+}
+
+// Jenis preset: konten panduan (itinerary + logo) atau kursi & fasilitas.
+enum PresetKind {
+  PANDUAN
+  KURSI
+}
+
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  // true = password dipilih manual oleh admin/crew, jadi tidak bisa lagi
+  // dihitung dari username. Dipakai supaya panel kredensial tidak menampilkan
+  // pola username+1123 yang sudah tidak berlaku.
+  customPassword Boolean  @default(false)
+  name         String?
+  phone        String?
+  photoUrl     String?  @db.VarChar(500)
+  role         Role     @default(CREW)
+  createdAt    DateTime @default(now())
+
+  scannedLogs      ScanLog[]
+  activities       ActivityLog[]
+  scannedBySlots   Participant[] @relation("ScannedBy")
+  workers          BusWorker[]
+}
+
+model Event {
+  id        String      @id @default(cuid())
+  title     String      @db.VarChar(500)
+  date      DateTime
+  // Tanggal selesai event (untuk event multi-hari). Null = event 1 hari,
+  // sama dengan `date`. Disimpan sebagai tanggal murni (tanpa jam).
+  dateEnd   DateTime?
+  location  String      @default("") @db.VarChar(500)
+  status    EventStatus @default(ACTIVE)
+  note      String?     @db.Text
+  imageUrl  String?     @db.VarChar(500)
+  crewPrefix String?
+  // MySQL: Prisma memetakan String ke VARCHAR(191). Konten panduan & layout
+  // kursi jauh lebih panjang dari itu, jadi pakai TEXT supaya tidak error
+  // "Data too long for column".
+  panduanItinerary String? @db.LongText
+  panduanRules      String? @db.LongText
+  // Urutan halaman + section tambahan pada panduan peserta. JSON array berisi
+  // node { type: 'builtin', builtin } atau { type: 'custom', title, items, note }.
+  // Null = urutan bawaan (semua section bawaan tampil).
+  panduanSections   String? @db.LongText
+  crewName   String?    @db.VarChar(500)
+  crewPhone  String?
+  crewRole   String?    @db.VarChar(500)
+  crewPhotoUrl String?  @db.VarChar(500)
+  // Daftar crew on duty section Tata Tertib (JSON array {name, role, photoUrl}).
+  // Menggantikan kolom tunggal di atas; kolom lama tetap ada untuk kompatibilitas.
+  crewList   String?    @db.LongText
+  denahKamarCrewName   String?    @db.VarChar(500)
+  denahKamarCrewRole   String?    @db.VarChar(500)
+  denahKamarCrewPhotoUrl String?  @db.VarChar(500)
+  denahVwCrewName      String?    @db.VarChar(500)
+  denahVwCrewRole      String?    @db.VarChar(500)
+  denahVwCrewPhotoUrl  String?    @db.VarChar(500)
+  // Nama tampil unit VW di Denah VW pada panduan peserta. Bisa diedit admin.
+  vwName               String     @default("VW MAGELANG") @db.VarChar(191)
+  // Judul bagian Denah VW (menimpa judul otomatis). Null/kosong = otomatis.
+  vwTitle              String?    @db.VarChar(191)
+  // Judul & keterangan heading tiap section panduan peserta, digaya sama
+  // dengan "Keterangan Denah Duduk" (judul utama + garis + teks orange/hijau
+  // di sebelahnya). Null/kosong = memakai judul bawaan section.
+  itineraryTitle        String? @db.VarChar(200)
+  itineraryKeterangan   String? @db.VarChar(200)
+  itineraryKeterangan2  String? @db.VarChar(200)
+  denahKamarTitle       String? @db.VarChar(200)
+  denahKamarKeterangan  String? @db.VarChar(200)
+  denahKamarKeterangan2 String? @db.VarChar(200)
+  // Judul utama halaman Denah Duduk (default semua unit). Null/kosong = judul
+  // bawaan "Denah Duduk".
+  denahDudukTitle       String? @db.VarChar(200)
+  vwKeterangan          String? @db.VarChar(200)
+  vwKeterangan2         String? @db.VarChar(200)
+  // Logo di kepala halaman panduan (general, dipakai di semua section). Urutan
+  // tampil: kiri → kiri 1 → tengah → kanan 1 → kanan. Null = memakai gambar
+  // bawaan untuk kiri (Logo Asita.png) & kanan (siluet barokah tour.png); slot
+  // lain kosong/tidak tampil.
+  panduanLogoLeft   String? @db.VarChar(500)
+  panduanLogoLeft2  String? @db.VarChar(500)
+  panduanLogoCenter String? @db.VarChar(500)
+  panduanLogoRight2 String? @db.VarChar(500)
+  panduanLogoRight  String? @db.VarChar(500)
+  // Legacy: logo partner di pojok kanan atas (digantikan panduanLogoLeft2 &
+  // panduanLogoRight2). Tetap disimpan untuk kompatibilitas data lama.
+  panduanLogoTopRight  String? @db.VarChar(500)
+  panduanLogoTopRight2 String? @db.VarChar(500)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  buses        Bus[]
+  participants Participant[]
+  activities   ActivityLog[]
+  roomTypes    RoomType[]
+
+  @@index([date])
+}
+
+// Paket event wisata yang ditampilkan di halaman publik /paket.
+// Dikelola manual lewat panel admin, tidak terkait dengan model Event.
+model PaketEvent {
+  id          String   @id @default(cuid())
+  title       String   @db.VarChar(500)
+  location    String   @default("") @db.VarChar(500)
+  description String?  @db.Text
+  subtitle    String?  @db.VarChar(500)
+  body        String?  @db.Text
+  badge       String?  @db.VarChar(100)
+  imageUrl    String?  @db.VarChar(500)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  prices PaketPrice[]
+  images PaketImage[]
+
+  @@index([order])
+}
+
+model PaketImage {
+  id        String   @id @default(cuid())
+  paketId   String
+  url       String   @db.VarChar(500)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  paket     PaketEvent @relation(fields: [paketId], references: [id], onDelete: Cascade)
+
+  @@index([paketId, order])
+}
+
+model PaketPrice {
+  id         String  @id @default(cuid())
+  paketId    String
+  label      String  @db.VarChar(200)
+  price      Int     @default(0)
+  facilities Json?
+  badge      String? @db.VarChar(100)
+  order      Int     @default(0)
+  paket      PaketEvent @relation(fields: [paketId], references: [id], onDelete: Cascade)
+
+  @@index([paketId, order])
+}
+
+model Bus {
+  id        String   @id @default(cuid())
+  eventId   String
+  name      String
+  order     Int      @default(0)
+  seatRows  Int      @default(0)
+  seatCols  Int      @default(0)
+  seatCellW Int      @default(1)
+  seatCellH Int      @default(1)
+  seatLayout String?  @db.Text
+  frontLayout String? @db.Text
+  facilities String?  @db.Text
+  unitImageUrl String?
+  unitLabel    String?
+  unitImagePosX Int    @default(50)
+  unitImagePosY Int    @default(50)
+  unitImageZoom Int    @default(0)
+  // Keterangan di sebelah kanan judul "Denah Duduk" pada panduan peserta.
+  // Diatur per unit. Keterangan tampil orange, keterangan 2 tampil hijau di
+  // bawahnya (default = nama bus bila dikosongkan). Null/kosong = tanpa teks.
+  denahDudukKeterangan  String? @db.VarChar(200)
+  denahDudukKeterangan2 String? @db.VarChar(200)
+  createdAt DateTime @default(now())
+
+  event        Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  participants Participant[]
+  workers      BusWorker[]
+
+  @@unique([eventId, name])
+  @@index([eventId])
+}
+
+model BusWorker {
+  id        String   @id @default(cuid())
+  busId     String
+  userId    String
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  bus Bus @relation(fields: [busId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([busId, userId])
+  @@index([busId])
+}
+
+model Participant {
+  id             String    @id @default(cuid())
+  eventId        String
+  busId          String
+  order          Int
+  name           String
+  birthPlace     String?
+  birthDate      DateTime?
+  phone          String?
+  seat           String?
+  room           String?
+  roomType       String?
+  vw             String?
+  jeepParis      String?
+  jeepMerapi     String?
+  jeepBromo      String?
+  token          String    @unique @default(cuid())
+  ticketCode     String
+  scannedAt      DateTime?
+  scannedById    String?
+  scannedAtEvent DateTime?
+  createdAt      DateTime  @default(now())
+
+  event        Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  bus          Bus      @relation(fields: [busId], references: [id], onDelete: Cascade)
+  scannedBy    User?    @relation("ScannedBy", fields: [scannedById], references: [id], onDelete: SetNull)
+  scanLogs     ScanLog[]
+
+  @@index([eventId, busId])
+  @@index([eventId, name])
+  @@index([scannedAt])
+  @@index([ticketCode])
+  @@unique([eventId, busId, order])
+}
+
+model ScanLog {
+  id            String   @id @default(cuid())
+  participantId String
+  userId        String?
+  status        String   @default("attended")
+  createdAt     DateTime @default(now())
+
+  participant Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  user        User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([participantId])
+  @@index([createdAt])
+}
+
+// Preset = template global yang bisa dipakai ulang lintas event. `data`
+// menyimpan payload JSON sesuai `kind` (lihat `lib/preset.ts`).
+model Preset {
+  id        String     @id @default(cuid())
+  name      String     @db.VarChar(200)
+  kind      PresetKind
+  data      String     @db.LongText
+  order     Int        @default(0)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@index([kind, order])
+}
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  eventId   String?
+  userId    String?
+  action    String
+  detail    Json?
+  createdAt DateTime @default(now())
+
+  event Event? @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  user  User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([eventId])
+  @@index([createdAt])
+}
+
+// Daftar pilihan "Tipe Kamar" per event. Admin mengelolanya di tab Per Kamar,
+// lalu cukup memilih dari daftar saat mengisi tipe kamar peserta. Nilai baru
+// yang muncul dari import Excel otomatis ditambahkan ke daftar ini.
+model RoomType {
+  id        String   @id @default(cuid())
+  eventId   String
+  name      String   @db.VarChar(100)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, name])
+  @@index([eventId, order])
+}

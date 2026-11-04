@@ -13,7 +13,19 @@ import type { PanduanPresetOption } from '@/lib/preset'
 
 type DayRows = Pick<ItineraryRow, 'time' | 'agenda' | 'bold' | 'italic'>[]
 
-type LogoSlot = 'left' | 'left2' | 'center' | 'right2' | 'right'
+type LogoSlot =
+  | 'left'
+  | 'left2'
+  | 'center'
+  | 'right2'
+  | 'right'
+  | 'cover-left'
+  | 'cover-left2'
+  | 'cover-center'
+  | 'cover-right2'
+  | 'cover-right'
+  | 'cover-image-left'
+  | 'cover-image-right'
 
 const pad2 = (v: string) => (v.length === 1 ? `0${v}` : v)
 const toDisplay = (value: string) => value.replace(':', '.')
@@ -182,6 +194,13 @@ export function PanduanEditor({
   initialLogoCenter,
   initialLogoRight2,
   initialLogoRight,
+  initialCoverLogoLeft,
+  initialCoverLogoLeft2,
+  initialCoverLogoCenter,
+  initialCoverLogoRight2,
+  initialCoverLogoRight,
+  initialCoverImageLeft,
+  initialCoverImageRight,
 }: {
   eventId: string
   eventTitle: string
@@ -205,6 +224,13 @@ export function PanduanEditor({
   initialLogoCenter: string | null
   initialLogoRight2: string | null
   initialLogoRight: string | null
+  initialCoverLogoLeft: string | null
+  initialCoverLogoLeft2: string | null
+  initialCoverLogoCenter: string | null
+  initialCoverLogoRight2: string | null
+  initialCoverLogoRight: string | null
+  initialCoverImageLeft: string | null
+  initialCoverImageRight: string | null
 }) {
   const router = useRouter()
   const initialDayGroups = useMemo(() => {
@@ -243,6 +269,13 @@ export function PanduanEditor({
   const [logoCenter, setLogoCenter] = useState<string | null>(initialLogoCenter)
   const [logoRight2, setLogoRight2] = useState<string | null>(initialLogoRight2)
   const [logoRight, setLogoRight] = useState<string | null>(initialLogoRight)
+  const [coverLogoLeft, setCoverLogoLeft] = useState<string | null>(initialCoverLogoLeft)
+  const [coverLogoLeft2, setCoverLogoLeft2] = useState<string | null>(initialCoverLogoLeft2)
+  const [coverLogoCenter, setCoverLogoCenter] = useState<string | null>(initialCoverLogoCenter)
+  const [coverLogoRight2, setCoverLogoRight2] = useState<string | null>(initialCoverLogoRight2)
+  const [coverLogoRight, setCoverLogoRight] = useState<string | null>(initialCoverLogoRight)
+  const [coverImageLeft, setCoverImageLeft] = useState<string | null>(initialCoverImageLeft)
+  const [coverImageRight, setCoverImageRight] = useState<string | null>(initialCoverImageRight)
   const [uploadingLogo, setUploadingLogo] = useState<LogoSlot | null>(null)
 
   const setLogoBySlot = (slot: LogoSlot) => (url: string | null) => {
@@ -250,7 +283,14 @@ export function PanduanEditor({
     else if (slot === 'left2') setLogoLeft2(url)
     else if (slot === 'center') setLogoCenter(url)
     else if (slot === 'right2') setLogoRight2(url)
-    else setLogoRight(url)
+    else if (slot === 'right') setLogoRight(url)
+    else if (slot === 'cover-left') setCoverLogoLeft(url)
+    else if (slot === 'cover-left2') setCoverLogoLeft2(url)
+    else if (slot === 'cover-center') setCoverLogoCenter(url)
+    else if (slot === 'cover-right2') setCoverLogoRight2(url)
+    else if (slot === 'cover-right') setCoverLogoRight(url)
+    else if (slot === 'cover-image-left') setCoverImageLeft(url)
+    else setCoverImageRight(url)
   }
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState<{ kind: 'ok' | 'err'; msg: string } | null>(null)
@@ -391,6 +431,13 @@ export function PanduanEditor({
           panduanLogoCenter: logoCenter,
           panduanLogoRight2: logoRight2,
           panduanLogoRight: logoRight,
+          panduanCoverLogoLeft: coverLogoLeft,
+          panduanCoverLogoLeft2: coverLogoLeft2,
+          panduanCoverLogoCenter: coverLogoCenter,
+          panduanCoverLogoRight2: coverLogoRight2,
+          panduanCoverLogoRight: coverLogoRight,
+          panduanCoverImageLeft: coverImageLeft,
+          panduanCoverImageRight: coverImageRight,
         }),
       })
       const data = await res.json()
@@ -538,7 +585,7 @@ export function PanduanEditor({
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Gagal mengunggah logo.')
       setLogoBySlot(slot)(data.url)
-      setStatus({ kind: 'ok', msg: 'Logo diperbarui.' })
+      setStatus({ kind: 'ok', msg: 'Gambar diperbarui.' })
       router.refresh()
     } catch (err) {
       setStatus({ kind: 'err', msg: err instanceof Error ? err.message : 'Gagal mengunggah logo.' })
@@ -555,7 +602,7 @@ export function PanduanEditor({
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Gagal menghapus logo.')
       setLogoBySlot(slot)(null)
-      setStatus({ kind: 'ok', msg: 'Logo dihapus.' })
+      setStatus({ kind: 'ok', msg: 'Gambar dihapus.' })
       router.refresh()
     } catch (err) {
       setStatus({ kind: 'err', msg: err instanceof Error ? err.message : 'Gagal menghapus logo.' })
@@ -786,6 +833,116 @@ export function PanduanEditor({
   const addBtnCls =
     'flex items-center gap-1 rounded-full bg-[#eef4fb] px-3 py-1.5 text-[11px] font-bold text-[#1b4f9c] transition-colors hover:bg-[#e2ecf8]'
 
+  function renderLogoGrid(entries: { slot: LogoSlot; label: string; url: string | null; fallback: string | null }[]) {
+    return (
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        {entries.map(({ slot, label, url, fallback }) => {
+          const preview = url ?? fallback
+          const busy = uploadingLogo === slot
+          return (
+            <div key={slot} className="flex items-center gap-3 rounded-lg border border-[#e8ecf1] bg-white p-3">
+              <div className="flex h-12 w-24 shrink-0 items-center justify-center overflow-hidden rounded-md border border-[#eef1f4]">
+                {preview ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img src={preview} alt={`Logo ${label}`} className="max-h-full max-w-full object-contain" />
+                ) : (
+                  <span className="text-[10px] text-[#9aa3af]">Kosong</span>
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] font-bold text-[#1b3555]">Logo {label}</p>
+                <p className="text-[10px] text-[#9aa3af]">{url ? 'Kustom' : fallback ? 'Bawaan' : 'Kosong'}</p>
+                <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                  <label className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-[#dfe4e8] px-3 py-1.5 text-[11px] font-bold text-[#1b4f9c] transition-colors hover:bg-[#eef4fb]">
+                    {busy ? <Loader2 size={11} className="animate-spin" /> : null}
+                    {busy ? 'Mengunggah…' : 'Unggah'}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      disabled={busy}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0]
+                        if (file) uploadLogo(slot, file)
+                        e.target.value = ''
+                      }}
+                    />
+                  </label>
+                  {url && (
+                    <button
+                      type="button"
+                      onClick={() => removeLogo(slot)}
+                      disabled={busy}
+                      className="text-[11px] font-bold text-red-600 hover:underline disabled:opacity-60"
+                    >
+                      Reset
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    )
+  }
+
+  function renderCoverImageGrid(entries: { slot: LogoSlot; label: string; url: string | null }[]) {
+    return (
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        {entries.map(({ slot, label, url }) => {
+          const busy = uploadingLogo === slot
+          return (
+            <div key={slot} className="flex items-center gap-3 rounded-lg border border-[#e8ecf1] bg-white p-3">
+              <div
+                className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden bg-gradient-to-br from-[#1b4f9c]/15 via-[#f5b915]/20 to-[#2ca84a]/15"
+                style={{ clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)' }}
+              >
+                {url ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img src={url} alt={label} className="h-full w-full object-cover" />
+                ) : (
+                  <span className="text-[10px] font-semibold text-[#1b4f9c]/60">Kosong</span>
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] font-bold text-[#1b3555]">{label}</p>
+                <p className="text-[10px] text-[#9aa3af]">{url ? 'Kustom' : 'Gradien bawaan'}</p>
+                <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                  <label className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-[#dfe4e8] px-3 py-1.5 text-[11px] font-bold text-[#1b4f9c] transition-colors hover:bg-[#eef4fb]">
+                    {busy ? <Loader2 size={11} className="animate-spin" /> : null}
+                    {busy ? 'Mengunggah…' : 'Unggah'}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      disabled={busy}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0]
+                        if (file) uploadLogo(slot, file)
+                        e.target.value = ''
+                      }}
+                    />
+                  </label>
+                  {url && (
+                    <button
+                      type="button"
+                      onClick={() => removeLogo(slot)}
+                      disabled={busy}
+                      className="text-[11px] font-bold text-red-600 hover:underline disabled:opacity-60"
+                    >
+                      Reset
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    )
+  }
+
   return (
     <div className="mt-5 space-y-4">
       <div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">
@@ -903,73 +1060,43 @@ export function PanduanEditor({
             (Reset) untuk memakai bawaan / tidak menampilkan.
           </p>
         </div>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          {(
-            [
-              { slot: 'left', label: 'Kiri', fallback: '/Logo%20Asita.png' },
-              { slot: 'left2', label: 'Kiri 1', fallback: null },
-              { slot: 'center', label: 'Tengah', fallback: null },
-              { slot: 'right2', label: 'Kanan 1', fallback: null },
-              { slot: 'right', label: 'Kanan', fallback: '/Logo%20siluet%20barokah%20tour.png' },
-            ] as const
-          ).map(({ slot, label, fallback }) => {
-            const url =
-              slot === 'left'
-                ? logoLeft
-                : slot === 'left2'
-                  ? logoLeft2
-                  : slot === 'center'
-                    ? logoCenter
-                    : slot === 'right2'
-                      ? logoRight2
-                      : logoRight
-            const preview = url ?? fallback
-            const busy = uploadingLogo === slot
-            return (
-              <div key={slot} className="flex items-center gap-3 rounded-lg border border-[#e8ecf1] bg-white p-3">
-                <div className="flex h-12 w-24 shrink-0 items-center justify-center overflow-hidden rounded-md border border-[#eef1f4]">
-                  {preview ? (
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img src={preview} alt={`Logo ${label}`} className="max-h-full max-w-full object-contain" />
-                  ) : (
-                    <span className="text-[10px] text-[#9aa3af]">Kosong</span>
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-[11px] font-bold text-[#1b3555]">Logo {label}</p>
-                  <p className="text-[10px] text-[#9aa3af]">{url ? 'Kustom' : fallback ? 'Bawaan' : 'Kosong'}</p>
-                  <div className="mt-1.5 flex flex-wrap items-center gap-2">
-                    <label className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-[#dfe4e8] px-3 py-1.5 text-[11px] font-bold text-[#1b4f9c] transition-colors hover:bg-[#eef4fb]">
-                      {busy ? <Loader2 size={11} className="animate-spin" /> : null}
-                      {busy ? 'Mengunggah…' : 'Unggah'}
-                      <input
-                        type="file"
-                        accept="image/jpeg,image/png,image/webp"
-                        className="hidden"
-                        disabled={busy}
-                        onChange={(e) => {
-                          const file = e.target.files?.[0]
-                          if (file) uploadLogo(slot, file)
-                          e.target.value = ''
-                        }}
-                      />
-                    </label>
-                    {url && (
-                      <button
-                        type="button"
-                        onClick={() => removeLogo(slot)}
-                        disabled={busy}
-                        className="text-[11px] font-bold text-red-600 hover:underline disabled:opacity-60"
-                      >
-                        Reset
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )
-          })}
+        {renderLogoGrid([
+          { slot: 'left', label: 'Kiri', url: logoLeft, fallback: '/ASITA%20LONJONG.png' },
+          { slot: 'left2', label: 'Kiri 1', url: logoLeft2, fallback: null },
+          { slot: 'center', label: 'Tengah', url: logoCenter, fallback: null },
+          { slot: 'right2', label: 'Kanan 1', url: logoRight2, fallback: null },
+          { slot: 'right', label: 'Kanan', url: logoRight, fallback: '/Logo%20siluet%20barokah%20tour.png' },
+        ])}
+      </div>
+
+      <div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">
+        <div>
+          <h2 className="text-sm font-bold text-[#1b3555]">Logo Cover</h2>
+          <p className="mt-0.5 text-xs text-[#657080]">
+            Logo khusus sampul panduan. Kosongkan (Reset) agar mengikuti logo kepala halaman. Urutan tampil: kiri →
+            kiri 1 → tengah → kanan 1 → kanan.
+          </p>
         </div>
+        {renderLogoGrid([
+          { slot: 'cover-left', label: 'Kiri', url: coverLogoLeft, fallback: logoLeft ?? '/logo%20barokah%20event%20cover%20panduan.png' },
+          { slot: 'cover-left2', label: 'Kiri 1', url: coverLogoLeft2, fallback: logoLeft2 },
+          { slot: 'cover-center', label: 'Tengah', url: coverLogoCenter, fallback: logoCenter },
+          { slot: 'cover-right2', label: 'Kanan 1', url: coverLogoRight2, fallback: logoRight2 },
+          { slot: 'cover-right', label: 'Kanan', url: coverLogoRight, fallback: logoRight ?? '/Logo%20siluet%20barokah%20tour.png' },
+        ])}
+      </div>
+
+      <div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">
+        <div>
+          <h2 className="text-sm font-bold text-[#1b3555]">Foto Cover (Hexagon)</h2>
+          <p className="mt-0.5 text-xs text-[#657080]">
+            Dua gambar berbentuk segi enam di tengah sampul panduan. Kosongkan (Reset) agar memakai gradien bawaan.
+          </p>
+        </div>
+        {renderCoverImageGrid([
+          { slot: 'cover-image-left', label: 'Hexagon Kiri', url: coverImageLeft },
+          { slot: 'cover-image-right', label: 'Hexagon Kanan', url: coverImageRight },
+        ])}
       </div>
 
       <div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">

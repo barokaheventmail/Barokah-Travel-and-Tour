@@ -19,6 +19,8 @@ node_modules
 *.tsbuildinfo
 # Backup database (scripts/backup-mysql.sh)
 backups/
+# Schema SQLite turunan untuk dev lokal (dibuat oleh prisma.config.ts)
+prisma/.schema.sqlite.prisma
 # User uploads — hanya folder di root. Tanda `/` di depan sengaja supaya
 # `app/uploads/` (route handler penyaji file) tetap ikut ter-commit.
 /uploads/

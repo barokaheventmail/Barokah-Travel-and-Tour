@@ -2,15 +2,15 @@ import { notFound } from 'next/navigation'
 import type { Metadata, Viewport } from 'next'
 import { Fragment, type ReactNode } from 'react'
 import { Dancing_Script } from 'next/font/google'
-import { BookOpen, Clock3, Download, MapPin, Phone, QrCode } from 'lucide-react'
+import { BookOpen, Clock3, MapPin } from 'lucide-react'
 import { prisma } from '@/lib/db'
 import { parseItineraryDoc, groupItineraryByDay } from '@/lib/itinerary'
 import { vehicleLabel, vehicleSectionTitle } from '@/lib/participant-groups'
 import { resolveKeterangan } from '@/lib/panduan-heading'
 import { DEFAULT_PANDUAN_RULES, parsePanduanRules } from '@/lib/panduan-rules'
 import { effectiveCrewList } from '@/lib/crew'
-import { parsePanduanSections, splitSectionItems, type CustomSectionItem } from '@/lib/panduan-sections'
 import { qrDataUrl, encodeToken } from '@/lib/scan'
+import { parsePanduanSections, splitSectionItems, type CustomSectionItem } from '@/lib/panduan-sections'
 import { Logo } from '@/components/site'
 import { SectionLogos } from '@/components/section-logos'
 import { PublicHeading } from '@/components/public-heading'
@@ -19,7 +19,7 @@ import { PublicSeatMap } from '@/components/public-seat-map'
 import { PublicRoomMap } from '@/components/public-room-map'
 import { PublicVwMap } from '@/components/public-vw-map'
 import { PublicItinerary } from '@/components/public-itinerary'
-import { PrintButton } from '@/components/admin/print-button'
+import { PanduanPrintCta } from '@/components/panduan-print-cta'
 import { BackToTop } from '@/components/back-to-top'
 import { A4Section } from '@/components/a4-section'
 
@@ -49,7 +49,7 @@ function formatDate(date: Date, dateEnd?: Date | null): string {
   return `${one(date)} – ${one(dateEnd)}`
 }
 
-function PanduanHeading({ children }: { children: ReactNode }) {
+function PanduanHeading({ children, embossed = false }: { children: ReactNode; embossed?: boolean }) {
   return (
     <h2 className="inline-flex text-lg font-bold uppercase tracking-widest text-white">
       <span className="relative inline-flex items-center py-1.5 pl-4 pr-9 drop-shadow-xl">
@@ -58,7 +58,19 @@ function PanduanHeading({ children }: { children: ReactNode }) {
           className="absolute inset-0 bg-[#00A3E0]"
           style={{ clipPath: 'polygon(0 0, calc(100% - 1rem) 0, 100% 100%, 0 100%)' }}
         />
-        <span className="relative">{children}</span>
+        <span
+          className="relative"
+          style={
+            embossed
+              ? {
+                  textShadow:
+                    '0 1px 1px rgba(0,119,163,0.7), 0 2px 3px rgba(0,95,133,0.55), 0 4px 8px rgba(0,75,107,0.35), 0 6px 14px rgba(0,0,0,0.25)',
+                }
+              : undefined
+          }
+        >
+          {children}
+        </span>
       </span>
     </h2>
   )
@@ -125,7 +137,7 @@ function CustomPanduanSection({
 async function getEvent(id: string) {
   return prisma.event.findUnique({
     where: { id },
-    select: { id: true, title: true, date: true, dateEnd: true, location: true, vwName: true, vwTitle: true, itineraryTitle: true, itineraryKeterangan: true, itineraryKeterangan2: true, denahKamarTitle: true, denahKamarKeterangan: true, denahKamarKeterangan2: true, denahDudukTitle: true, vwKeterangan: true, vwKeterangan2: true, panduanItinerary: true, panduanRules: true, panduanSections: true, crewName: true, crewPhone: true, crewRole: true, crewPhotoUrl: true, crewList: true, denahKamarCrewName: true, denahKamarCrewRole: true, denahKamarCrewPhotoUrl: true, denahVwCrewName: true, denahVwCrewRole: true, denahVwCrewPhotoUrl: true, panduanLogoLeft: true, panduanLogoLeft2: true, panduanLogoCenter: true, panduanLogoRight2: true, panduanLogoRight: true, panduanLogoTopRight: true, panduanLogoTopRight2: true },
+    select: { id: true, title: true, date: true, dateEnd: true, location: true, vwName: true, vwTitle: true, itineraryTitle: true, itineraryKeterangan: true, itineraryKeterangan2: true, denahKamarTitle: true, denahKamarKeterangan: true, denahKamarKeterangan2: true, denahDudukTitle: true, vwKeterangan: true, vwKeterangan2: true, panduanItinerary: true, panduanRules: true, panduanSections: true, crewName: true, crewPhone: true, crewRole: true, crewPhotoUrl: true, crewList: true, denahKamarCrewName: true, denahKamarCrewRole: true, denahKamarCrewPhotoUrl: true, denahVwCrewName: true, denahVwCrewRole: true, denahVwCrewPhotoUrl: true, panduanLogoLeft: true, panduanLogoLeft2: true, panduanLogoCenter: true, panduanLogoRight2: true, panduanLogoRight: true, panduanLogoTopRight: true, panduanLogoTopRight2: true, panduanCoverLogoLeft: true, panduanCoverLogoLeft2: true, panduanCoverLogoCenter: true, panduanCoverLogoRight2: true, panduanCoverLogoRight: true, panduanCoverImageLeft: true, panduanCoverImageRight: true },
   })
 }
 
@@ -172,8 +184,9 @@ export default async function EventPanduanPage({
     orderBy: { order: 'asc' },
   })
 
-  const ownBusName = ownBus ? (buses.find((b) => b.id === ownBus.busId)?.name ?? null) : null
   const ownVehicle = ownBus ? vehicleLabel(ownBus) : null
+  const ownQr = ownBus ? await qrDataUrl(encodeToken(ownBus.token), 320) : null
+  const ownBusName = ownBus ? (buses.find((b) => b.id === ownBus.busId)?.name ?? null) : null
 
   const [vwCount, jeepParisCount, jeepMerapiCount, jeepBromoCount] = await Promise.all([
     prisma.participant.count({ where: { eventId: id, vw: { not: '' } } }),
@@ -187,7 +200,6 @@ export default async function EventPanduanPage({
     event.vwTitle,
   )
   const hasVehicles = vwCount + jeepParisCount + jeepMerapiCount + jeepBromoCount > 0
-  const ownQr = ownBus ? await qrDataUrl(encodeToken(ownBus.token), 320) : null
 
   const { rows: itinerary, notes: itineraryNotes, sideNotes: itinerarySideNotes, footerNote: itineraryFooterNote } = parseItineraryDoc(event.panduanItinerary)
   const dayGroups = groupItineraryByDay(itinerary, itineraryNotes, itinerarySideNotes)
@@ -200,8 +212,16 @@ export default async function EventPanduanPage({
     Object.keys(itineraryNotes).length === 0 &&
     Object.keys(itinerarySideNotes).length === 0 &&
     !hasCustomContent
-  const logoLeftUrl = event.panduanLogoLeft ?? '/Logo%20Asita.png'
+  const logoLeftUrl = event.panduanLogoLeft ?? '/ASITA%20LONJONG.png'
   const logoRightUrl = event.panduanLogoRight ?? '/Logo%20siluet%20barokah%20tour.png'
+  const coverLogoLeftUrl = event.panduanCoverLogoLeft ?? event.panduanLogoLeft ?? '/logo%20barokah%20event%20cover%20panduan.png'
+  const coverLogoRightUrl = event.panduanCoverLogoRight ?? logoRightUrl
+  const coverLogoLeft2 = event.panduanCoverLogoLeft2 ?? event.panduanLogoLeft2
+  const coverLogoCenter = event.panduanCoverLogoCenter ?? event.panduanLogoCenter
+  const coverLogoRight2 = event.panduanCoverLogoRight2 ?? event.panduanLogoRight2
+  const coverImageLeftUrl = event.panduanCoverImageLeft
+  const coverImageRightUrl = event.panduanCoverImageRight
+  const hexClip = 'polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)'
   const crews = effectiveCrewList(event)
   const builtinSections: Record<string, ReactNode | null> = {
     'vision': (
@@ -546,7 +566,7 @@ export default async function EventPanduanPage({
                       className="mb-4 justify-center"
                     />
                     <div className="mx-6">
-                      <PanduanHeading>Itinerary</PanduanHeading>
+                      <PanduanHeading embossed>Itinerary</PanduanHeading>
                     </div>
                   </>
                 }
@@ -666,6 +686,24 @@ export default async function EventPanduanPage({
   }
 
 
+  function renderCoverHex(src: string | null, className: string, insetClass = 'inset-[20px]') {
+    return (
+      <div className={className}>
+        <div className="absolute inset-0 drop-shadow-[0_24px_48px_rgba(0,0,0,0.4)]">
+          <div className="h-full w-full bg-white" style={{ clipPath: hexClip }} />
+        </div>
+        <div className={`absolute ${insetClass} drop-shadow-[0_0_14px_rgba(0,0,0,1)]`}>
+          <div className="relative h-full w-full overflow-hidden bg-white" style={{ clipPath: hexClip }}>
+            {src ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img src={src} alt="" className="h-full w-full object-cover" />
+            ) : null}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <main className="print-guide h-screen min-h-0 overflow-y-scroll bg-[#f4f7fa] print:bg-white pb-12 print:min-h-0 print:pb-0 [scrollbar-width:auto] [-ms-overflow-style:auto] [scrollbar-color:#1b4f9c_#dfe4e8] print:[scrollbar-width:none] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-[#dfe4e8] [&::-webkit-scrollbar-thumb]:bg-[#1b4f9c] [&::-webkit-scrollbar-thumb]:rounded [&::-webkit-scrollbar-thumb]:hover:bg-[#143d79] print:[&::-webkit-scrollbar]:hidden">
       <BackToTop />
@@ -701,70 +739,87 @@ export default async function EventPanduanPage({
             </div>
           </div>
 
+          <div className="px-4 pb-7 pt-6 print:hidden">
+            <div className="mx-auto max-w-2xl">
+              <section>
+                <PanduanPrintCta />
+              </section>
+            </div>
+          </div>
+
+          <div className="px-4 pt-6 print:px-0 print:pt-0">
+            <div className="mx-auto w-[210mm]">
+              <section
+                className="relative flex min-h-[297mm] flex-col overflow-hidden bg-cover bg-center px-10 py-10 print:break-after-page"
+                style={{ backgroundImage: "url('/background%20cover%20panduan.png')" }}
+              >
+                <SectionLogos
+                  logoLeft={coverLogoLeftUrl}
+                  logoRight={coverLogoRightUrl}
+                  logoLeft2={coverLogoLeft2}
+                  logoCenter={coverLogoCenter}
+                  logoRight2={coverLogoRight2}
+                />
+                <div className="relative flex flex-1 items-center py-6 pl-14">
+                    {renderCoverHex(coverImageLeftUrl, 'relative z-50 h-[20rem] w-[23rem] shrink-0 translate-x-80 translate-y-[calc(24rem-3px)]', 'inset-[15px]')}
+                    {renderCoverHex(
+                      coverImageRightUrl,
+                      'absolute right-0 top-[46%] h-[34rem] w-[39rem] -translate-y-1/2 translate-x-[37%]',
+                      'inset-[20px]',
+                    )}
+                </div>
+                <div className="-mx-10 -mt-12 overflow-hidden rounded-none bg-[#ffc107]/95 shadow-xl backdrop-blur relative z-20">
+                  <div className="h-[1px] bg-[#ffc107]" />
+                  <div className="flex items-start justify-between gap-6 pl-10 pr-16 pt-1.5 pb-1.5">
+                    <div className="min-w-0 flex-1">
+                      {/* <Logo className="h-10 w-auto" /> */}
+                      <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#8c6c00]">
+                        Panduan Peserta
+                      </p>
+                      <h1 className="mt-0 text-xl font-bold leading-tight text-[#1b3555]">{event.title}</h1>
+                      <div className="mt-1 flex flex-col gap-0.5 text-xs text-[#657080]">
+                        <span className="flex items-center gap-1.5">
+                          <Clock3 size={12} className="text-[#2ca84a]" /> {formatDate(event.date, event.dateEnd)}
+                        </span>
+                        {event.location && (
+                          <span className="flex items-center gap-1.5">
+                            <MapPin size={12} className="text-[#2ca84a]" /> {event.location}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {ownBus && (
+                      <div className="flex shrink-0 items-start gap-4">
+                        <dl className="text-right text-[11px]">
+                          <dt className="font-bold uppercase tracking-wide text-[#9aa3af]">Peserta</dt>
+                          <dd className="mt-0.5 text-sm font-bold text-[#1b3555]">{ownBus.name}</dd>
+                          {ownBus.ticketCode && (
+                            <>
+                              <dt className="mt-1.5 font-bold uppercase tracking-wide text-[#9aa3af]">No. Tiket</dt>
+                              <dd className="font-bold text-[#1b4f9c]">{ownBus.ticketCode}</dd>
+                            </>
+                          )}
+                          <dt className="mt-1.5 font-bold uppercase tracking-wide text-[#9aa3af]">Unit / Kursi</dt>
+                          <dd className="font-bold text-[#1b4f9c]">
+                            {ownBusName ?? '—'}
+                            {ownBus.seat ? ` · No ${ownBus.seat}` : ''}
+                          </dd>
+                        </dl>
+                        {ownQr && (
+                          /* eslint-disable-next-line @next/next/no-img-element */
+                          <img src={ownQr} alt={`QR absensi ${ownBus.name}`} className="h-24 w-24" />
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+
           <div className="overflow-x-auto">
             <div id="panduan-isi" className="mx-auto w-[210mm] space-y-2 py-7">
-            {/* Kop dokumen. `hidden print:block` = tak terlihat di layar tapi
-                ikut tercetak lewat Print; `data-pdf-only` = downloader
-                menghidupkannya lagi supaya ikut jadi sampul PDF. */}
-            <div className="hidden print:block print:break-after-page" data-pdf-only>
-              <SectionLogos
-                logoLeft={logoLeftUrl}
-                logoRight={logoRightUrl}
-                logoLeft2={event.panduanLogoLeft2}
-                logoCenter={event.panduanLogoCenter}
-                logoRight2={event.panduanLogoRight2}
-                topRight={event.panduanLogoTopRight}
-                topRight2={event.panduanLogoTopRight2}
-              />
-              <div className="print-avoid-break overflow-hidden rounded-xl border border-[#dfe4e8] bg-white">
-                <div className="h-1.5 bg-[#f5b915]" />
-                <div className="flex flex-wrap items-start justify-between gap-6 p-5">
-                  <div className="min-w-0 flex-1">
-                    <Logo className="h-10 w-auto" />
-                    <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.2em] text-[#b08700]">
-                      Panduan Peserta
-                    </p>
-                    <h1 className="mt-1 text-xl font-bold leading-tight text-[#1b3555]">{event.title}</h1>
-                    <div className="mt-3 flex flex-col gap-1.5 text-[11px] text-[#657080]">
-                      <span className="flex items-center gap-1.5">
-                        <Clock3 size={12} className="text-[#2ca84a]" /> {formatDate(event.date, event.dateEnd)}
-                      </span>
-                      {event.location && (
-                        <span className="flex items-center gap-1.5">
-                          <MapPin size={12} className="text-[#2ca84a]" /> {event.location}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {ownBus && (
-                    <div className="flex shrink-0 items-start gap-4">
-                      <dl className="text-right text-[11px]">
-                        <dt className="font-bold uppercase tracking-wide text-[#9aa3af]">Peserta</dt>
-                        <dd className="mt-0.5 text-sm font-bold text-[#1b3555]">{ownBus.name}</dd>
-                        {ownBus.ticketCode && (
-                          <>
-                            <dt className="mt-1.5 font-bold uppercase tracking-wide text-[#9aa3af]">No. Tiket</dt>
-                            <dd className="font-bold text-[#1b4f9c]">{ownBus.ticketCode}</dd>
-                          </>
-                        )}
-                        <dt className="mt-1.5 font-bold uppercase tracking-wide text-[#9aa3af]">Unit / Kursi</dt>
-                        <dd className="font-bold text-[#1b4f9c]">
-                          {ownBusName ?? '—'}
-                          {ownBus.seat ? ` · No ${ownBus.seat}` : ''}
-                        </dd>
-                      </dl>
-                      {ownQr && (
-                        /* eslint-disable-next-line @next/next/no-img-element */
-                        <img src={ownQr} alt={`QR absensi ${ownBus.name}`} className="h-24 w-24" />
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-
             {sections.map((s) =>
               s.type === 'builtin' ? (
                 builtinSections[s.builtin] ? <Fragment key={s.id}>{builtinSections[s.builtin]}</Fragment> : null
@@ -782,39 +837,6 @@ export default async function EventPanduanPage({
                 />
               ),
             )}
-            <section className="print:hidden">
-              <div className="border border-[#dfe4e8] bg-white p-5 text-center">
-                <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#eef4fb] text-[#1b4f9c]">
-                  <Download size={20} />
-                </span>
-                <h2 className="mt-3 text-xl font-bold text-[#1b3555]">Cetak / Simpan PDF</h2>
-                <p className="mx-auto mt-1.5 max-w-md text-xs leading-relaxed text-[#657080]">
-                  Simpan seluruh isi panduan peserta — itinerary, tata tertib, doa, tata cara salat jamak
-                  {ownBusName ? `, peta kursi & daftar nama ${ownBusName}` : ', peta kursi & daftar nama unit'}
-                  , serta fasilitas unit — dalam satu file PDF untuk dibaca kapan saja, bahkan tanpa koneksi.
-                </p>
-                <div className="mt-4 flex flex-col items-center justify-center gap-3">
-                  <PrintButton />
-                </div>
-                <p className="mx-auto mt-3 max-w-sm text-[11px] leading-relaxed text-[#9aa3af]">
-                  Lewat tombol cetak: pilih <strong className="text-[#657080]">Save as PDF / Simpan sebagai PDF</strong>,
-                  kertas <strong className="text-[#657080]">A4</strong> tanpa margin tambahan — tiap section jadi satu
-                  halaman penuh (210 × 297 mm).{' '}
-                  {ownBus ? 'QR absensi di kop halaman juga ikut tercetak.' : ''}
-                </p>
-                <p className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[11px] text-[#9aa3af]">
-                  <span className="flex items-center gap-1">
-                    <QrCode size={12} />_format A4_
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <BookOpen size={12} />_lengkap_
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <MapPin size={12} />_gratis & dapat dibuka offline_
-                  </span>
-                </p>
-              </div>
-            </section>
             </div>
           </div>
         </>

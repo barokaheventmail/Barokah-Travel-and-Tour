@@ -363,6 +363,13 @@ export default async function EventDetail({
             initialLogoCenter={event.panduanLogoCenter ?? null}
             initialLogoRight2={event.panduanLogoRight2 ?? null}
             initialLogoRight={event.panduanLogoRight ?? null}
+            initialCoverLogoLeft={event.panduanCoverLogoLeft ?? null}
+            initialCoverLogoLeft2={event.panduanCoverLogoLeft2 ?? null}
+            initialCoverLogoCenter={event.panduanCoverLogoCenter ?? null}
+            initialCoverLogoRight2={event.panduanCoverLogoRight2 ?? null}
+            initialCoverLogoRight={event.panduanCoverLogoRight ?? null}
+            initialCoverImageLeft={event.panduanCoverImageLeft ?? null}
+            initialCoverImageRight={event.panduanCoverImageRight ?? null}
           />
         </>
       )}

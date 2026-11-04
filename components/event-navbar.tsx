@@ -4,16 +4,27 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { ArrowLeft, Menu, X } from 'lucide-react'
 import { Logo } from '@/components/site'
+import { useViewportCompensation } from '@/components/use-viewport-compensation'
 
 export function EventNavbar({ eventId, variant = 'event' }: { eventId: string; variant?: 'event' | 'panduan' }) {
   const [open, setOpen] = useState(false)
   const isPanduan = variant === 'panduan'
   const backHref = isPanduan ? `/event/${eventId}` : '/#event'
+  const compensation = useViewportCompensation()
 
   return (
     <header className="sticky top-0 z-[70] border-b border-[#e3e8ee] bg-white/85 backdrop-blur-md">
-      <div className="mx-auto flex h-[64px] w-full max-w-3xl items-center justify-between gap-3 px-4">
-        <Logo className="h-8 w-auto" />
+      <div
+        className="mx-auto flex w-full max-w-3xl items-center justify-between gap-3"
+        style={{
+          height: `${64 * compensation}px`,
+          paddingLeft: `${16 * compensation}px`,
+          paddingRight: `${16 * compensation}px`,
+        }}
+      >
+        <div style={{ transform: `scale(${compensation})`, transformOrigin: 'left center' }}>
+          <Logo className="h-12 w-auto" />
+        </div>
 
         {!isPanduan && (
           <Link
@@ -26,6 +37,7 @@ export function EventNavbar({ eventId, variant = 'event' }: { eventId: string; v
 
         <Link
           href={backHref}
+          style={{ transform: `scale(${compensation})`, transformOrigin: 'right center' }}
           className={`group shrink-0 items-center gap-2 text-[13px] font-bold text-[#1d2733] transition-colors duration-200 hover:text-[#0d2850] ${
             isPanduan ? 'flex' : 'hidden sm:flex'
           }`}

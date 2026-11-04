@@ -46,7 +46,7 @@ function DayBlock({ group, multiDay }: { group: ItineraryDay; multiDay: boolean 
                 key={`${group.day}-${item.time}-${i}`}
                 className="grid grid-cols-[7.5rem_minmax(0,1fr)] leading-tight transition-colors hover:bg-[#f8fafc]"
               >
-                <span className="whitespace-nowrap border-r-2 border-[#dfe4e8] px-[3px] py-px text-sm font-medium tabular-nums text-[#1b4f9c]">
+                <span className="whitespace-nowrap border-r-2 border-[#dfe4e8] px-[3px] py-px text-center text-sm font-medium tabular-nums text-black">
                   {item.time}
                 </span>
                 <span

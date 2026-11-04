@@ -43,7 +43,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Data tidak valid' }, { status: 400 })
   }
 
-  const { title, date, dateEnd, location, status, note, panduanItinerary, panduanRules, panduanSections, crewName, crewPhone, crewRole, crewPhotoUrl, crewList, denahKamarCrewName, denahKamarCrewRole, denahKamarCrewPhotoUrl, denahVwCrewName, denahVwCrewRole, denahVwCrewPhotoUrl, panduanLogoLeft, panduanLogoLeft2, panduanLogoCenter, panduanLogoRight2, panduanLogoRight, panduanLogoTopRight, panduanLogoTopRight2, vwName, vwTitle, itineraryTitle, itineraryKeterangan, itineraryKeterangan2, denahKamarTitle, denahKamarKeterangan, denahKamarKeterangan2, denahDudukTitle, vwKeterangan, vwKeterangan2 } = parsed.data
+  const { title, date, dateEnd, location, status, note, panduanItinerary, panduanRules, panduanSections, crewName, crewPhone, crewRole, crewPhotoUrl, crewList, denahKamarCrewName, denahKamarCrewRole, denahKamarCrewPhotoUrl, denahVwCrewName, denahVwCrewRole, denahVwCrewPhotoUrl, panduanLogoLeft, panduanLogoLeft2, panduanLogoCenter, panduanLogoRight2, panduanLogoRight, panduanLogoTopRight, panduanLogoTopRight2, panduanCoverLogoLeft, panduanCoverLogoLeft2, panduanCoverLogoCenter, panduanCoverLogoRight2, panduanCoverLogoRight, panduanCoverImageLeft, panduanCoverImageRight, vwName, vwTitle, itineraryTitle, itineraryKeterangan, itineraryKeterangan2, denahKamarTitle, denahKamarKeterangan, denahKamarKeterangan2, denahDudukTitle, vwKeterangan, vwKeterangan2 } = parsed.data
 
   const data: Prisma.EventUpdateInput = {}
   if (title !== undefined) data.title = title
@@ -108,6 +108,13 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   if (panduanLogoRight !== undefined) data.panduanLogoRight = panduanLogoRight || null
   if (panduanLogoTopRight !== undefined) data.panduanLogoTopRight = panduanLogoTopRight || null
   if (panduanLogoTopRight2 !== undefined) data.panduanLogoTopRight2 = panduanLogoTopRight2 || null
+  if (panduanCoverLogoLeft !== undefined) data.panduanCoverLogoLeft = panduanCoverLogoLeft || null
+  if (panduanCoverLogoLeft2 !== undefined) data.panduanCoverLogoLeft2 = panduanCoverLogoLeft2 || null
+  if (panduanCoverLogoCenter !== undefined) data.panduanCoverLogoCenter = panduanCoverLogoCenter || null
+  if (panduanCoverLogoRight2 !== undefined) data.panduanCoverLogoRight2 = panduanCoverLogoRight2 || null
+  if (panduanCoverLogoRight !== undefined) data.panduanCoverLogoRight = panduanCoverLogoRight || null
+  if (panduanCoverImageLeft !== undefined) data.panduanCoverImageLeft = panduanCoverImageLeft || null
+  if (panduanCoverImageRight !== undefined) data.panduanCoverImageRight = panduanCoverImageRight || null
 
   if (Object.keys(data).length === 0) {
     return NextResponse.json({ error: 'Tidak ada data yang diubah.' }, { status: 400 })

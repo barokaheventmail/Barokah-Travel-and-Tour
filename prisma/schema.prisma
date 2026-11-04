@@ -66,6 +66,9 @@ model Event {
   // node { type: 'builtin', builtin } atau { type: 'custom', title, items, note }.
   // Null = urutan bawaan (semua section bawaan tampil).
   panduanSections   String? @db.LongText
+  // Override judul/keterangan tiap halaman panduan (JSON map
+  // { "room:<id>": { title, keterangan, keterangan2 }, ... }).
+  panduanHeadings   String? @db.LongText
   crewName   String?    @db.VarChar(500)
   crewPhone  String?
   crewRole   String?    @db.VarChar(500)
@@ -99,13 +102,23 @@ model Event {
   vwKeterangan2         String? @db.VarChar(200)
   // Logo di kepala halaman panduan (general, dipakai di semua section). Urutan
   // tampil: kiri → kiri 1 → tengah → kanan 1 → kanan. Null = memakai gambar
-  // bawaan untuk kiri (Logo Asita.png) & kanan (siluet barokah tour.png); slot
+  // bawaan untuk kiri (ASITA LONJONG.png) & kanan (siluet barokah tour.png); slot
   // lain kosong/tidak tampil.
   panduanLogoLeft   String? @db.VarChar(500)
   panduanLogoLeft2  String? @db.VarChar(500)
   panduanLogoCenter String? @db.VarChar(500)
   panduanLogoRight2 String? @db.VarChar(500)
   panduanLogoRight  String? @db.VarChar(500)
+  // Logo khusus sampul panduan. Null = memakai logo kepala halaman di atas,
+  // sehingga admin bisa mengganti logo cover tanpa mengubah logo tiap section.
+  panduanCoverLogoLeft   String? @db.VarChar(500)
+  panduanCoverLogoLeft2  String? @db.VarChar(500)
+  panduanCoverLogoCenter String? @db.VarChar(500)
+  panduanCoverLogoRight2 String? @db.VarChar(500)
+  panduanCoverLogoRight  String? @db.VarChar(500)
+  // Dua gambar berbentuk segi enam di sampul panduan (diisi lewat admin).
+  panduanCoverImageLeft  String? @db.VarChar(500)
+  panduanCoverImageRight String? @db.VarChar(500)
   // Legacy: logo partner di pojok kanan atas (digantikan panduanLogoLeft2 &
   // panduanLogoRight2). Tetap disimpan untuk kompatibilitas data lama.
   panduanLogoTopRight  String? @db.VarChar(500)

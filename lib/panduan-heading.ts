@@ -61,6 +61,64 @@ export function resolveKeterangan(
 }
 
 // ---------------------------------------------------------------------------
+// Override judul & keterangan per halaman (disimpan sebagai JSON di Event)
+// ---------------------------------------------------------------------------
+
+/** Judul/keterangan satu halaman. Semua opsional; kosong = pakai nilai auto. */
+export type SectionHeading = {
+  title?: string
+  keterangan?: string
+  keterangan2?: string
+}
+
+function normalizeHeading(value: unknown): SectionHeading {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {}
+  const source = value as Record<string, unknown>
+  const heading: SectionHeading = {}
+  for (const field of ['title', 'keterangan', 'keterangan2'] as const) {
+    const text = source[field]
+    if (typeof text !== 'string') continue
+    const trimmed = text.trim()
+    if (trimmed) heading[field] = trimmed
+  }
+  return heading
+}
+
+function hasHeading(heading: SectionHeading): boolean {
+  return Boolean(heading.title || heading.keterangan || heading.keterangan2)
+}
+
+/** Baca JSON override dari database; data rusak/kosong dianggap tidak ada. */
+export function parsePanduanHeadings(raw: string | null | undefined): Record<string, SectionHeading> {
+  if (!raw) return {}
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(raw)
+  } catch {
+    return {}
+  }
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {}
+  const headings: Record<string, SectionHeading> = {}
+  for (const [key, value] of Object.entries(parsed)) {
+    const heading = normalizeHeading(value)
+    if (key && hasHeading(heading)) headings[key] = heading
+  }
+  return headings
+}
+
+/** Tulis override ke JSON; null bila tidak ada halaman yang diatur. */
+export function serializePanduanHeadings(
+  headings: Record<string, SectionHeading>,
+): string | null {
+  const out: Record<string, SectionHeading> = {}
+  for (const [key, value] of Object.entries(headings)) {
+    const heading = normalizeHeading(value)
+    if (key && hasHeading(heading)) out[key] = heading
+  }
+  return Object.keys(out).length > 0 ? JSON.stringify(out) : null
+}
+
+// ---------------------------------------------------------------------------
 // Target penyimpanan judul (per halaman)
 // ---------------------------------------------------------------------------
 

@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { ArrowUp } from 'lucide-react'
 
+import { useViewportCompensation } from '@/components/use-viewport-compensation'
+
 function easeInOutCubic(t: number): number {
   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
 }
@@ -27,6 +29,7 @@ function getScroller(): HTMLElement | null {
 export function BackToTop() {
   const [visible, setVisible] = useState(false)
   const frame = useRef<number | null>(null)
+  const compensation = useViewportCompensation()
 
   useEffect(() => {
     const onScroll = () => setVisible(getScrollTop() > 400)
@@ -68,15 +71,25 @@ export function BackToTop() {
   }
 
   return (
-    <button
-      type="button"
-      aria-label="Kembali ke atas"
-      onClick={scrollToTop}
-      className={`fixed bottom-24 right-5 z-[80] flex h-12 w-12 items-center justify-center rounded-full bg-[#f5b915] text-[#1d2733] shadow-[0_12px_30px_-10px_rgba(245,185,21,0.9)] transition-all duration-200 hover:-translate-y-1 hover:bg-[#e4aa09] active:scale-95 print:hidden ${
-        visible ? 'pointer-events-auto translate-y-0 opacity-100' : 'pointer-events-none translate-y-3 opacity-0'
-      }`}
+    <div
+      className="fixed z-[80] print:hidden"
+      style={{
+        right: `${20 * compensation}px`,
+        bottom: `${88 * compensation}px`,
+        transform: `scale(${compensation})`,
+        transformOrigin: 'bottom right',
+      }}
     >
-      <ArrowUp size={20} />
-    </button>
+      <button
+        type="button"
+        aria-label="Kembali ke atas"
+        onClick={scrollToTop}
+        className={`flex h-14 w-14 items-center justify-center rounded-full bg-[#f5b915] text-[#1d2733] shadow-[0_12px_30px_-10px_rgba(245,185,21,0.9)] transition-all duration-200 hover:-translate-y-1 hover:bg-[#e4aa09] active:scale-95 ${
+          visible ? 'pointer-events-auto translate-y-0 opacity-100' : 'pointer-events-none translate-y-3 opacity-0'
+        }`}
+      >
+        <ArrowUp size={24} />
+      </button>
+    </div>
   )
 }
