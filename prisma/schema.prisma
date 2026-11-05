@@ -116,9 +116,15 @@ model Event {
   panduanCoverLogoCenter String? @db.VarChar(500)
   panduanCoverLogoRight2 String? @db.VarChar(500)
   panduanCoverLogoRight  String? @db.VarChar(500)
-  // Dua gambar berbentuk segi enam di sampul panduan (diisi lewat admin).
-  panduanCoverImageLeft  String? @db.VarChar(500)
-  panduanCoverImageRight String? @db.VarChar(500)
+    // Dua gambar berbentuk segi enam di sampul panduan (diisi lewat admin).
+    panduanCoverImageLeft  String? @db.VarChar(500)
+    panduanCoverImageRight String? @db.VarChar(500)
+    // Label kecil di atas judul cover (default "BUKU PANDUAN PESERTA").
+    // TEXT agar tidak menambah batas ukuran baris tabel (banyak kolom VARCHAR).
+    panduanCoverLabel      String? @db.Text
+    // Ukuran font per kelompok teks panduan (JSON map delta px, mis.
+    // { "coverTitle": 4, "body": -1 }). Null/0 = ukuran bawaan.
+    panduanFontSizes       String? @db.Text
   // Legacy: logo partner di pojok kanan atas (digantikan panduanLogoLeft2 &
   // panduanLogoRight2). Tetap disimpan untuk kompatibilitas data lama.
   panduanLogoTopRight  String? @db.VarChar(500)

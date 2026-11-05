@@ -91,7 +91,12 @@ function VwColumn({
                     <td
                       className={`border border-[#cdd8e2] px-1.5 py-1 text-left align-middle font-normal text-[#1b3555]${top} ${isMyName ? 'bg-[#bfdbfe]' : ''}`}
                     >
-                      <span className={isMyName ? 'font-bold' : ''}>{member.name}</span>
+                      <span
+                        className={isMyName ? 'font-bold' : ''}
+                        style={{ fontSize: 'calc(1em + var(--panduan-participant-delta, 0px))' }}
+                      >
+                        {member.name}
+                      </span>
                     </td>
                   </tr>
                 )
@@ -276,7 +281,10 @@ export function PublicVwMap({
             {headingFor(page.section)}
             <div className="mx-6 flex min-h-0 flex-1 flex-col">
               <p className="mb-2 flex shrink-0 flex-wrap items-center gap-x-4 gap-y-0.5">
-                <span className="flex items-center gap-1.5 text-xs font-bold text-[#1b3555]">
+                <span
+                  className="flex items-center gap-1.5 text-xs font-bold text-[#1b3555]"
+                  style={{ fontSize: 'calc(0.75rem + var(--panduan-section-heading-delta, 0px))' }}
+                >
                   <Car size={14} className="text-[#00A3E0]" /> Denah Kendaraan
                 </span>
               </p>

@@ -8,6 +8,16 @@ import { parseItineraryDoc, serializeItinerary, groupItineraryByDay, type Itiner
 import { DEFAULT_PANDUAN_RULES, parsePanduanRules, serializePanduanRules, type PanduanRule } from '@/lib/panduan-rules'
 import { MAX_CREW, parseCrewList, type CrewMember } from '@/lib/crew'
 import { parsePanduanSections, serializePanduanSections, type PanduanSectionItem } from '@/lib/panduan-sections'
+import {
+  PANDUAN_FONT_FIELDS,
+  PANDUAN_FONT_MAX,
+  PANDUAN_FONT_MIN,
+  clampPanduanFontDelta,
+  parsePanduanFontSizes,
+  serializePanduanFontSizes,
+  type PanduanFontKey,
+  type PanduanFontSizes,
+} from '@/lib/panduan-font'
 import { PanduanSectionsEditor } from '@/components/admin/panduan-sections-editor'
 import type { PanduanPresetOption } from '@/lib/preset'
 
@@ -36,6 +46,11 @@ const MINUTE_OPTS = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '
 
 const timeCls =
   'w-full min-w-0 rounded-lg border border-[#dfe4e8] bg-white py-2 pl-3 pr-7 text-center text-sm font-semibold tabular-nums text-[#1b3555] outline-none transition-colors placeholder:text-[#9aa3af] focus:border-[#1b4f9c] focus:ring-2 focus:ring-[#1b4f9c]/15'
+
+const fontStepBtnCls =
+  'inline-flex h-7 min-w-7 items-center justify-center rounded-md border border-[#dfe4e8] bg-white px-1.5 text-[11px] font-bold tabular-nums text-[#1b4f9c] transition-colors hover:bg-[#eef4fb] active:scale-95'
+const fontInputCls =
+  'h-7 w-16 rounded-md border border-[#dfe4e8] bg-white px-1 text-center text-xs font-bold tabular-nums text-[#1b3555] outline-none focus:border-[#1b4f9c] focus:ring-2 focus:ring-[#1b4f9c]/15'
 
 function TimeColumn({
   label,
@@ -201,6 +216,8 @@ export function PanduanEditor({
   initialCoverLogoRight,
   initialCoverImageLeft,
   initialCoverImageRight,
+  initialCoverLabel,
+  initialFontSizes,
 }: {
   eventId: string
   eventTitle: string
@@ -231,6 +248,8 @@ export function PanduanEditor({
   initialCoverLogoRight: string | null
   initialCoverImageLeft: string | null
   initialCoverImageRight: string | null
+  initialCoverLabel: string
+  initialFontSizes: string | null
 }) {
   const router = useRouter()
   const initialDayGroups = useMemo(() => {
@@ -276,6 +295,8 @@ export function PanduanEditor({
   const [coverLogoRight, setCoverLogoRight] = useState<string | null>(initialCoverLogoRight)
   const [coverImageLeft, setCoverImageLeft] = useState<string | null>(initialCoverImageLeft)
   const [coverImageRight, setCoverImageRight] = useState<string | null>(initialCoverImageRight)
+  const [coverLabel, setCoverLabel] = useState<string>(initialCoverLabel)
+  const [fontSizes, setFontSizes] = useState<PanduanFontSizes>(() => parsePanduanFontSizes(initialFontSizes))
   const [uploadingLogo, setUploadingLogo] = useState<LogoSlot | null>(null)
 
   const setLogoBySlot = (slot: LogoSlot) => (url: string | null) => {
@@ -438,6 +459,8 @@ export function PanduanEditor({
           panduanCoverLogoRight: coverLogoRight,
           panduanCoverImageLeft: coverImageLeft,
           panduanCoverImageRight: coverImageRight,
+          panduanCoverLabel: coverLabel.trim() || null,
+          panduanFontSizes: serializePanduanFontSizes(fontSizes),
         }),
       })
       const data = await res.json()
@@ -449,6 +472,14 @@ export function PanduanEditor({
     } finally {
       setLoading(false)
     }
+  }
+
+  function adjustFontSize(key: PanduanFontKey, delta: number) {
+    setFontSizes((current) => ({ ...current, [key]: clampPanduanFontDelta((current[key] ?? 0) + delta) }))
+  }
+
+  function setFontSizeValue(key: PanduanFontKey, value: number) {
+    setFontSizes((current) => ({ ...current, [key]: clampPanduanFontDelta(value) }))
   }
 
   function buildItinerary(): string {
@@ -1084,6 +1115,121 @@ export function PanduanEditor({
           { slot: 'cover-right2', label: 'Kanan 1', url: coverLogoRight2, fallback: logoRight2 },
           { slot: 'cover-right', label: 'Kanan', url: coverLogoRight, fallback: logoRight ?? '/Logo%20siluet%20barokah%20tour.png' },
         ])}
+      </div>
+
+      <div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">
+        <div>
+          <h2 className="text-sm font-bold text-[#1b3555]">Ukuran Font</h2>
+          <p className="mt-0.5 text-xs text-[#657080]">
+            Atur besar/kecil teks panduan per kelompok. Nilai 0 = ukuran bawaan; negatif mengecilkan, positif
+            membesarkan (dalam px).
+          </p>
+        </div>
+        <div className="mt-3 grid gap-2.5 sm:grid-cols-2">
+          {PANDUAN_FONT_FIELDS.map((field) => {
+            const value = fontSizes[field.key] ?? 0
+            return (
+              <div key={field.key} className="rounded-xl border border-[#eef1f4] bg-[#f8fafc] p-2.5">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-bold text-[#1b3555]">{field.label}</span>
+                  <span
+                    className={`text-[11px] font-bold tabular-nums ${value === 0 ? 'text-[#9aa3af]' : 'text-[#1b4f9c]'}`}
+                  >
+                    {value > 0 ? `+${value}` : value} px
+                  </span>
+                </div>
+                <div className="mt-2 flex flex-wrap items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => adjustFontSize(field.key, -4)}
+                    className={fontStepBtnCls}
+                    aria-label={`Perkecil ${field.label} 4 px`}
+                  >
+                    -4
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => adjustFontSize(field.key, -2)}
+                    className={fontStepBtnCls}
+                    aria-label={`Perkecil ${field.label} 2 px`}
+                  >
+                    -2
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => adjustFontSize(field.key, -1)}
+                    className={fontStepBtnCls}
+                    aria-label={`Perkecil ${field.label} 1 px`}
+                  >
+                    -1
+                  </button>
+                  <input
+                    type="number"
+                    min={PANDUAN_FONT_MIN}
+                    max={PANDUAN_FONT_MAX}
+                    step={1}
+                    value={value}
+                    onChange={(e) => {
+                      const next = e.target.value === '' ? 0 : Number(e.target.value)
+                      setFontSizeValue(field.key, Number.isFinite(next) ? next : 0)
+                    }}
+                    className={fontInputCls}
+                    aria-label={`Ukuran ${field.label} (px)`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => adjustFontSize(field.key, 1)}
+                    className={fontStepBtnCls}
+                    aria-label={`Perbesar ${field.label} 1 px`}
+                  >
+                    +1
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => adjustFontSize(field.key, 2)}
+                    className={fontStepBtnCls}
+                    aria-label={`Perbesar ${field.label} 2 px`}
+                  >
+                    +2
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => adjustFontSize(field.key, 4)}
+                    className={fontStepBtnCls}
+                    aria-label={`Perbesar ${field.label} 4 px`}
+                  >
+                    +4
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFontSizeValue(field.key, 0)}
+                    className="ml-auto text-[10px] font-bold text-[#657080] hover:text-[#1b3555]"
+                  >
+                    Reset
+                  </button>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">
+        <div>
+          <h2 className="text-sm font-bold text-[#1b3555]">Teks Cover</h2>
+          <p className="mt-0.5 text-xs text-[#657080]">
+            Tulisan putih di atas judul pada sampul panduan. Bisa dua baris (Enter). Kosongkan untuk memakai bawaan
+            &quot;BUKU PANDUAN PESERTA&quot;.
+          </p>
+        </div>
+        <textarea
+          value={coverLabel}
+          onChange={(e) => setCoverLabel(e.target.value.slice(0, 200))}
+          placeholder={'BUKU PANDUAN\nPESERTA'}
+          maxLength={200}
+          rows={2}
+          className="mt-3 w-full resize-y rounded-lg border border-[#dfe4e8] bg-white px-4 py-3 text-base font-semibold leading-snug text-[#1b3555] outline-none transition-colors placeholder:text-[#9aa3af] focus:border-[#1b4f9c] focus:ring-2 focus:ring-[#1b4f9c]/15"
+        />
       </div>
 
       <div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">

@@ -1155,4 +1155,6 @@ export const eventPatchSchema = z.object({
   panduanCoverLogoRight: z.string().trim().nullish(),
   panduanCoverImageLeft: z.string().trim().nullish(),
   panduanCoverImageRight: z.string().trim().nullish(),
+  panduanCoverLabel: z.string().trim().max(200).nullish(),
+  panduanFontSizes: z.string().trim().nullish(),
 })

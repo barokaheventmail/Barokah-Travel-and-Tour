@@ -215,10 +215,16 @@ export function PublicSeatMap({
                               key={s.order}
                               className={`grid grid-cols-[3.75rem_minmax(0,1fr)] ${isMine ? 'bg-[#bfdbfe]' : ''}`}
                             >
-                              <span className="border-r-2 border-[#dfe4e8] px-[3px] py-[2px] text-3xl font-bold tabular-nums text-[#1b3555]">
+                              <span
+                                className="border-r-2 border-[#dfe4e8] px-[3px] py-[2px] text-3xl font-bold tabular-nums text-[#1b3555]"
+                                style={{ fontSize: 'calc(1.875rem + var(--panduan-participant-delta, 0px))' }}
+                              >
                                 {s.seat ?? s.order}
                               </span>
-                              <span className={`truncate px-[3px] py-[2px] text-3xl text-[#1b3555] ${isMine ? 'font-bold' : ''}`}>
+                              <span
+                                className={`truncate px-[3px] py-[2px] text-3xl text-[#1b3555] ${isMine ? 'font-bold' : ''}`}
+                                style={{ fontSize: 'calc(1.875rem + var(--panduan-participant-delta, 0px))' }}
+                              >
                                 {s.name}
                               </span>
                             </div>

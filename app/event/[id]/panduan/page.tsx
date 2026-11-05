@@ -11,6 +11,7 @@ import { DEFAULT_PANDUAN_RULES, parsePanduanRules } from '@/lib/panduan-rules'
 import { effectiveCrewList } from '@/lib/crew'
 import { qrDataUrl, encodeToken } from '@/lib/scan'
 import { parsePanduanSections, splitSectionItems, type CustomSectionItem } from '@/lib/panduan-sections'
+import { parsePanduanFontSizes, panduanFontStyleVars } from '@/lib/panduan-font'
 import { Logo } from '@/components/site'
 import { SectionLogos } from '@/components/section-logos'
 import { PublicHeading } from '@/components/public-heading'
@@ -49,9 +50,22 @@ function formatDate(date: Date, dateEnd?: Date | null): string {
   return `${one(date)} – ${one(dateEnd)}`
 }
 
+// Format khusus cover: tanpa nama hari, mis. "4 - 18 November 2026".
+function formatCoverDate(date: Date, dateEnd?: Date | null): string {
+  const one = (d: Date) => `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`
+  if (!dateEnd || dateEnd.getTime() === date.getTime()) return one(date)
+  if (dateEnd.getFullYear() === date.getFullYear() && dateEnd.getMonth() === date.getMonth()) {
+    return `${date.getDate()} - ${dateEnd.getDate()} ${months[dateEnd.getMonth()]} ${dateEnd.getFullYear()}`
+  }
+  return `${one(date)} - ${one(dateEnd)}`
+}
+
 function PanduanHeading({ children, embossed = false }: { children: ReactNode; embossed?: boolean }) {
   return (
-    <h2 className="inline-flex text-lg font-bold uppercase tracking-widest text-white">
+    <h2
+      className="inline-flex text-lg font-bold uppercase tracking-widest text-white"
+      style={{ fontSize: 'calc(1.125rem + var(--panduan-section-heading-delta, 0px))' }}
+    >
       <span className="relative inline-flex items-center py-1.5 pl-4 pr-9 drop-shadow-xl">
         <span
           aria-hidden
@@ -137,7 +151,7 @@ function CustomPanduanSection({
 async function getEvent(id: string) {
   return prisma.event.findUnique({
     where: { id },
-    select: { id: true, title: true, date: true, dateEnd: true, location: true, vwName: true, vwTitle: true, itineraryTitle: true, itineraryKeterangan: true, itineraryKeterangan2: true, denahKamarTitle: true, denahKamarKeterangan: true, denahKamarKeterangan2: true, denahDudukTitle: true, vwKeterangan: true, vwKeterangan2: true, panduanItinerary: true, panduanRules: true, panduanSections: true, crewName: true, crewPhone: true, crewRole: true, crewPhotoUrl: true, crewList: true, denahKamarCrewName: true, denahKamarCrewRole: true, denahKamarCrewPhotoUrl: true, denahVwCrewName: true, denahVwCrewRole: true, denahVwCrewPhotoUrl: true, panduanLogoLeft: true, panduanLogoLeft2: true, panduanLogoCenter: true, panduanLogoRight2: true, panduanLogoRight: true, panduanLogoTopRight: true, panduanLogoTopRight2: true, panduanCoverLogoLeft: true, panduanCoverLogoLeft2: true, panduanCoverLogoCenter: true, panduanCoverLogoRight2: true, panduanCoverLogoRight: true, panduanCoverImageLeft: true, panduanCoverImageRight: true },
+    select: { id: true, title: true, date: true, dateEnd: true, location: true, vwName: true, vwTitle: true, itineraryTitle: true, itineraryKeterangan: true, itineraryKeterangan2: true, denahKamarTitle: true, denahKamarKeterangan: true, denahKamarKeterangan2: true, denahDudukTitle: true, vwKeterangan: true, vwKeterangan2: true, panduanItinerary: true, panduanRules: true, panduanSections: true, crewName: true, crewPhone: true, crewRole: true, crewPhotoUrl: true, crewList: true, denahKamarCrewName: true, denahKamarCrewRole: true, denahKamarCrewPhotoUrl: true, denahVwCrewName: true, denahVwCrewRole: true, denahVwCrewPhotoUrl: true, panduanLogoLeft: true, panduanLogoLeft2: true, panduanLogoCenter: true, panduanLogoRight2: true, panduanLogoRight: true, panduanLogoTopRight: true, panduanLogoTopRight2: true, panduanCoverLogoLeft: true, panduanCoverLogoLeft2: true, panduanCoverLogoCenter: true, panduanCoverLogoRight2: true, panduanCoverLogoRight: true, panduanCoverImageLeft: true, panduanCoverImageRight: true, panduanCoverLabel: true, panduanFontSizes: true },
   })
 }
 
@@ -222,6 +236,8 @@ export default async function EventPanduanPage({
   const coverImageLeftUrl = event.panduanCoverImageLeft
   const coverImageRightUrl = event.panduanCoverImageRight
   const hexClip = 'polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)'
+  const fontSizes = parsePanduanFontSizes(event.panduanFontSizes)
+  const fontVars = panduanFontStyleVars(fontSizes)
   const crews = effectiveCrewList(event)
   const builtinSections: Record<string, ReactNode | null> = {
     'vision': (
@@ -671,7 +687,10 @@ export default async function EventPanduanPage({
               )}
               <strong
                 className="relative z-[1] mt-3 inline-block min-w-[13rem] max-w-full break-words bg-[#f5b915] px-8 py-2 text-center text-lg font-extrabold uppercase leading-tight tracking-wide text-white"
-                style={{ clipPath: 'polygon(0 0, 100% 0, calc(100% - 16px) 50%, 100% 100%, 0 100%, 16px 50%)' }}
+                style={{
+                  fontSize: 'calc(1.125rem + var(--panduan-participant-delta, 0px))',
+                  clipPath: 'polygon(0 0, 100% 0, calc(100% - 16px) 50%, 100% 100%, 0 100%, 16px 50%)',
+                }}
               >
                 {event.denahVwCrewName || vehicleTitle}
               </strong>
@@ -705,7 +724,42 @@ export default async function EventPanduanPage({
   }
 
   return (
-    <main className="print-guide h-screen min-h-0 overflow-y-scroll bg-[#f4f7fa] print:bg-white pb-12 print:min-h-0 print:pb-0 [scrollbar-width:auto] [-ms-overflow-style:auto] [scrollbar-color:#1b4f9c_#dfe4e8] print:[scrollbar-width:none] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-[#dfe4e8] [&::-webkit-scrollbar-thumb]:bg-[#1b4f9c] [&::-webkit-scrollbar-thumb]:rounded [&::-webkit-scrollbar-thumb]:hover:bg-[#143d79] print:[&::-webkit-scrollbar]:hidden">
+    <main
+      className="print-guide h-screen min-h-0 overflow-y-scroll bg-[#f4f7fa] print:bg-white pb-12 print:min-h-0 print:pb-0 [scrollbar-width:auto] [-ms-overflow-style:auto] [scrollbar-color:#1b4f9c_#dfe4e8] print:[scrollbar-width:none] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-[#dfe4e8] [&::-webkit-scrollbar-thumb]:bg-[#1b4f9c] [&::-webkit-scrollbar-thumb]:rounded [&::-webkit-scrollbar-thumb]:hover:bg-[#143d79] print:[&::-webkit-scrollbar]:hidden"
+      style={fontVars}
+    >
+      <style>{`
+        #panduan-isi .text-lg { font-size: calc(1.125rem + var(--panduan-body-delta, 0px)); }
+        #panduan-isi .text-base { font-size: calc(1rem + var(--panduan-body-delta, 0px)); }
+        #panduan-isi .text-sm { font-size: calc(0.875rem + var(--panduan-body-delta, 0px)); }
+        #panduan-isi [class~="text-[0.95rem]"] { font-size: calc(0.95rem + var(--panduan-body-delta, 0px)); }
+        #panduan-isi [class~="text-[15px]"] { font-size: calc(15px + var(--panduan-body-delta, 0px)); }
+        #panduan-isi [class~="text-[17px]"] { font-size: calc(17px + var(--panduan-body-delta, 0px)); }
+        #panduan-isi [class~="text-[20px]"] { font-size: calc(20px + var(--panduan-body-delta, 0px)); }
+        #panduan-isi [class~="text-[22px]"] { font-size: calc(22px + var(--panduan-body-delta, 0px)); }
+
+        #panduan-isi .text-xl { font-size: calc(1.25rem + var(--panduan-section-heading-delta, 0px)); }
+        #panduan-isi .text-2xl { font-size: calc(1.5rem + var(--panduan-section-heading-delta, 0px)); }
+        #panduan-isi .text-3xl { font-size: calc(1.875rem + var(--panduan-section-heading-delta, 0px)); }
+        #panduan-isi .text-4xl { font-size: calc(2.25rem + var(--panduan-section-heading-delta, 0px)); }
+
+        #panduan-isi .text-xs { font-size: calc(0.75rem + var(--panduan-small-delta, 0px)); }
+        #panduan-isi [class~="text-[9px]"] { font-size: calc(9px + var(--panduan-small-delta, 0px)); }
+        #panduan-isi [class~="text-[10px]"] { font-size: calc(10px + var(--panduan-small-delta, 0px)); }
+        #panduan-isi [class~="text-[11px]"] { font-size: calc(11px + var(--panduan-small-delta, 0px)); }
+        #panduan-isi [class~="text-[12px]"] { font-size: calc(12px + var(--panduan-small-delta, 0px)); }
+        #panduan-isi [class~="text-[13px]"] { font-size: calc(13px + var(--panduan-small-delta, 0px)); }
+        #panduan-isi [class~="text-[14px]"] { font-size: calc(14px + var(--panduan-small-delta, 0px)); }
+
+        #panduan-isi .panduan-caption { font-size: calc(1rem + var(--panduan-section-caption-delta, 0px)); }
+
+        @media (min-width: 640px) {
+          #panduan-isi [class~="sm:text-[22px]"] { font-size: calc(22px + var(--panduan-body-delta, 0px)); }
+          #panduan-isi [class~="sm:text-[17px]"] { font-size: calc(17px + var(--panduan-small-delta, 0px)); }
+          #panduan-isi [class~="sm:text-[14px]"] { font-size: calc(14px + var(--panduan-small-delta, 0px)); }
+          #panduan-isi [class~="sm:text-[13px]"] { font-size: calc(13px + var(--panduan-small-delta, 0px)); }
+        }
+      `}</style>
       <BackToTop />
       <div className="print:hidden">
         <EventNavbar eventId={event.id} variant="panduan" />
@@ -750,7 +804,7 @@ export default async function EventPanduanPage({
           <div className="px-4 pt-6 print:px-0 print:pt-0">
             <div className="mx-auto w-[210mm]">
               <section
-                className="relative flex min-h-[297mm] flex-col overflow-hidden bg-cover bg-center px-10 py-10 print:break-after-page"
+                className="relative flex h-[297mm] min-h-[297mm] max-h-[297mm] w-full flex-col overflow-hidden bg-cover bg-center px-10 py-10 print:break-after-page"
                 style={{ backgroundImage: "url('/background%20cover%20panduan.png')" }}
               >
                 <SectionLogos
@@ -761,39 +815,63 @@ export default async function EventPanduanPage({
                   logoRight2={coverLogoRight2}
                 />
                 <div className="relative flex flex-1 items-center py-6 pl-14">
-                    {renderCoverHex(coverImageLeftUrl, 'relative z-50 h-[20rem] w-[23rem] shrink-0 translate-x-80 translate-y-[calc(24rem-3px)]', 'inset-[15px]')}
+                    {renderCoverHex(coverImageLeftUrl, 'relative z-50 h-[20rem] w-[23rem] shrink-0 translate-x-80 translate-y-[calc(24rem-133px)]', 'inset-[15px]')}
                     {renderCoverHex(
                       coverImageRightUrl,
-                      'absolute right-0 top-[46%] h-[34rem] w-[39rem] -translate-y-1/2 translate-x-[37%]',
+                      'absolute right-0 top-[46%] h-[34rem] w-[39rem] -translate-y-[calc(50%+120px)] translate-x-[37%]',
                       'inset-[20px]',
                     )}
                 </div>
-                <div className="-mx-10 -mt-12 overflow-hidden rounded-none bg-[#ffc107]/95 shadow-xl backdrop-blur relative z-20">
+                <div className="-ml-10 w-[600px] -mt-[158px] -translate-y-[143px] rounded-none bg-[#ffc107]/95 shadow-xl backdrop-blur relative z-20">
+                  <div className="pointer-events-none absolute bottom-full left-10 mb-3 flex flex-col items-start gap-1">
+                    <p
+                      className="max-w-[22rem] whitespace-pre-line font-extrabold uppercase leading-tight tracking-[0.14em] text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.65)]"
+                      style={{ fontSize: 'calc(1.875rem + var(--panduan-cover-title-delta, 0px))' }}
+                    >
+                      {event.title}
+                    </p>
+                    <span
+                      className="whitespace-nowrap font-bold text-[#ffc107] [text-shadow:0_1px_2px_rgba(0,0,0,0.55)]"
+                      style={{ fontSize: 'calc(1.25rem + var(--panduan-cover-date-delta, 0px))' }}
+                    >
+                      {formatCoverDate(event.date, event.dateEnd)}
+                    </span>
+                  </div>
                   <div className="h-[1px] bg-[#ffc107]" />
-                  <div className="flex items-start justify-between gap-6 pl-10 pr-16 pt-1.5 pb-1.5">
+                  <div className="flex items-start justify-between gap-6 pl-10 pr-16 py-10">
                     <div className="min-w-0 flex-1">
                       {/* <Logo className="h-10 w-auto" /> */}
-                      <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#8c6c00]">
-                        Panduan Peserta
+                      <p
+                        className="max-w-[22rem] whitespace-pre-line font-extrabold uppercase leading-tight tracking-[0.14em] text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.65)]"
+                        style={{ fontSize: 'calc(1.875rem + var(--panduan-cover-label-delta, 0px))' }}
+                      >
+                        {event.panduanCoverLabel?.trim() || 'BUKU PANDUAN\nPESERTA'}
                       </p>
-                      <h1 className="mt-0 text-xl font-bold leading-tight text-[#1b3555]">{event.title}</h1>
-                      <div className="mt-1 flex flex-col gap-0.5 text-xs text-[#657080]">
-                        <span className="flex items-center gap-1.5">
-                          <Clock3 size={12} className="text-[#2ca84a]" /> {formatDate(event.date, event.dateEnd)}
-                        </span>
-                        {event.location && (
+                      {event.location && (
+                        <div
+                          className="mt-1 flex flex-col gap-0.5 text-[#657080]"
+                          style={{ fontSize: 'calc(0.75rem + var(--panduan-cover-location-delta, 0px))' }}
+                        >
                           <span className="flex items-center gap-1.5">
                             <MapPin size={12} className="text-[#2ca84a]" /> {event.location}
                           </span>
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
 
                     {ownBus && (
                       <div className="flex shrink-0 items-start gap-4">
-                        <dl className="text-right text-[11px]">
+                        <dl
+                          className="text-right"
+                          style={{ fontSize: 'calc(0.6875rem + var(--panduan-participant-delta, 0px))' }}
+                        >
                           <dt className="font-bold uppercase tracking-wide text-[#9aa3af]">Peserta</dt>
-                          <dd className="mt-0.5 text-sm font-bold text-[#1b3555]">{ownBus.name}</dd>
+                          <dd
+                            className="mt-0.5 font-bold text-[#1b3555]"
+                            style={{ fontSize: 'calc(0.875rem + var(--panduan-participant-delta, 0px))' }}
+                          >
+                            {ownBus.name}
+                          </dd>
                           {ownBus.ticketCode && (
                             <>
                               <dt className="mt-1.5 font-bold uppercase tracking-wide text-[#9aa3af]">No. Tiket</dt>

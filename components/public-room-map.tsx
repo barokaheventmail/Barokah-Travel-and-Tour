@@ -83,7 +83,12 @@ function RoomColumn({
                     <td
                       className={`border border-[#cdd8e2] px-2 py-1 text-left align-middle font-normal text-[#1b3555]${top} ${isMyName ? 'bg-[#bfdbfe]' : ''}`}
                     >
-                      <span className={isMyName ? 'font-bold' : ''}>{member.name}</span>
+                      <span
+                        className={isMyName ? 'font-bold' : ''}
+                        style={{ fontSize: 'calc(1em + var(--panduan-participant-delta, 0px))' }}
+                      >
+                        {member.name}
+                      </span>
                     </td>
                     {j === 0 && (
                       <td
@@ -114,7 +119,10 @@ function RoomColumn({
 
 function SectionHeading({ section }: { section: Section }) {
   return (
-    <h3 className="mb-2 flex shrink-0 items-center gap-1.5 text-sm font-extrabold uppercase tracking-wide text-[#1b3555]">
+    <h3
+      className="mb-2 flex shrink-0 items-center gap-1.5 text-sm font-extrabold uppercase tracking-wide text-[#1b3555]"
+      style={{ fontSize: 'calc(0.875rem + var(--panduan-section-heading-delta, 0px))' }}
+    >
       <BedDouble size={14} className="text-[#00A3E0]" />
       {section.type}
     </h3>
@@ -141,7 +149,10 @@ function CrewBadge({ name, photoUrl }: { name: string | null; photoUrl: string |
         )}
         <strong
           className="relative z-[1] mt-3 inline-block min-w-[13rem] max-w-full break-words bg-[#f5b915] px-8 py-2 text-center text-lg font-extrabold uppercase leading-tight tracking-wide text-white"
-          style={{ clipPath: 'polygon(0 0, 100% 0, calc(100% - 16px) 50%, 100% 100%, 0 100%, 16px 50%)' }}
+          style={{
+            fontSize: 'calc(1.125rem + var(--panduan-participant-delta, 0px))',
+            clipPath: 'polygon(0 0, 100% 0, calc(100% - 16px) 50%, 100% 100%, 0 100%, 16px 50%)',
+          }}
         >
           {name}
         </strong>

@@ -370,6 +370,8 @@ export default async function EventDetail({
             initialCoverLogoRight={event.panduanCoverLogoRight ?? null}
             initialCoverImageLeft={event.panduanCoverImageLeft ?? null}
             initialCoverImageRight={event.panduanCoverImageRight ?? null}
+            initialCoverLabel={event.panduanCoverLabel ?? ''}
+            initialFontSizes={event.panduanFontSizes ?? null}
           />
         </>
       )}

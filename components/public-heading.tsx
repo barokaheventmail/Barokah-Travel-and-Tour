@@ -28,10 +28,10 @@ export function PublicHeading({
           <span aria-hidden className="h-9 w-0.5 shrink-0 bg-[#00A3E0]" />
           <div className="flex flex-col text-left leading-tight">
             {ket1 && (
-              <p className={`font-bold uppercase tracking-wide text-[#e8830c] ${captionClassName}`}>{ket1}</p>
+              <p className={`panduan-caption font-bold uppercase tracking-wide text-[#e8830c] ${captionClassName}`}>{ket1}</p>
             )}
             {ket2 && (
-              <p className={`font-bold uppercase tracking-wide text-[#2ca84a] ${captionClassName}`}>{ket2}</p>
+              <p className={`panduan-caption font-bold uppercase tracking-wide text-[#2ca84a] ${captionClassName}`}>{ket2}</p>
             )}
           </div>
         </div>
