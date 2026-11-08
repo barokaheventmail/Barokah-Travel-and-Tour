@@ -5,7 +5,6 @@ import { Fragment, useCallback, useState } from 'react'
 import { Armchair, Check, ChevronDown, Crown, Eraser, Loader2, Minus, Plus, RotateCcw, Save, ShipWheel, Trash2, Users, UsersRound, X } from 'lucide-react'
 import { BusFacilitiesEditor } from '@/components/admin/bus-facilities-editor'
 import { BusUnitIdentity } from '@/components/admin/bus-unit-identity'
-import { DenahDudukCaptions } from '@/components/admin/denah-duduk-captions'
 import { BusFront } from '@/components/bus-front'
 import { ConfirmBulkDialog } from '@/components/admin/confirm-bulk-dialog'
 import type { KursiPresetOption } from '@/lib/preset'
@@ -105,7 +104,7 @@ function Stepper({
   )
 }
 
-export function SeatLayoutEditor({ eventId, eventTitle, denahDudukTitle, buses, presets }: { eventId: string; eventTitle: string; denahDudukTitle?: string; buses: SeatBus[]; presets: KursiPresetOption[] }) {
+export function SeatLayoutEditor({ eventId, eventTitle, buses, presets }: { eventId: string; eventTitle: string; buses: SeatBus[]; presets: KursiPresetOption[] }) {
   const router = useRouter()
   const [selectedId, setSelectedId] = useState(buses[0]?.id ?? null)
   const selected = buses.find((b) => b.id === selectedId) ?? null
@@ -515,20 +514,6 @@ export function SeatLayoutEditor({ eventId, eventTitle, denahDudukTitle, buses, 
               initialPosX={selected.unitImagePosX}
               initialPosY={selected.unitImagePosY}
               initialZoom={selected.unitImageZoom}
-            />
-          )}
-
-          {selected && (
-            <DenahDudukCaptions
-              key={`${selected.id}-captions`}
-              eventId={eventId}
-              eventTitle={eventTitle}
-              denahDudukTitle={denahDudukTitle}
-              busId={selected.id}
-              busName={selected.name}
-              buses={buses.map((b) => ({ id: b.id, name: b.name }))}
-              initialKeterangan={selected.denahDudukKeterangan ?? ''}
-              initialKeterangan2={selected.denahDudukKeterangan2 ?? ''}
             />
           )}
 

@@ -33,10 +33,10 @@ export function EventCard({ event }: { event: EventCardData }) {
 
       <div className="flex flex-1 flex-col p-6 pt-5">
       <div className="flex items-start justify-between gap-3">
-        <span className="rounded-full bg-[#eef3fb] px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-[#1b4f9c]">
+        <span className="text-[11px] font-bold uppercase tracking-wide text-[#1b4f9c]">
           Event
         </span>
-        <span className="flex items-center gap-1.5 rounded-full bg-[#e6f4ea] px-3 py-1 text-[11px] font-bold text-[#2ca84a]">
+        <span className="flex items-center gap-1.5 text-[11px] font-bold text-[#2ca84a]">
           <span className="h-1.5 w-1.5 rounded-full bg-[#2ca84a]" /> Aktif
         </span>
       </div>

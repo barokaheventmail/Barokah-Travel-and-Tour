@@ -33,16 +33,22 @@ const layanan = [
 ]
 
 export default async function Home() {
-  const events = await prisma.event.findMany({
-    where: { status: 'ACTIVE' },
-    orderBy: { date: 'desc' },
-    include: { _count: { select: { buses: true, participants: true } } },
-  })
+  const [events, banners] = await Promise.all([
+    prisma.event.findMany({
+      where: { status: 'ACTIVE' },
+      orderBy: { date: 'desc' },
+      include: { _count: { select: { buses: true, participants: true } } },
+    }),
+    prisma.banner.findMany({
+      orderBy: [{ order: 'asc' }, { createdAt: 'asc' }],
+      select: { imageUrl: true },
+    }),
+  ])
 
   return (
     <main>
       <section id="beranda" className="relative min-h-[650px] text-white">
-        <BannerSlideshow />
+        <BannerSlideshow images={banners.map((banner) => banner.imageUrl)} />
         <Navbar />
         <div className="container-wide flex min-h-[650px] items-center pb-12 pt-28">
           <div className="max-w-2xl">

@@ -9,15 +9,16 @@ import { DEFAULT_PANDUAN_RULES, parsePanduanRules, serializePanduanRules, type P
 import { MAX_CREW, parseCrewList, type CrewMember } from '@/lib/crew'
 import { parsePanduanSections, serializePanduanSections, type PanduanSectionItem } from '@/lib/panduan-sections'
 import {
-  PANDUAN_FONT_FIELDS,
-  PANDUAN_FONT_MAX,
-  PANDUAN_FONT_MIN,
+  DEFAULT_PANDUAN_FONT_SIZES,
   clampPanduanFontDelta,
   parsePanduanFontSizes,
   serializePanduanFontSizes,
   type PanduanFontKey,
   type PanduanFontSizes,
 } from '@/lib/panduan-font'
+import { DenahDudukCaptions, type DenahDudukBus } from '@/components/admin/denah-duduk-captions'
+import { PanduanFontSettings } from '@/components/admin/panduan-font-settings'
+import { PanduanHeadingSettings } from '@/components/admin/panduan-heading-settings'
 import { PanduanSectionsEditor } from '@/components/admin/panduan-sections-editor'
 import type { PanduanPresetOption } from '@/lib/preset'
 
@@ -47,10 +48,6 @@ const MINUTE_OPTS = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '
 const timeCls =
   'w-full min-w-0 rounded-lg border border-[#dfe4e8] bg-white py-2 pl-3 pr-7 text-center text-sm font-semibold tabular-nums text-[#1b3555] outline-none transition-colors placeholder:text-[#9aa3af] focus:border-[#1b4f9c] focus:ring-2 focus:ring-[#1b4f9c]/15'
 
-const fontStepBtnCls =
-  'inline-flex h-7 min-w-7 items-center justify-center rounded-md border border-[#dfe4e8] bg-white px-1.5 text-[11px] font-bold tabular-nums text-[#1b4f9c] transition-colors hover:bg-[#eef4fb] active:scale-95'
-const fontInputCls =
-  'h-7 w-16 rounded-md border border-[#dfe4e8] bg-white px-1 text-center text-xs font-bold tabular-nums text-[#1b3555] outline-none focus:border-[#1b4f9c] focus:ring-2 focus:ring-[#1b4f9c]/15'
 
 function TimeColumn({
   label,
@@ -217,7 +214,20 @@ export function PanduanEditor({
   initialCoverImageLeft,
   initialCoverImageRight,
   initialCoverLabel,
+  initialCoverHeading,
+  initialCoverSubheading,
   initialFontSizes,
+  initialItineraryTitle,
+  initialItineraryKeterangan,
+  initialItineraryKeterangan2,
+  initialDenahKamarTitle,
+  initialDenahKamarKeterangan,
+  initialDenahKamarKeterangan2,
+  initialVwTitle,
+  initialVwKeterangan,
+  initialVwKeterangan2,
+  initialDenahDudukTitle,
+  denahDudukBuses,
 }: {
   eventId: string
   eventTitle: string
@@ -249,7 +259,20 @@ export function PanduanEditor({
   initialCoverImageLeft: string | null
   initialCoverImageRight: string | null
   initialCoverLabel: string
+  initialCoverHeading: string
+  initialCoverSubheading: string
   initialFontSizes: string | null
+  initialItineraryTitle: string
+  initialItineraryKeterangan: string
+  initialItineraryKeterangan2: string
+  initialDenahKamarTitle: string
+  initialDenahKamarKeterangan: string
+  initialDenahKamarKeterangan2: string
+  initialVwTitle: string
+  initialVwKeterangan: string
+  initialVwKeterangan2: string
+  initialDenahDudukTitle: string
+  denahDudukBuses: DenahDudukBus[]
 }) {
   const router = useRouter()
   const initialDayGroups = useMemo(() => {
@@ -296,6 +319,8 @@ export function PanduanEditor({
   const [coverImageLeft, setCoverImageLeft] = useState<string | null>(initialCoverImageLeft)
   const [coverImageRight, setCoverImageRight] = useState<string | null>(initialCoverImageRight)
   const [coverLabel, setCoverLabel] = useState<string>(initialCoverLabel)
+  const [coverHeading, setCoverHeading] = useState<string>(initialCoverHeading)
+  const [coverSubheading, setCoverSubheading] = useState<string>(initialCoverSubheading)
   const [fontSizes, setFontSizes] = useState<PanduanFontSizes>(() => parsePanduanFontSizes(initialFontSizes))
   const [uploadingLogo, setUploadingLogo] = useState<LogoSlot | null>(null)
 
@@ -460,6 +485,8 @@ export function PanduanEditor({
           panduanCoverImageLeft: coverImageLeft,
           panduanCoverImageRight: coverImageRight,
           panduanCoverLabel: coverLabel.trim() || null,
+          panduanCoverHeading: coverHeading.trim() || null,
+          panduanCoverSubheading: coverSubheading.trim() || null,
           panduanFontSizes: serializePanduanFontSizes(fontSizes),
         }),
       })
@@ -472,10 +499,6 @@ export function PanduanEditor({
     } finally {
       setLoading(false)
     }
-  }
-
-  function adjustFontSize(key: PanduanFontKey, delta: number) {
-    setFontSizes((current) => ({ ...current, [key]: clampPanduanFontDelta((current[key] ?? 0) + delta) }))
   }
 
   function setFontSizeValue(key: PanduanFontKey, value: number) {
@@ -979,24 +1002,6 @@ export function PanduanEditor({
       <div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-sm font-bold text-[#1b3555]">Panduan Peserta</h2>
-            <p className="mt-0.5 text-xs text-[#657080]">
-              Itinerary khusus event ini, ditampilkan di panduan publik dan untuk crew.
-            </p>
-          </div>
-          <Link
-            href={`/event/${eventId}/panduan`}
-            target="_blank"
-            className="inline-flex items-center gap-1 rounded-full border border-[#dfe4e8] px-3 py-1.5 text-[11px] font-bold text-[#1b4f9c] transition-colors hover:bg-[#eef4fb]"
-          >
-            <ExternalLink size={12} /> Lihat Halaman Publik
-          </Link>
-        </div>
-      </div>
-
-      <div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
             <h2 className="text-sm font-bold text-[#1b3555]">Preset Panduan</h2>
             <p className="mt-0.5 text-xs text-[#657080]">
               Simpan itinerary &amp; logo saat ini sebagai preset, atau muat preset yang sudah ada.
@@ -1081,6 +1086,127 @@ export function PanduanEditor({
         )}
       </div>
 
+      <div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-sm font-bold text-[#1b3555]">Panduan Peserta</h2>
+            <p className="mt-0.5 text-xs text-[#657080]">
+              Itinerary khusus event ini, ditampilkan di panduan publik dan untuk crew.
+            </p>
+          </div>
+          <Link
+            href={`/event/${eventId}/panduan`}
+            target="_blank"
+            className="inline-flex items-center gap-1 rounded-full border border-[#dfe4e8] px-3 py-1.5 text-[11px] font-bold text-[#1b4f9c] transition-colors hover:bg-[#eef4fb]"
+          >
+            <ExternalLink size={12} /> Lihat Halaman Publik
+          </Link>
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">
+        <div>
+          <h2 className="text-sm font-bold text-[#1b3555]">Foto Cover (Hexagon)</h2>
+          <p className="mt-0.5 text-xs text-[#657080]">
+            Dua gambar berbentuk segi enam di tengah sampul panduan. Kosongkan (Reset) agar memakai gradien bawaan.
+          </p>
+        </div>
+        {renderCoverImageGrid([
+          { slot: 'cover-image-left', label: 'Hexagon Kiri', url: coverImageLeft },
+          { slot: 'cover-image-right', label: 'Hexagon Kanan', url: coverImageRight },
+        ])}
+      </div>
+
+      <div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">
+        <div>
+          <h2 className="text-sm font-bold text-[#1b3555]">Judul di Atas Nama Event</h2>
+          <p className="mt-0.5 text-xs text-[#657080]">
+            Judul kuning besar di atas nama event pada sampul panduan. Bisa dua baris (Enter). Kosongkan untuk memakai
+            bawaan &quot;PANDUAN PESERTA&quot;. Ukurannya diatur di bagian Ukuran Font.
+          </p>
+        </div>
+        <textarea
+          value={coverHeading}
+          onChange={(e) => setCoverHeading(e.target.value.slice(0, 200))}
+          placeholder={'Contoh: PANDUAN PESERTA'}
+          maxLength={200}
+          rows={2}
+          className="mt-3 w-full resize-y rounded-lg border border-[#dfe4e8] bg-white px-4 py-3 text-base font-semibold leading-snug text-[#1b3555] outline-none transition-colors placeholder:text-[#9aa3af] focus:border-[#1b4f9c] focus:ring-2 focus:ring-[#1b4f9c]/15"
+        />
+        <label className="mt-4 block text-xs font-bold text-[#1b3555]" htmlFor="panduan-cover-subheading">
+          Keterangan di Bawah Judul
+        </label>
+        <p className="mt-0.5 text-xs text-[#657080]">
+          Teks putih kecil (bukan bold) di bawah judul. Kosongkan untuk memakai bawaan &quot;Panduan perjalanan
+          peserta&quot;.
+        </p>
+        <textarea
+          id="panduan-cover-subheading"
+          value={coverSubheading}
+          onChange={(e) => setCoverSubheading(e.target.value.slice(0, 200))}
+          placeholder={'Contoh: Barokah Travel & Tour'}
+          maxLength={200}
+          rows={2}
+          className="mt-3 w-full resize-y rounded-lg border border-[#dfe4e8] bg-white px-4 py-3 text-sm leading-snug text-[#1b3555] outline-none transition-colors placeholder:text-[#9aa3af] focus:border-[#1b4f9c] focus:ring-2 focus:ring-[#1b4f9c]/15"
+        />
+      </div>
+
+      <div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">
+        <div>
+          <h2 className="text-sm font-bold text-[#1b3555]">Teks Cover</h2>
+          <p className="mt-0.5 text-xs text-[#657080]">
+            Tulisan putih di dalam kotak kuning pada sampul panduan. Bisa dua baris (Enter). Kosongkan untuk memakai
+            bawaan &quot;BUKU PANDUAN PESERTA&quot;.
+          </p>
+        </div>
+        <textarea
+          value={coverLabel}
+          onChange={(e) => setCoverLabel(e.target.value.slice(0, 200))}
+          placeholder={'BUKU PANDUAN\nPESERTA'}
+          maxLength={200}
+          rows={2}
+          className="mt-3 w-full resize-y rounded-lg border border-[#dfe4e8] bg-white px-4 py-3 text-base font-semibold leading-snug text-[#1b3555] outline-none transition-colors placeholder:text-[#9aa3af] focus:border-[#1b4f9c] focus:ring-2 focus:ring-[#1b4f9c]/15"
+        />
+      </div>
+
+      <div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">
+        <div>
+          <h2 className="text-sm font-bold text-[#1b3555]">Logo Cover</h2>
+          <p className="mt-0.5 text-xs text-[#657080]">
+            Logo khusus sampul panduan. Kosongkan (Reset) agar mengikuti logo kepala halaman. Urutan tampil: kiri →
+            kiri 1 → tengah → kanan 1 → kanan.
+          </p>
+        </div>
+        {renderLogoGrid([
+          { slot: 'cover-left', label: 'Kiri', url: coverLogoLeft, fallback: logoLeft ?? '/logo%20barokah%20event%20cover%20panduan.png' },
+          { slot: 'cover-left2', label: 'Kiri 1', url: coverLogoLeft2, fallback: logoLeft2 },
+          { slot: 'cover-center', label: 'Tengah', url: coverLogoCenter, fallback: logoCenter },
+          { slot: 'cover-right2', label: 'Kanan 1', url: coverLogoRight2, fallback: logoRight2 ?? '/ASITA%20NO%20BACKGROUND%20DENGAN%20BORDER%20PUTIHH.png' },
+          { slot: 'cover-right', label: 'Kanan', url: coverLogoRight, fallback: logoRight ?? '/PESONA%20INDONESIA%20DENGAN%20WARNA%20PUTIH.png' },
+        ])}
+      </div>
+
+      <PanduanHeadingSettings
+        eventId={eventId}
+        eventTitle={eventTitle}
+        initialItineraryTitle={initialItineraryTitle}
+        initialItineraryKeterangan={initialItineraryKeterangan}
+        initialItineraryKeterangan2={initialItineraryKeterangan2}
+        initialDenahKamarTitle={initialDenahKamarTitle}
+        initialDenahKamarKeterangan={initialDenahKamarKeterangan}
+        initialDenahKamarKeterangan2={initialDenahKamarKeterangan2}
+        initialVwTitle={initialVwTitle}
+        initialVwKeterangan={initialVwKeterangan}
+        initialVwKeterangan2={initialVwKeterangan2}
+      />
+
+      <DenahDudukCaptions
+        eventId={eventId}
+        eventTitle={eventTitle}
+        initialTitle={initialDenahDudukTitle}
+        buses={denahDudukBuses}
+      />
+
       <PanduanSectionsEditor sections={sections} onChange={setSections} disabled={loading} />
 
       <div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">
@@ -1100,150 +1226,11 @@ export function PanduanEditor({
         ])}
       </div>
 
-      <div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">
-        <div>
-          <h2 className="text-sm font-bold text-[#1b3555]">Logo Cover</h2>
-          <p className="mt-0.5 text-xs text-[#657080]">
-            Logo khusus sampul panduan. Kosongkan (Reset) agar mengikuti logo kepala halaman. Urutan tampil: kiri →
-            kiri 1 → tengah → kanan 1 → kanan.
-          </p>
-        </div>
-        {renderLogoGrid([
-          { slot: 'cover-left', label: 'Kiri', url: coverLogoLeft, fallback: logoLeft ?? '/logo%20barokah%20event%20cover%20panduan.png' },
-          { slot: 'cover-left2', label: 'Kiri 1', url: coverLogoLeft2, fallback: logoLeft2 },
-          { slot: 'cover-center', label: 'Tengah', url: coverLogoCenter, fallback: logoCenter },
-          { slot: 'cover-right2', label: 'Kanan 1', url: coverLogoRight2, fallback: logoRight2 },
-          { slot: 'cover-right', label: 'Kanan', url: coverLogoRight, fallback: logoRight ?? '/Logo%20siluet%20barokah%20tour.png' },
-        ])}
-      </div>
-
-      <div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">
-        <div>
-          <h2 className="text-sm font-bold text-[#1b3555]">Ukuran Font</h2>
-          <p className="mt-0.5 text-xs text-[#657080]">
-            Atur besar/kecil teks panduan per kelompok. Nilai 0 = ukuran bawaan; negatif mengecilkan, positif
-            membesarkan (dalam px).
-          </p>
-        </div>
-        <div className="mt-3 grid gap-2.5 sm:grid-cols-2">
-          {PANDUAN_FONT_FIELDS.map((field) => {
-            const value = fontSizes[field.key] ?? 0
-            return (
-              <div key={field.key} className="rounded-xl border border-[#eef1f4] bg-[#f8fafc] p-2.5">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-bold text-[#1b3555]">{field.label}</span>
-                  <span
-                    className={`text-[11px] font-bold tabular-nums ${value === 0 ? 'text-[#9aa3af]' : 'text-[#1b4f9c]'}`}
-                  >
-                    {value > 0 ? `+${value}` : value} px
-                  </span>
-                </div>
-                <div className="mt-2 flex flex-wrap items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={() => adjustFontSize(field.key, -4)}
-                    className={fontStepBtnCls}
-                    aria-label={`Perkecil ${field.label} 4 px`}
-                  >
-                    -4
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => adjustFontSize(field.key, -2)}
-                    className={fontStepBtnCls}
-                    aria-label={`Perkecil ${field.label} 2 px`}
-                  >
-                    -2
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => adjustFontSize(field.key, -1)}
-                    className={fontStepBtnCls}
-                    aria-label={`Perkecil ${field.label} 1 px`}
-                  >
-                    -1
-                  </button>
-                  <input
-                    type="number"
-                    min={PANDUAN_FONT_MIN}
-                    max={PANDUAN_FONT_MAX}
-                    step={1}
-                    value={value}
-                    onChange={(e) => {
-                      const next = e.target.value === '' ? 0 : Number(e.target.value)
-                      setFontSizeValue(field.key, Number.isFinite(next) ? next : 0)
-                    }}
-                    className={fontInputCls}
-                    aria-label={`Ukuran ${field.label} (px)`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => adjustFontSize(field.key, 1)}
-                    className={fontStepBtnCls}
-                    aria-label={`Perbesar ${field.label} 1 px`}
-                  >
-                    +1
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => adjustFontSize(field.key, 2)}
-                    className={fontStepBtnCls}
-                    aria-label={`Perbesar ${field.label} 2 px`}
-                  >
-                    +2
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => adjustFontSize(field.key, 4)}
-                    className={fontStepBtnCls}
-                    aria-label={`Perbesar ${field.label} 4 px`}
-                  >
-                    +4
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setFontSizeValue(field.key, 0)}
-                    className="ml-auto text-[10px] font-bold text-[#657080] hover:text-[#1b3555]"
-                  >
-                    Reset
-                  </button>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-
-      <div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">
-        <div>
-          <h2 className="text-sm font-bold text-[#1b3555]">Teks Cover</h2>
-          <p className="mt-0.5 text-xs text-[#657080]">
-            Tulisan putih di atas judul pada sampul panduan. Bisa dua baris (Enter). Kosongkan untuk memakai bawaan
-            &quot;BUKU PANDUAN PESERTA&quot;.
-          </p>
-        </div>
-        <textarea
-          value={coverLabel}
-          onChange={(e) => setCoverLabel(e.target.value.slice(0, 200))}
-          placeholder={'BUKU PANDUAN\nPESERTA'}
-          maxLength={200}
-          rows={2}
-          className="mt-3 w-full resize-y rounded-lg border border-[#dfe4e8] bg-white px-4 py-3 text-base font-semibold leading-snug text-[#1b3555] outline-none transition-colors placeholder:text-[#9aa3af] focus:border-[#1b4f9c] focus:ring-2 focus:ring-[#1b4f9c]/15"
-        />
-      </div>
-
-      <div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">
-        <div>
-          <h2 className="text-sm font-bold text-[#1b3555]">Foto Cover (Hexagon)</h2>
-          <p className="mt-0.5 text-xs text-[#657080]">
-            Dua gambar berbentuk segi enam di tengah sampul panduan. Kosongkan (Reset) agar memakai gradien bawaan.
-          </p>
-        </div>
-        {renderCoverImageGrid([
-          { slot: 'cover-image-left', label: 'Hexagon Kiri', url: coverImageLeft },
-          { slot: 'cover-image-right', label: 'Hexagon Kanan', url: coverImageRight },
-        ])}
-      </div>
+      <PanduanFontSettings
+        sizes={fontSizes}
+        onChange={setFontSizeValue}
+        onResetAll={() => setFontSizes({ ...DEFAULT_PANDUAN_FONT_SIZES })}
+      />
 
       <div className="rounded-2xl border border-[#dfe4e8] bg-white p-5 shadow-sm">
         <button
@@ -1801,19 +1788,22 @@ export function PanduanEditor({
         </section>
       </div>
 
-      {status && (
-        <p className={`rounded-xl px-4 py-2.5 text-xs font-semibold ${status.kind === 'ok' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'}`}>
-          {status.kind === 'ok' && <Check size={13} className="mr-1 inline" />}
-          {status.msg}
-        </p>
-      )}
-
-      <div className="flex justify-end">
+      <div className="pointer-events-none sticky bottom-4 z-30 flex flex-wrap items-center justify-end gap-3">
+        {status && (
+          <p
+            className={`pointer-events-auto mr-auto rounded-xl px-4 py-2.5 text-xs font-semibold ${
+              status.kind === 'ok' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'
+            }`}
+          >
+            {status.kind === 'ok' && <Check size={13} className="mr-1 inline" />}
+            {status.msg}
+          </p>
+        )}
         <button
           type="button"
           onClick={save}
           disabled={loading}
-          className="flex items-center gap-1.5 rounded-full bg-[#1b4f9c] px-6 py-2.5 text-xs font-bold text-white transition-colors duration-200 hover:bg-[#143d79] active:scale-95 disabled:opacity-60"
+          className="pointer-events-auto flex items-center gap-1.5 rounded-full bg-[#1b4f9c] px-6 py-2.5 text-xs font-bold text-white shadow-[0_8px_24px_rgba(27,79,156,0.35)] transition-colors duration-200 hover:bg-[#143d79] active:scale-95 disabled:opacity-60"
         >
           {loading ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
           Simpan Panduan

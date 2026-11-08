@@ -1,11 +1,14 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { CalendarDays, Search, SearchX } from 'lucide-react'
+import { CalendarDays, ChevronDown, ChevronUp, Search, SearchX } from 'lucide-react'
 import { EventCard, type EventCardData } from '@/components/event-card'
+
+const INITIAL_EVENT_LIMIT = 12
 
 export function EventSearchGrid({ events }: { events: EventCardData[] }) {
   const [query, setQuery] = useState('')
+  const [showAll, setShowAll] = useState(false)
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -16,6 +19,9 @@ export function EventSearchGrid({ events }: { events: EventCardData[] }) {
         e.location.toLowerCase().includes(q),
     )
   }, [events, query])
+
+  const visibleEvents = showAll ? filtered : filtered.slice(0, INITIAL_EVENT_LIMIT)
+  const canShowMore = filtered.length > INITIAL_EVENT_LIMIT
 
   return (
     <>
@@ -53,11 +59,26 @@ export function EventSearchGrid({ events }: { events: EventCardData[] }) {
       </div>
 
       {filtered.length > 0 ? (
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-          {filtered.map((event) => (
-            <EventCard key={event.id} event={event} />
-          ))}
-        </div>
+        <>
+          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+            {visibleEvents.map((event) => (
+              <EventCard key={event.id} event={event} />
+            ))}
+          </div>
+          {canShowMore && (
+            <div className="mt-10 flex justify-center">
+              <button
+                type="button"
+                onClick={() => setShowAll((value) => !value)}
+                aria-expanded={showAll}
+                className="inline-flex items-center gap-2 rounded-full border border-[#dfe4e8] bg-white px-6 py-3 text-sm font-bold text-[#1b4f9c] shadow-[0_12px_30px_-20px_rgba(27,53,85,0.45)] transition-all duration-200 hover:border-[#1b4f9c]/30 hover:bg-[#eef4fb] active:scale-95"
+              >
+                {showAll ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                {showAll ? 'Tutup' : 'Lihat lainnya'}
+              </button>
+            </div>
+          )}
+        </>
       ) : (
         <div className="relative overflow-hidden rounded-2xl border border-dashed border-[#e0dccd] bg-white/60 p-14 text-center">
           <div

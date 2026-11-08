@@ -78,7 +78,7 @@ function ItineraryPage({
 }) {
   return (
     <A4Section>
-      <section className="itinerary-bg print-avoid-break relative rounded-none border border-[#dfe4e8] bg-white px-8 py-5 print:break-after-page print:min-h-[272mm] print:border-0 print:p-0">
+      <section className="itinerary-bg print-avoid-break relative rounded-none border border-[#dfe4e8] bg-white px-8 py-5 print:break-after-page print:min-h-[272mm]">
         {header}
         <div data-a4-body className="flow-root">
           <div className="mt-3 space-y-2">

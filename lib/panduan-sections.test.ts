@@ -53,12 +53,36 @@ describe('parsePanduanSections', () => {
     }
   })
 
+  it('membaca status tersembunyi tanpa membuang isi halaman', () => {
+    const value = JSON.stringify([
+      { id: 'seat-map', type: 'builtin', builtin: 'seat-map', enabled: false },
+      { id: 'c1', type: 'custom', title: 'Perlengkapan', items: ['Topi'], note: '', enabled: false },
+    ])
+    const hasil = parsePanduanSections(value)
+    expect(hasil[0]).toMatchObject({ type: 'builtin', builtin: 'seat-map', enabled: false })
+    expect(hasil[1]).toMatchObject({ type: 'custom', title: 'Perlengkapan', items: ['Topi'], enabled: false })
+    expect(parsePanduanSections(JSON.stringify([{ id: 'rules', type: 'builtin', builtin: 'rules' }]))[0]).not.toHaveProperty('enabled')
+  })
+
   it('kembali ke urutan bawaan bila hasil parse kosong', () => {
     expect(parsePanduanSections('[]')).toEqual(defaultPanduanSections())
   })
 })
 
 describe('serializePanduanSections', () => {
+  it('menyimpan status tersembunyi tanpa menghapus item', () => {
+    const items: PanduanSectionItem[] = [
+      { id: 'seat-map', type: 'builtin', builtin: 'seat-map', enabled: false },
+      { id: 'c1', type: 'custom', title: 'Perlengkapan', items: ['Topi'], note: '', enabled: false },
+      { id: 'rules', type: 'builtin', builtin: 'rules' },
+    ]
+    expect(JSON.parse(serializePanduanSections(items))).toEqual([
+      { id: 'seat-map', type: 'builtin', builtin: 'seat-map', enabled: false },
+      { id: 'c1', type: 'custom', title: 'Perlengkapan', items: ['Topi'], note: '', enabled: false },
+      { id: 'rules', type: 'builtin', builtin: 'rules' },
+    ])
+  })
+
   it('mempertahankan urutan dan membuang custom yang benar-benar kosong', () => {
     const items: PanduanSectionItem[] = [
       { id: 'a', type: 'custom', title: '  ', items: ['', '  '], note: '   ' },

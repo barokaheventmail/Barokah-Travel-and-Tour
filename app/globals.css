@@ -65,6 +65,9 @@ input[type='number'] { -moz-appearance:textfield; appearance:textfield; }
   .print-guide .print-avoid-break, .print-guide li, .print-guide tr { break-inside:avoid; page-break-inside:avoid; }
   .print-guide .overflow-x-auto { overflow:visible; }
   .print-guide img { max-height:220px; }
+  /* Foto hexagon pada sampul harus mengisi penuh bentuknya saat dicetak;
+     aturan max-height di atas membuat fotonya mengecil/terlihat terpotong. */
+  .print-guide img.cover-hex-img { max-height:none; height:100%; }
    /* Tanpa margin printer: tiap section mengisi PENUH satu halaman A4
       (210 × 297 mm). Padding di dalam section sendiri tetap ada, sehingga
       konten tidak menempel ke tepi kertas. */

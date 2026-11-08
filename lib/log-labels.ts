@@ -23,6 +23,10 @@ const ACTION_GROUP: Record<string, LogGroup> = {
   'event.clearData': 'Kelola Event',
   'event.crewPhoto': 'Kelola Event',
   'event.crewPhotoRemove': 'Kelola Event',
+  'banner.add': 'Kelola Event',
+  'banner.replace': 'Kelola Event',
+  'banner.remove': 'Kelola Event',
+  'banner.reorder': 'Kelola Event',
   'paket.create': 'Kelola Paket',
   'paket.update': 'Kelola Paket',
   'paket.delete': 'Kelola Paket',
@@ -88,6 +92,10 @@ export const LOG_ACTIONS: { group: LogGroup; actions: { value: string; label: st
       { value: 'event.clearData', label: 'Hapus data bus & peserta' },
       { value: 'event.crewPhoto', label: 'Ganti foto crew on duty' },
       { value: 'event.crewPhotoRemove', label: 'Hapus foto crew on duty' },
+      { value: 'banner.add', label: 'Tambah banner beranda' },
+      { value: 'banner.replace', label: 'Ganti gambar banner' },
+      { value: 'banner.remove', label: 'Hapus banner beranda' },
+      { value: 'banner.reorder', label: 'Ubah urutan banner' },
     ],
   },
   {
@@ -227,6 +235,20 @@ export function formatLogDetail(action: string, detail: LogDetail): string {
       const buses = detail && typeof detail.buses === 'number' ? detail.buses : 0
       const participants = detail && typeof detail.participants === 'number' ? detail.participants : 0
       return `${buses.toLocaleString('id-ID')} bus & ${participants.toLocaleString('id-ID')} peserta dihapus`
+    }
+    case 'banner.add': {
+      const n = getValue(detail, 'count')
+      return `${(typeof n === 'number' ? n : 0).toLocaleString('id-ID')} banner ditambahkan`
+    }
+    case 'banner.replace': {
+      return 'Gambar banner diganti'
+    }
+    case 'banner.remove': {
+      return 'Banner dihapus'
+    }
+    case 'banner.reorder': {
+      const n = getValue(detail, 'count')
+      return `Urutan ${(typeof n === 'number' ? n : 0).toLocaleString('id-ID')} banner disimpan`
     }
     case 'bus.create': {
       const n = getValue(detail, 'name')

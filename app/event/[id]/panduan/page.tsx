@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import type { Metadata, Viewport } from 'next'
 import { Fragment, type ReactNode } from 'react'
 import { Dancing_Script } from 'next/font/google'
-import { BookOpen, Clock3, MapPin } from 'lucide-react'
+import { BookOpen, MapPin } from 'lucide-react'
 import { prisma } from '@/lib/db'
 import { parseItineraryDoc, groupItineraryByDay } from '@/lib/itinerary'
 import { vehicleLabel, vehicleSectionTitle } from '@/lib/participant-groups'
@@ -32,23 +32,10 @@ const latinScript = Dancing_Script({
   display: 'swap',
 })
 
-const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
 const months = [
   'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
   'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
 ]
-
-function formatDate(date: Date, dateEnd?: Date | null): string {
-  const one = (d: Date) => `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`
-  if (!dateEnd || dateEnd.getTime() === date.getTime()) return one(date)
-  if (dateEnd.getFullYear() === date.getFullYear()) {
-    if (dateEnd.getMonth() === date.getMonth()) {
-      return `${days[date.getDay()]}, ${date.getDate()}–${dateEnd.getDate()} ${months[dateEnd.getMonth()]} ${dateEnd.getFullYear()}`
-    }
-    return `${one(date)} – ${days[dateEnd.getDay()]}, ${dateEnd.getDate()} ${months[dateEnd.getMonth()]} ${dateEnd.getFullYear()}`
-  }
-  return `${one(date)} – ${one(dateEnd)}`
-}
 
 // Format khusus cover: tanpa nama hari, mis. "4 - 18 November 2026".
 function formatCoverDate(date: Date, dateEnd?: Date | null): string {
@@ -151,7 +138,7 @@ function CustomPanduanSection({
 async function getEvent(id: string) {
   return prisma.event.findUnique({
     where: { id },
-    select: { id: true, title: true, date: true, dateEnd: true, location: true, vwName: true, vwTitle: true, itineraryTitle: true, itineraryKeterangan: true, itineraryKeterangan2: true, denahKamarTitle: true, denahKamarKeterangan: true, denahKamarKeterangan2: true, denahDudukTitle: true, vwKeterangan: true, vwKeterangan2: true, panduanItinerary: true, panduanRules: true, panduanSections: true, crewName: true, crewPhone: true, crewRole: true, crewPhotoUrl: true, crewList: true, denahKamarCrewName: true, denahKamarCrewRole: true, denahKamarCrewPhotoUrl: true, denahVwCrewName: true, denahVwCrewRole: true, denahVwCrewPhotoUrl: true, panduanLogoLeft: true, panduanLogoLeft2: true, panduanLogoCenter: true, panduanLogoRight2: true, panduanLogoRight: true, panduanLogoTopRight: true, panduanLogoTopRight2: true, panduanCoverLogoLeft: true, panduanCoverLogoLeft2: true, panduanCoverLogoCenter: true, panduanCoverLogoRight2: true, panduanCoverLogoRight: true, panduanCoverImageLeft: true, panduanCoverImageRight: true, panduanCoverLabel: true, panduanFontSizes: true },
+    select: { id: true, title: true, date: true, dateEnd: true, location: true, vwName: true, vwTitle: true, itineraryTitle: true, itineraryKeterangan: true, itineraryKeterangan2: true, denahKamarTitle: true, denahKamarKeterangan: true, denahKamarKeterangan2: true, denahDudukTitle: true, vwKeterangan: true, vwKeterangan2: true, panduanItinerary: true, panduanRules: true, panduanSections: true, crewName: true, crewPhone: true, crewRole: true, crewPhotoUrl: true, crewList: true, denahKamarCrewName: true, denahKamarCrewRole: true, denahKamarCrewPhotoUrl: true, denahVwCrewName: true, denahVwCrewRole: true, denahVwCrewPhotoUrl: true, panduanLogoLeft: true, panduanLogoLeft2: true, panduanLogoCenter: true, panduanLogoRight2: true, panduanLogoRight: true, panduanLogoTopRight: true, panduanLogoTopRight2: true, panduanCoverLogoLeft: true, panduanCoverLogoLeft2: true, panduanCoverLogoCenter: true, panduanCoverLogoRight2: true, panduanCoverLogoRight: true, panduanCoverImageLeft: true, panduanCoverImageRight: true, panduanCoverLabel: true, panduanCoverHeading: true, panduanCoverSubheading: true, panduanFontSizes: true },
   })
 }
 
@@ -218,24 +205,22 @@ export default async function EventPanduanPage({
   const { rows: itinerary, notes: itineraryNotes, sideNotes: itinerarySideNotes, footerNote: itineraryFooterNote } = parseItineraryDoc(event.panduanItinerary)
   const dayGroups = groupItineraryByDay(itinerary, itineraryNotes, itinerarySideNotes)
   const sections = parsePanduanSections(event.panduanSections)
-  const hasCustomContent = sections.some(
-    (s) => s.type === 'custom' && (s.title.trim() !== '' || s.items.length > 0 || s.note.trim() !== ''),
-  )
-  const isEmpty =
-    itinerary.length === 0 &&
-    Object.keys(itineraryNotes).length === 0 &&
-    Object.keys(itinerarySideNotes).length === 0 &&
-    !hasCustomContent
   const logoLeftUrl = event.panduanLogoLeft ?? '/ASITA%20LONJONG.png'
   const logoRightUrl = event.panduanLogoRight ?? '/Logo%20siluet%20barokah%20tour.png'
   const coverLogoLeftUrl = event.panduanCoverLogoLeft ?? event.panduanLogoLeft ?? '/logo%20barokah%20event%20cover%20panduan.png'
-  const coverLogoRightUrl = event.panduanCoverLogoRight ?? logoRightUrl
+  const coverLogoRightUrl =
+    event.panduanCoverLogoRight ?? event.panduanLogoRight ?? '/PESONA%20INDONESIA%20DENGAN%20WARNA%20PUTIH.png'
   const coverLogoLeft2 = event.panduanCoverLogoLeft2 ?? event.panduanLogoLeft2
   const coverLogoCenter = event.panduanCoverLogoCenter ?? event.panduanLogoCenter
-  const coverLogoRight2 = event.panduanCoverLogoRight2 ?? event.panduanLogoRight2
+  const coverLogoRight2 =
+    event.panduanCoverLogoRight2 ?? event.panduanLogoRight2 ?? '/ASITA%20NO%20BACKGROUND%20DENGAN%20BORDER%20PUTIHH.png'
   const coverImageLeftUrl = event.panduanCoverImageLeft
   const coverImageRightUrl = event.panduanCoverImageRight
   const hexClip = 'polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)'
+  const pdfFileName = `panduan-${(event.title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || event.id)}.pdf`
   const fontSizes = parsePanduanFontSizes(event.panduanFontSizes)
   const fontVars = panduanFontStyleVars(fontSizes)
   const crews = effectiveCrewList(event)
@@ -572,7 +557,10 @@ export default async function EventPanduanPage({
                     />
                     <PublicHeading
                       title={
-                        <h3 className="text-center text-2xl font-extrabold uppercase tracking-wide text-[#00A3E0]">
+                        <h3
+                          className="text-center text-2xl font-extrabold uppercase tracking-wide text-[#00A3E0]"
+                          style={{ fontSize: 'calc(1.5rem + var(--panduan-page-title-delta, 0px))' }}
+                        >
                           {event.itineraryTitle?.trim() || event.title}
                         </h3>
                       }
@@ -604,16 +592,25 @@ export default async function EventPanduanPage({
               />
               <div data-a4-body className="flex flex-1 flex-col">
                 <div className="mb-6 mt-6 flex items-center justify-center gap-4">
-                  <h2 className="text-center text-4xl font-extrabold uppercase tracking-wide text-[#00A3E0]">
+                  <h2
+                    className="text-center text-4xl font-extrabold uppercase tracking-wide text-[#00A3E0]"
+                    style={{ fontSize: 'calc(2.25rem + var(--panduan-page-title-delta, 0px))' }}
+                  >
                     {event.denahDudukTitle?.trim() || 'Denah Duduk'}
                   </h2>
                   <div className="flex items-center gap-3">
                     <span aria-hidden className="h-9 w-0.5 shrink-0 bg-[#00A3E0]" />
                     <div className="flex flex-col text-left leading-tight">
-                      <p className="text-2xl font-bold uppercase tracking-wide text-[#e8830c]">
+                      <p
+                        className="text-2xl font-bold uppercase tracking-wide text-[#e8830c]"
+                        style={{ fontSize: 'calc(1.5rem + var(--panduan-section-caption-delta, 0px))' }}
+                      >
                         {resolveKeterangan(bus.denahDudukKeterangan, event.title)}
                       </p>
-                      <p className="text-2xl font-bold uppercase tracking-wide text-[#2ca84a]">
+                      <p
+                        className="text-2xl font-bold uppercase tracking-wide text-[#2ca84a]"
+                        style={{ fontSize: 'calc(1.5rem + var(--panduan-section-caption-delta, 0px))' }}
+                      >
                         {bus.denahDudukKeterangan2 || bus.name}
                       </p>
                     </div>
@@ -704,6 +701,15 @@ export default async function EventPanduanPage({
     ) : null,
   }
 
+  const visibleSections = sections.filter((section) => section.enabled !== false)
+  const hasVisibleBuiltin = visibleSections.some(
+    (section) => section.type === 'builtin' && builtinSections[section.builtin] != null,
+  )
+  const hasCustomContent = visibleSections.some(
+    (section) =>
+      section.type === 'custom' && (section.title.trim() !== '' || section.items.length > 0 || section.note.trim() !== ''),
+  )
+  const isEmpty = !hasVisibleBuiltin && !hasCustomContent
 
   function renderCoverHex(src: string | null, className: string, insetClass = 'inset-[20px]') {
     return (
@@ -715,7 +721,7 @@ export default async function EventPanduanPage({
           <div className="relative h-full w-full overflow-hidden bg-white" style={{ clipPath: hexClip }}>
             {src ? (
               /* eslint-disable-next-line @next/next/no-img-element */
-              <img src={src} alt="" className="h-full w-full object-cover" />
+              <img src={src} alt="" className="cover-hex-img h-full w-full object-cover" />
             ) : null}
           </div>
         </div>
@@ -777,33 +783,19 @@ export default async function EventPanduanPage({
         </div>
       ) : (
         <>
-          <div className="border-b border-[#dfe4e8] px-4 py-10 print:hidden">
-            <div className="mx-auto max-w-2xl px-4">
-              <h1 className="mt-2 text-3xl font-bold text-[#1b3555]">{event.title}</h1>
-              <div className="mt-4 flex flex-wrap gap-4 text-sm text-[#657080]">
-                <span className="flex items-center gap-1">
-                  <Clock3 size={15} className="text-[#2ca84a]" /> {formatDate(event.date, event.dateEnd)}
-                </span>
-                {event.location && (
-                  <span className="flex items-center gap-1">
-                    <MapPin size={15} className="text-[#2ca84a]" /> {event.location}
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-
           <div className="px-4 pb-7 pt-6 print:hidden">
             <div className="mx-auto max-w-2xl">
               <section>
-                <PanduanPrintCta />
+                <PanduanPrintCta targetId="panduan-pdf" fileName={pdfFileName} />
               </section>
             </div>
           </div>
 
+          <div id="panduan-pdf">
           <div className="px-4 pt-6 print:px-0 print:pt-0">
             <div className="mx-auto w-[210mm]">
               <section
+                data-pdf-cover
                 className="relative flex h-[297mm] min-h-[297mm] max-h-[297mm] w-full flex-col overflow-hidden bg-cover bg-center px-10 py-10 print:break-after-page"
                 style={{ backgroundImage: "url('/background%20cover%20panduan.png')" }}
               >
@@ -813,17 +805,41 @@ export default async function EventPanduanPage({
                   logoLeft2={coverLogoLeft2}
                   logoCenter={coverLogoCenter}
                   logoRight2={coverLogoRight2}
+                  compact
                 />
-                <div className="relative flex flex-1 items-center py-6 pl-14">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/ornamen%20wave%20kuning.png"
+                  alt=""
+                  aria-hidden="true"
+                  className="pointer-events-none absolute bottom-[945px] left-[calc(50%+310px)] z-10 w-1/5 -translate-x-1/2 select-none"
+                />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/ornamen%20pesawat.png"
+                  alt=""
+                  aria-hidden="true"
+                  className="pointer-events-none absolute left-4 top-[30%] z-0 w-12 -rotate-[20deg] translate-x-[145px] translate-y-[130px] select-none"
+                />
+                <div className="relative z-50 flex flex-1 translate-y-[50px] items-center py-6 pl-14">
                     {renderCoverHex(coverImageLeftUrl, 'relative z-50 h-[20rem] w-[23rem] shrink-0 translate-x-80 translate-y-[calc(24rem-133px)]', 'inset-[15px]')}
                     {renderCoverHex(
                       coverImageRightUrl,
-                      'absolute right-0 top-[46%] h-[34rem] w-[39rem] -translate-y-[calc(50%+120px)] translate-x-[37%]',
+                      'absolute right-0 top-[46%] z-50 h-[34rem] w-[39rem] -translate-y-[calc(50%+120px)] translate-x-[37%]',
                       'inset-[20px]',
                     )}
                 </div>
-                <div className="-ml-10 w-[600px] -mt-[158px] -translate-y-[143px] rounded-none bg-[#ffc107]/95 shadow-xl backdrop-blur relative z-20">
+                <div className="-ml-10 w-[600px] -mt-[158px] -translate-y-[93px] rounded-none bg-[#ffc107]/95 shadow-xl backdrop-blur relative z-20">
                   <div className="pointer-events-none absolute bottom-full left-10 mb-3 flex flex-col items-start gap-1">
+                    <p
+                      className="max-w-[22rem] -translate-y-[40px] whitespace-pre-line font-extrabold uppercase leading-tight tracking-[0.14em] text-[#ffc107] [text-shadow:0_1px_3px_rgba(0,0,0,0.65)]"
+                      style={{ fontSize: 'calc(2.75rem + var(--panduan-cover-heading-delta, 0px))' }}
+                    >
+                      {event.panduanCoverHeading?.trim() || 'PANDUAN PESERTA'}
+                    </p>
+                    <p className="mt-2 -translate-y-[20px] mb-[365px] max-w-[22rem] whitespace-pre-line font-serif text-sm font-normal leading-snug text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.55)]">
+                      {event.panduanCoverSubheading?.trim() || 'Panduan perjalanan peserta'}
+                    </p>
                     <p
                       className="max-w-[22rem] whitespace-pre-line font-extrabold uppercase leading-tight tracking-[0.14em] text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.65)]"
                       style={{ fontSize: 'calc(1.875rem + var(--panduan-cover-title-delta, 0px))' }}
@@ -831,7 +847,7 @@ export default async function EventPanduanPage({
                       {event.title}
                     </p>
                     <span
-                      className="whitespace-nowrap font-bold text-[#ffc107] [text-shadow:0_1px_2px_rgba(0,0,0,0.55)]"
+                      className="whitespace-nowrap font-normal text-[#ffc107] [text-shadow:0_1px_2px_rgba(0,0,0,0.55)]"
                       style={{ fontSize: 'calc(1.25rem + var(--panduan-cover-date-delta, 0px))' }}
                     >
                       {formatCoverDate(event.date, event.dateEnd)}
@@ -847,16 +863,6 @@ export default async function EventPanduanPage({
                       >
                         {event.panduanCoverLabel?.trim() || 'BUKU PANDUAN\nPESERTA'}
                       </p>
-                      {event.location && (
-                        <div
-                          className="mt-1 flex flex-col gap-0.5 text-[#657080]"
-                          style={{ fontSize: 'calc(0.75rem + var(--panduan-cover-location-delta, 0px))' }}
-                        >
-                          <span className="flex items-center gap-1.5">
-                            <MapPin size={12} className="text-[#2ca84a]" /> {event.location}
-                          </span>
-                        </div>
-                      )}
                     </div>
 
                     {ownBus && (
@@ -898,7 +904,7 @@ export default async function EventPanduanPage({
 
           <div className="overflow-x-auto">
             <div id="panduan-isi" className="mx-auto w-[210mm] space-y-2 py-7">
-            {sections.map((s) =>
+            {visibleSections.map((s) =>
               s.type === 'builtin' ? (
                 builtinSections[s.builtin] ? <Fragment key={s.id}>{builtinSections[s.builtin]}</Fragment> : null
               ) : (
@@ -916,6 +922,7 @@ export default async function EventPanduanPage({
               ),
             )}
             </div>
+          </div>
           </div>
         </>
       )}

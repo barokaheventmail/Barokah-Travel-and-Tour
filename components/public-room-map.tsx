@@ -280,7 +280,10 @@ export function PublicRoomMap({
   const headingFor = (section: Section | null) => (
     <PublicHeading
       title={
-        <h2 className="text-xl font-extrabold uppercase tracking-wide text-[#00A3E0]">
+        <h2
+          className="text-xl font-extrabold uppercase tracking-wide text-[#00A3E0]"
+          style={{ fontSize: 'calc(1.25rem + var(--panduan-page-title-delta, 0px))' }}
+        >
           {(heading ?? '').trim() || 'Denah Kamar'}
         </h2>
       }

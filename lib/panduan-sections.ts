@@ -4,9 +4,12 @@
  * Satu node mewakili satu halaman A4 di panduan publik:
  * - `builtin` = section bawaan (Visi & Misi, Doa/Salat, Tata Tertib, dst.),
  *   kontennya tetap dirender oleh halaman panduan. Bila key-nya tidak ada di
- *   daftar, section itu disembunyikan.
+ *   daftar atau `enabled: false`, section itu disembunyikan.
  * - `custom` = halaman buatan admin dengan judul bebas, daftar item, dan
  *   keterangan opsional di bawah daftar.
+ *
+ * `enabled: false` menyembunyikan halaman dari panduan tanpa menghapus isinya,
+ * sehingga admin bisa menyalakan/mematikannya lagi kapan saja.
  *
  * Bila `Event.panduanSections` null/kosong, dipakai urutan bawaan (semua
  * section bawaan tampil pada urutan aslinya) supaya event lama tidak berubah.
@@ -36,13 +39,14 @@ export const BUILTIN_SECTION_LABELS: Record<BuiltinSectionKey, string> = {
   'vw-map': 'Denah VW',
 }
 
-export type BuiltinSectionItem = { id: string; type: 'builtin'; builtin: BuiltinSectionKey }
+export type BuiltinSectionItem = { id: string; type: 'builtin'; builtin: BuiltinSectionKey; enabled?: boolean }
 export type CustomSectionItem = {
   id: string
   type: 'custom'
   title: string
   items: string[]
   note: string
+  enabled?: boolean
 }
 export type PanduanSectionItem = BuiltinSectionItem | CustomSectionItem
 
@@ -104,7 +108,12 @@ export function parsePanduanSections(value: string | null | undefined): PanduanS
 
     if (record.type === 'builtin') {
       if (!isBuiltinKey(record.builtin)) continue
-      items.push({ id, type: 'builtin', builtin: record.builtin })
+      items.push({
+        id,
+        type: 'builtin',
+        builtin: record.builtin,
+        ...(record.enabled === false ? { enabled: false } : {}),
+      })
       continue
     }
     if (record.type === 'custom') {
@@ -112,7 +121,14 @@ export function parsePanduanSections(value: string | null | undefined): PanduanS
       const note = cleanText(record.note, MAX_SECTION_NOTE)
       const list = cleanItems(record.items)
       if (!title && !note && list.length === 0) continue
-      items.push({ id, type: 'custom', title, items: list, note })
+      items.push({
+        id,
+        type: 'custom',
+        title,
+        items: list,
+        note,
+        ...(record.enabled === false ? { enabled: false } : {}),
+      })
     }
   }
   return items.length > 0 ? items : defaultPanduanSections()
@@ -124,14 +140,26 @@ export function serializePanduanSections(items: PanduanSectionItem[]): string {
   for (const item of items) {
     if (item.type === 'builtin') {
       if (!isBuiltinKey(item.builtin)) continue
-      clean.push({ id: item.id, type: 'builtin', builtin: item.builtin })
+      clean.push({
+        id: item.id,
+        type: 'builtin',
+        builtin: item.builtin,
+        ...(item.enabled === false ? { enabled: false } : {}),
+      })
       continue
     }
     const title = cleanText(item.title, MAX_SECTION_TITLE)
     const note = cleanText(item.note, MAX_SECTION_NOTE)
     const list = cleanItems(item.items)
     if (!title && !note && list.length === 0) continue
-    clean.push({ id: item.id, type: 'custom', title, items: list, note })
+    clean.push({
+      id: item.id,
+      type: 'custom',
+      title,
+      items: list,
+      note,
+      ...(item.enabled === false ? { enabled: false } : {}),
+    })
   }
   return JSON.stringify(clean)
 }

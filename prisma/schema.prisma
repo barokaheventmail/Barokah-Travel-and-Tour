@@ -122,6 +122,10 @@ model Event {
     // Label kecil di atas judul cover (default "BUKU PANDUAN PESERTA").
     // TEXT agar tidak menambah batas ukuran baris tabel (banyak kolom VARCHAR).
     panduanCoverLabel      String? @db.Text
+    // Judul tambahan di atas nama event pada sampul panduan (bisa diedit admin).
+    panduanCoverHeading    String? @db.Text
+    // Keterangan kecil di bawah judul atas nama event pada sampul panduan.
+    panduanCoverSubheading String? @db.Text
     // Ukuran font per kelompok teks panduan (JSON map delta px, mis.
     // { "coverTitle": 4, "body": -1 }). Null/0 = ukuran bawaan.
     panduanFontSizes       String? @db.Text
@@ -183,6 +187,17 @@ model PaketPrice {
   paket      PaketEvent @relation(fields: [paketId], references: [id], onDelete: Cascade)
 
   @@index([paketId, order])
+}
+
+// Gambar banner yang tampil bergantian di bagian atas beranda.
+// Jika kosong, beranda memakai gambar bawaan.
+model Banner {
+  id        String   @id @default(cuid())
+  imageUrl  String   @db.VarChar(500)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([order])
 }
 
 model Bus {

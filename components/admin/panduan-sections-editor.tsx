@@ -22,6 +22,38 @@ const inputCls =
 const iconBtnCls =
   'rounded-lg p-1.5 text-[#657080] transition-colors hover:bg-[#eef4fb] hover:text-[#1b4f9c] disabled:opacity-30'
 
+function VisibilityToggle({
+  enabled,
+  disabled,
+  onChange,
+}: {
+  enabled: boolean
+  disabled: boolean
+  onChange: (enabled: boolean) => void
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={enabled}
+      aria-label={enabled ? 'Sembunyikan halaman dari panduan' : 'Tampilkan halaman di panduan'}
+      title={enabled ? 'Sembunyikan dari panduan' : 'Tampilkan di panduan'}
+      onClick={() => onChange(!enabled)}
+      disabled={disabled}
+      className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-40 ${
+        enabled ? 'bg-[#2ca84a]' : 'bg-[#cbd3dc]'
+      }`}
+    >
+      <span
+        aria-hidden
+        className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform duration-200 ${
+          enabled ? 'translate-x-[18px]' : 'translate-x-[3px]'
+        }`}
+      />
+    </button>
+  )
+}
+
 export function PanduanSectionsEditor({
   sections,
   onChange,
@@ -50,6 +82,10 @@ export function PanduanSectionsEditor({
 
   function removeAt(index: number) {
     onChange(sections.filter((_, i) => i !== index))
+  }
+
+  function setEnabled(index: number, enabled: boolean) {
+    onChange(sections.map((section, i) => (i === index ? { ...section, enabled: enabled ? undefined : false } : section)))
   }
 
   function addCustom() {
@@ -102,8 +138,8 @@ export function PanduanSectionsEditor({
         <div className="min-w-0">
           <h2 className="text-sm font-bold text-[#1b3555]">Halaman &amp; Urutan Panduan</h2>
           <p className="mt-0.5 text-xs text-[#657080]">
-            Urutkan halaman bawaan dan tambah halaman/section baru dengan judul bebas. Tiap halaman jadi satu lembar A4
-            saat dicetak.
+            Urutkan halaman bawaan dan tambah halaman/section baru dengan judul bebas. Matikan toggle hijau untuk
+            menyembunyikan halaman dari panduan tanpa menghapus isinya. Tiap halaman jadi satu lembar A4 saat dicetak.
           </p>
         </div>
         <span className="mt-0.5 shrink-0 rounded-lg p-1 text-[#657080]">
@@ -113,6 +149,7 @@ export function PanduanSectionsEditor({
 
       {open && (
         <div id="panduan-sections-body" className="mt-4">
+          <p className="mb-2 text-[11px] text-[#9aa3af]">Toggle hijau = halaman tampil di panduan peserta.</p>
           <div className="flex flex-wrap items-center justify-end gap-2">
             <button type="button" onClick={resetOrder} disabled={disabled} className={addBtnCls}>
               <RotateCcw size={12} /> Urutan Bawaan
@@ -136,8 +173,14 @@ export function PanduanSectionsEditor({
               {sections.map((section, index) => {
                 const isCustom = section.type === 'custom'
                 const isOpen = expanded[section.id] ?? false
+                const isEnabled = section.enabled !== false
                 return (
-                  <div key={section.id} className="rounded-xl border border-[#e8ecf1] bg-[#fbfcfe] p-3">
+                  <div
+                    key={section.id}
+                    className={`rounded-xl border p-3 ${
+                      isEnabled ? 'border-[#e8ecf1] bg-[#fbfcfe]' : 'border-dashed border-[#d5dbe1] bg-[#f7f8fa]'
+                    }`}
+                  >
                     <div className="flex items-center gap-2">
                       <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#eef4fb] text-[11px] font-bold text-[#1b4f9c]">
                         {index + 1}
@@ -151,16 +194,24 @@ export function PanduanSectionsEditor({
                         <button
                           type="button"
                           onClick={() => setExpanded((prev) => ({ ...prev, [section.id]: !isOpen }))}
-                          className="min-w-0 flex-1 truncate text-left text-xs font-bold text-[#1b3555]"
+                          className={`min-w-0 flex-1 truncate text-left text-xs font-bold ${
+                            isEnabled ? 'text-[#1b3555]' : 'text-[#9aa3af]'
+                          }`}
                         >
                           {section.title.trim() || 'Halaman baru (belum diberi judul)'}
                           <span className="ml-1 font-normal text-[#9aa3af]">· {section.items.filter(Boolean).length} item</span>
                         </button>
                       ) : (
-                        <span className="min-w-0 flex-1 truncate text-xs font-bold text-[#1b3555]">
+                        <span className={`min-w-0 flex-1 truncate text-xs font-bold ${isEnabled ? 'text-[#1b3555]' : 'text-[#9aa3af]'}`}>
                           {BUILTIN_SECTION_LABELS[section.builtin]}
                         </span>
                       )}
+                      {!isEnabled && (
+                        <span className="shrink-0 rounded-full bg-[#eff1f4] px-2 py-0.5 text-[10px] font-bold text-[#9aa3af]">
+                          Disembunyikan
+                        </span>
+                      )}
+                      <VisibilityToggle enabled={isEnabled} disabled={disabled} onChange={(next) => setEnabled(index, next)} />
                       {isCustom && (
                         <button
                           type="button"
@@ -190,16 +241,18 @@ export function PanduanSectionsEditor({
                         >
                           <ChevronDown size={14} />
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => removeAt(index)}
-                          disabled={disabled}
-                          aria-label={isCustom ? 'Hapus halaman' : 'Sembunyikan halaman'}
-                          title={isCustom ? 'Hapus halaman' : 'Sembunyikan halaman'}
-                          className="rounded-lg p-1.5 text-[#657080] transition-colors hover:bg-red-50 hover:text-red-600 disabled:opacity-30"
-                        >
-                          <Trash2 size={14} />
-                        </button>
+                        {isCustom && (
+                          <button
+                            type="button"
+                            onClick={() => removeAt(index)}
+                            disabled={disabled}
+                            aria-label="Hapus halaman"
+                            title="Hapus halaman"
+                            className="rounded-lg p-1.5 text-[#657080] transition-colors hover:bg-red-50 hover:text-red-600 disabled:opacity-30"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        )}
                       </div>
                     </div>
 
@@ -283,8 +336,8 @@ export function PanduanSectionsEditor({
 
           {hiddenBuiltins.length > 0 && (
             <div className="mt-4 rounded-xl border border-dashed border-[#dfe4e8] p-3">
-              <p className="text-[11px] font-bold uppercase tracking-wide text-[#657080]">Halaman bawaan disembunyikan</p>
-              <p className="mt-0.5 text-[11px] text-[#9aa3af]">Klik untuk menampilkannya kembali di akhir urutan.</p>
+              <p className="text-[11px] font-bold uppercase tracking-wide text-[#657080]">Halaman bawaan belum ada di daftar</p>
+              <p className="mt-0.5 text-[11px] text-[#9aa3af]">Klik untuk menambahkannya kembali di akhir urutan.</p>
               <div className="mt-2 flex flex-wrap gap-2">
                 {hiddenBuiltins.map((key) => (
                   <button key={key} type="button" onClick={() => addBuiltin(key)} disabled={disabled} className={addBtnCls}>

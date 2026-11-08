@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Bookmark, Eye, History, Package, QrCode } from 'lucide-react'
+import { Bookmark, Eye, History, Image as ImageIcon, Package, QrCode } from 'lucide-react'
 
 type NavItem = {
   href: string
@@ -25,6 +25,12 @@ const ITEMS: NavItem[] = [
     label: 'Paket Event',
     icon: Package,
     match: (p) => p.startsWith('/admin/paket'),
+  },
+  {
+    href: '/admin/banner',
+    label: 'Banner',
+    icon: ImageIcon,
+    match: (p) => p.startsWith('/admin/banner'),
   },
   {
     href: '/admin/pengawasan',

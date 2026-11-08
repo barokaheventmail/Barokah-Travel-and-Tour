@@ -1,12 +1,14 @@
 import type { CSSProperties } from 'react'
 
 export const PANDUAN_FONT_FIELDS = [
-  { key: 'coverTitle', label: 'Judul Cover', varName: '--panduan-cover-title-delta' },
-  { key: 'coverLabel', label: 'Label Cover', varName: '--panduan-cover-label-delta' },
+  { key: 'coverHeading', label: 'Judul di Atas Nama Event', varName: '--panduan-cover-heading-delta' },
+  { key: 'coverTitle', label: 'Nama Event Cover', varName: '--panduan-cover-title-delta' },
+  { key: 'coverLabel', label: 'Teks Cover', varName: '--panduan-cover-label-delta' },
   { key: 'coverDate', label: 'Tanggal Cover', varName: '--panduan-cover-date-delta' },
   { key: 'coverLocation', label: 'Lokasi Cover', varName: '--panduan-cover-location-delta' },
   { key: 'participant', label: 'Nama Peserta', varName: '--panduan-participant-delta' },
   { key: 'sectionHeading', label: 'Judul Bagian', varName: '--panduan-section-heading-delta' },
+  { key: 'pageTitle', label: 'Judul Utama Halaman', varName: '--panduan-page-title-delta' },
   { key: 'sectionCaption', label: 'Keterangan Bagian', varName: '--panduan-section-caption-delta' },
   { key: 'body', label: 'Isi Teks', varName: '--panduan-body-delta' },
   { key: 'small', label: 'Teks Kecil', varName: '--panduan-small-delta' },
@@ -19,12 +21,14 @@ export const PANDUAN_FONT_MIN = -20
 export const PANDUAN_FONT_MAX = 80
 
 export const DEFAULT_PANDUAN_FONT_SIZES: PanduanFontSizes = {
+  coverHeading: 0,
   coverTitle: 0,
   coverLabel: 0,
   coverDate: 0,
   coverLocation: 0,
   participant: 0,
   sectionHeading: 0,
+  pageTitle: 0,
   sectionCaption: 0,
   body: 0,
   small: 0,

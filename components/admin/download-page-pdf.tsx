@@ -7,15 +7,15 @@ import { normalizeModernColors } from '@/lib/dom-color-normalize'
 /**
  * Unduh halaman yang sedang tampil sebagai PDF, langsung ke folder Download.
  *
- * Isi halaman difoto dengan `html2canvas`, lalu tiap potongan gambar
+ * Isi halaman difoto dengan `html-to-image`, lalu tiap potongan gambar
  * diletakkan di halaman A4. Dipakai untuk Panduan peserta, yang isinya
  * ratusan baris HTML itinerary, tata tertib, doa, dan peta kursi — terlalu
  * banyak untuk digambar ulang manual seperti tiket.
  *
- * Konsekuensi yang perlu diketahui: html2canvas meraster seluruh halaman, jadi
- * teks di PDF tidak bisa disalin dan file cukup besar (butuh connection
- * lokal). Untuk tiket QR ini tidak dipakai — QR-nya bisa kehilangan kontras
- * sampai gagal discan, jadi tiket memakai `pdf-lib` di server.
+ * Konsekuensi yang perlu diketahui: halaman diraster, jadi teks di PDF tidak
+ * bisa disalin dan file cukup besar (butuh connection lokal). Untuk tiket QR
+ * ini tidak dipakai — QR-nya bisa kehilangan kontras sampai gagal discan, jadi
+ * tiket memakai `pdf-lib` di server.
  */
 export function DownloadPagePdf({
   targetId,
@@ -39,8 +39,7 @@ export function DownloadPagePdf({
       setError('Isi halaman tidak ditemukan.')
       return
     }
-    // Dimensi yang dipakai html2canvas untuk menentukan area tangkap: hanya
-    // `getBoundingClientRect`, tanpa margin.
+    // Pastikan target punya ukuran sebelum capture.
     const rect = target.getBoundingClientRect()
     if (rect.width === 0 || rect.height === 0) {
       setError('Isi halaman belum tampil. Tutup blokir atau muat ulang halaman, lalu coba lagi.')
@@ -49,13 +48,12 @@ export function DownloadPagePdf({
     setBusy(true)
     setError(null)
     try {
-      const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
-        import('html2canvas'),
+      const [htmlToImage, { jsPDF }] = await Promise.all([
+        import('html-to-image'),
         import('jspdf'),
       ])
 
-      // html2canvas memuat ulang tiap <img> sebagai data URL. Logo & aset di
-      // public/ perlu CORS yang sama, kalau tidak gambar kosong di PDF.
+      // Tunggu font selesai dimuat supaya metrik teks sama dengan tampilan.
       if (!loaded.current) {
         await document.fonts?.ready
         loaded.current = true
@@ -65,17 +63,10 @@ export function DownloadPagePdf({
       const pageW = pdf.internal.pageSize.getWidth()
       const pageH = pdf.internal.pageSize.getHeight()
       // Tanpa margin: tiap section mengisi PENUH halaman A4 (210 × 297 mm),
-      // sesuai ukuran section yang diatur `pdf-page-mode` di globals.css.
+      // sesuai ukuran kotak `.a4-page` di globals.css.
       const margin = 0
       const printW = pageW
       const printH = pageH
-
-      // `windowWidth`/`windowHeight` dikunci supaya layout tiap potret sama,
-      // apa pun posisi scroll pengguna saat menekan tombol.
-      const cloneViewport = {
-        windowWidth: Math.max(rect.width, window.innerWidth),
-        windowHeight: window.innerHeight,
-      }
 
       // Tombol unduh & blok ajakan cetak tidak boleh ikut terpotret, jadi
       // disembunyikan sementara lalu dikembalikan setelah selesai.
@@ -91,60 +82,36 @@ export function DownloadPagePdf({
       const prevPdfOnly = pdfOnly.map((el) => el.style.display)
       for (const el of pdfOnly) el.style.display = 'block'
 
-      // html2canvas mem-parse computed style dengan parser sendiri yang hanya
-      // mengenal rgb/hsl/hex, sedangkan Tailwind v4 menulis warna sebagai
-      // `oklab()`/`lab()`/`color-mix()`. Tanpa langkah ini html2canvas melempar
-      // "Attempting to parse an unsupported color function". Warnanya ditulis
-      // ulang jadi rgb di inline style, lalu dikembalikan setelah foto selesai:
-      // html2canvas mem-baca klon yang dibuatnya sendiri, jadi layar tidak
-      // berkedip.
+      // Tailwind v4 menulis warna sebagai `oklab()`/`lab()`/`color-mix()`.
+      // Samakan ke rgb sebelum capture agar hasil gambar konsisten, lalu
+      // kembalikan setelah selesai supaya layar tidak berkedip.
       const restoreColors = normalizeModernColors(target)
 
       // Paginasi satu halaman per section: tiap <A4Section> (`data-pdf-page`)
-      // dan kop sampul (`data-pdf-only`) jadi satu halaman A4 utuh. Elemen
+      // dan sampul (`data-pdf-cover`) jadi satu halaman A4 utuh. Elemen
       // `print:hidden` (mis. blok ajakan cetak) & tombol sudah disembunyikan di
       // atas; di sini mereka juga dibuang dari daftar supaya tidak menghasilkan
       // halaman kosong.
       const hiddenSet = new Set(hidden)
-      const pageEls = (Array.from(target.children) as HTMLElement[]).filter(
-        (el) =>
-          (el.tagName === 'SECTION' ||
-            el.hasAttribute('data-pdf-only') ||
-            el.hasAttribute('data-pdf-page')) &&
-          !hiddenSet.has(el) &&
-          el.style.display !== 'none',
-      )
+      const pageEls = (
+        Array.from(target.querySelectorAll<HTMLElement>('[data-pdf-page], [data-pdf-cover]')) as HTMLElement[]
+      ).filter((el) => !hiddenSet.has(el) && el.style.display !== 'none')
 
-      // WYSIWYG: setiap <A4Section> adalah kotak kertas A4 (210 × 297 mm) yang
-      // sudah menata isinya persis seperti tampilan layar (isi yang kepanjangan
-      // dikecilkan dengan `transform: scale`). Kotak itu difoto APA ADANYA —
-      // termasuk transform-nya, yang didukung html2canvas 1.4 (section denah
-      // sudah memakai cara ini) — lalu ditempel penuh ke satu halaman A4.
-      // Karena kotak sudah seukuran A4, hasilnya sama dengan yang dilihat di web.
+      // Semua halaman memakai html-to-image (foreignObject), bukan html2canvas.
+      // html2canvas menghitung ulang layout sendiri dan menggeser isi halaman
+      // (mis. judul Visi/Misi dan tabel itinerary turun ±13 px) serta tidak
+      // mendukung `clip-path` pada foto hexagon sampul. html-to-image memakai
+      // render browser, jadi posisi, transform scale, grid itinerary, dan
+      // clip-path tetap persis seperti tampilan layar.
 
       try {
         for (let i = 0; i < pageEls.length; i += 1) {
           setProgress(Math.round(((i + 1) / pageEls.length) * 100))
           const el = pageEls[i]
-          // html2canvas default memotret sebatas viewport bila tidak diberi
-          // width/height eksplisit. Kotak A4 (`data-pdf-page`) difoto sebatas
-          // area yang terlihat (clientWidth/Height = 210 × 297 mm) — persis
-          // seperti di layar — sehingga isi yang sudah dikecilkan tidak melar.
-          // Elemen lain (mis. kop sampul) difoto seukuran isinya.
-          const isA4Page = el.hasAttribute('data-pdf-page')
-          const elW = isA4Page ? el.clientWidth : el.scrollWidth
-          const elH = isA4Page ? el.clientHeight : el.scrollHeight
-          const canvas = await html2canvas(el, {
-            scale: 2,
-            useCORS: true,
-            allowTaint: true,
+          const canvas = await htmlToImage.toCanvas(el, {
+            pixelRatio: 2,
             backgroundColor: '#ffffff',
-            logging: false,
-            width: elW,
-            height: elH,
-            ...cloneViewport,
-            windowWidth: Math.max(elW, cloneViewport.windowWidth),
-            windowHeight: Math.max(elH, cloneViewport.windowHeight),
+            cacheBust: true,
           })
           const imgW = canvas.width
           const imgH = canvas.height

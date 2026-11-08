@@ -230,7 +230,10 @@ export function PublicVwMap({
     return (
       <PublicHeading
         title={
-          <h2 className="text-xl font-extrabold uppercase tracking-wide text-[#00A3E0]">
+          <h2
+            className="text-xl font-extrabold uppercase tracking-wide text-[#00A3E0]"
+            style={{ fontSize: 'calc(1.25rem + var(--panduan-page-title-delta, 0px))' }}
+          >
             {section ? section.title : 'Denah Kendaraan'}
           </h2>
         }
