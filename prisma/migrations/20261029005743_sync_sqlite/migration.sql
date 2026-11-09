@@ -1,2 +1,2 @@
--- AlterTable
-ALTER TABLE "Event" ADD COLUMN "panduanHeadings" TEXT;
+-- Migrasi sync ini tergenerasi dari schema SQLite dan tidak boleh dijalankan di MySQL.
+-- Kolom `panduanHeadings` ditambahkan oleh migrasi MySQL 20261104010000_add_panduan_headings.
