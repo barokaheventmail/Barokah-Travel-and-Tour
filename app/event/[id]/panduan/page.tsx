@@ -822,7 +822,7 @@ export default async function EventPanduanPage({
                   className="pointer-events-none absolute left-4 top-[30%] z-0 w-12 -rotate-[20deg] translate-x-[145px] translate-y-[130px] select-none"
                 />
                 <div className="relative z-50 flex flex-1 translate-y-[50px] items-center py-6 pl-14">
-                    {renderCoverHex(coverImageLeftUrl, 'relative z-50 h-[20rem] w-[23rem] shrink-0 translate-x-80 translate-y-[calc(24rem-133px)]', 'inset-[15px]')}
+                    {renderCoverHex(coverImageLeftUrl, 'relative z-[60] h-[20rem] w-[23rem] shrink-0 translate-x-80 translate-y-[calc(24rem-133px)]', 'inset-[15px]')}
                     {renderCoverHex(
                       coverImageRightUrl,
                       'absolute right-0 top-[46%] z-50 h-[34rem] w-[39rem] -translate-y-[calc(50%+120px)] translate-x-[37%]',
@@ -832,12 +832,12 @@ export default async function EventPanduanPage({
                 <div className="-ml-10 w-[600px] -mt-[158px] -translate-y-[93px] rounded-none bg-[#ffc107]/95 shadow-xl backdrop-blur relative z-20">
                   <div className="pointer-events-none absolute bottom-full left-10 mb-3 flex flex-col items-start gap-1">
                     <p
-                      className="max-w-[22rem] -translate-y-[40px] whitespace-pre-line font-extrabold uppercase leading-tight tracking-[0.14em] text-[#ffc107] [text-shadow:0_1px_3px_rgba(0,0,0,0.65)]"
+                      className="max-w-[22rem] whitespace-pre-line font-extrabold uppercase leading-tight tracking-[0.14em] text-[#ffc107] [text-shadow:0_1px_3px_rgba(0,0,0,0.65)]"
                       style={{ fontSize: 'calc(2.75rem + var(--panduan-cover-heading-delta, 0px))' }}
                     >
                       {event.panduanCoverHeading?.trim() || 'PANDUAN PESERTA'}
                     </p>
-                    <p className="mt-2 -translate-y-[20px] mb-[365px] max-w-[22rem] whitespace-pre-line font-serif text-sm font-normal leading-snug text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.55)]">
+                    <p className="mt-2 translate-y-[20px] mb-[365px] max-w-[22rem] whitespace-pre-line font-serif text-sm font-normal leading-snug text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.55)]">
                       {event.panduanCoverSubheading?.trim() || 'Panduan perjalanan peserta'}
                     </p>
                     <p
