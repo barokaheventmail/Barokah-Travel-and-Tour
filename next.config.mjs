@@ -15,6 +15,11 @@ const nextConfig = {
   compress: true,
   // Optimasi bundle khusus VPS / Docker agar sangat ringan
   output: 'standalone',
+  experimental: {
+    // Batasi worker saat build agar tidak kehabisan thread di server dengan
+    // banyak CPU tetapi limit proses/thread yang rendah.
+    cpus: Number(process.env.NEXT_BUILD_CPUS) || 2,
+  },
 }
 
 export default nextConfig
