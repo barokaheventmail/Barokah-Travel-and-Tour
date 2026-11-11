@@ -295,7 +295,7 @@ export default async function EventPanduanPage({
                 topRight={event.panduanLogoTopRight}
                 topRight2={event.panduanLogoTopRight2}
               />
-              <div data-a4-body className="space-y-6 px-[40px] flow-root">
+              <div data-a4-body className="space-y-6 px-[80px] flow-root">
               <h2 className="text-center text-2xl font-extrabold uppercase tracking-wide text-black">Doa Bepergian Jauh</h2>
               <div>
                 <p className="mt-3 font-bold text-right text-lg leading-loose text-black" dir="rtl" lang="ar">
@@ -387,7 +387,7 @@ export default async function EventPanduanPage({
                 topRight={event.panduanLogoTopRight}
                 topRight2={event.panduanLogoTopRight2}
               />
-              <div data-a4-body className="space-y-6 px-[40px] flow-root">
+              <div data-a4-body className="space-y-6 px-[80px] flow-root">
               <div>
                 <h2 className="text-center text-2xl font-extrabold uppercase tracking-wide text-black">Tata Cara Sholat Jamak Takdim dengan Qashar</h2>
 
