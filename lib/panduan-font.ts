@@ -39,6 +39,29 @@ export function clampPanduanFontDelta(value: number): number {
   return Math.max(PANDUAN_FONT_MIN, Math.min(PANDUAN_FONT_MAX, Math.round(value)))
 }
 
+export type PanduanPositionKey =
+  | 'coverHeadingX'
+  | 'coverHeadingY'
+  | 'coverSubheadingX'
+  | 'coverSubheadingY'
+
+export type PanduanPositionOffsets = Record<PanduanPositionKey, number>
+
+export const PANDUAN_POSITION_MIN = -100
+export const PANDUAN_POSITION_MAX = 100
+
+export const DEFAULT_PANDUAN_POSITION_OFFSETS: PanduanPositionOffsets = {
+  coverHeadingX: 0,
+  coverHeadingY: 0,
+  coverSubheadingX: 0,
+  coverSubheadingY: 0,
+}
+
+export function clampPanduanPositionOffset(value: number): number {
+  if (!Number.isFinite(value)) return 0
+  return Math.max(PANDUAN_POSITION_MIN, Math.min(PANDUAN_POSITION_MAX, Math.round(value)))
+}
+
 export function parsePanduanFontSizes(raw: string | null | undefined): PanduanFontSizes {
   const result: PanduanFontSizes = { ...DEFAULT_PANDUAN_FONT_SIZES }
   if (!raw) return result
